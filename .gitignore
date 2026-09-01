@@ -2,8 +2,7 @@
 /game/saves
 /game/cache
 
-# Compiled script files. These are important for saving, and so should
-# be preserved by developer and build systems after the game has been released.
+# Compiled script files.
 /game/**/*.rpyc
 /game/**/*.rpymc
 
@@ -24,3 +23,11 @@
 /dialogue.tab
 /dialogue.txt
 /strings.json
+
+# Python/Flask local files.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
