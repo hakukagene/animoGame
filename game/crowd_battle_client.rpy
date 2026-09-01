@@ -41,8 +41,8 @@ init python:
                 headers=headers,
             )
 
-            if not isinstance(result, dict):
-                return {"success": False, "error": "Сервер буруу форматтай хариу өглөө."}
+            if not hasattr(result, "get"):
+                return {\n                    "success": False,\n                    "error": "Серверийн JSON хариу object биш байна: {}".format(type(result).__name__),\n                }
 
             return result
         except Exception as exc:
@@ -53,8 +53,8 @@ init python:
 
 
     def cb_apply_battle(response):
-        battle = response.get("battle") if isinstance(response, dict) else None
-        if not isinstance(battle, dict):
+        battle = response.get("battle") if hasattr(response, "get") else None
+        if not hasattr(battle, "get"):
             return False
 
         store.cb_battle = battle
