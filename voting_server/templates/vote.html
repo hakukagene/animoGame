@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Animo Crowd Battle</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b14;
+      --panel: rgba(18, 25, 43, .94);
+      --line: #2a3856;
+      --text: #f5f7ff;
+      --muted: #a6b0c5;
+      --accent: #6f7cff;
+      --accent2: #a855f7;
+      --good: #36d399;
+      --bad: #fb7185;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(111, 124, 255, .22), transparent 38%),
+        radial-gradient(circle at 95% 85%, rgba(168, 85, 247, .18), transparent 35%),
+        var(--bg);
+    }
+    main { width: min(100%, 620px); margin: 0 auto; padding: 20px 16px 40px; }
+    .brand { display: flex; align-items: center; gap: 12px; margin: 10px 0 22px; }
+    .logo {
+      display: grid; place-items: center; width: 46px; height: 46px;
+      border-radius: 15px; font-size: 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 32px rgba(111, 124, 255, .28);
+    }
+    h1 { margin: 0; font-size: 20px; }
+    .sub { margin-top: 3px; color: var(--muted); font-size: 13px; }
+    .card {
+      padding: 20px; border: 1px solid var(--line); border-radius: 22px;
+      background: var(--panel); box-shadow: 0 22px 60px rgba(0,0,0,.28);
+    }
+    .hidden { display: none !important; }
+    label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    input {
+      width: 100%; padding: 14px 15px; border: 1px solid var(--line); border-radius: 13px;
+      color: var(--text); background: #0c1220; font-size: 16px; outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .status { text-align: center; padding: 24px 8px; }
+    .status-icon { font-size: 44px; margin-bottom: 12px; }
+    .status-title { font-size: 20px; font-weight: 800; }
+    .status-text { margin-top: 8px; color: var(--muted); line-height: 1.5; }
+    .round-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .round-number { color: var(--muted); font-size: 13px; }
+    .timer {
+      min-width: 55px; padding: 8px 10px; border-radius: 12px; text-align: center;
+      font-weight: 900; background: rgba(251,113,133,.12); color: #ff9dad;
+    }
+    .question { margin: 18px 0; font-size: clamp(20px, 5vw, 28px); font-weight: 850; line-height: 1.25; }
+    .answers { display: grid; gap: 11px; }
+    button {
+      width: 100%; border: 1px solid var(--line); border-radius: 15px; padding: 15px;
+      color: var(--text); background: #10182a; text-align: left; font-size: 16px;
+      font-weight: 700; cursor: pointer; transition: .16s ease;
+    }
+    button:hover, button:focus { transform: translateY(-1px); border-color: var(--accent); background: #17213a; }
+    button:disabled { cursor: default; transform: none; opacity: .62; }
+    button.selected { border-color: var(--accent); background: rgba(111,124,255,.2); }
+    button.correct { border-color: var(--good); background: rgba(54,211,153,.16); }
+    button.wrong { border-color: var(--bad); background: rgba(251,113,133,.16); }
+    .meta { display: flex; justify-content: space-between; margin-top: 17px; color: var(--muted); font-size: 13px; }
+    .notice {
+      margin-top: 14px; padding: 12px 14px; border-radius: 13px; text-align: center;
+      background: rgba(111,124,255,.12); color: #c9ceff; font-size: 14px;
+    }
+    .error { background: rgba(251,113,133,.12); color: #ffb1be; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <div class="logo">⚔</div>
+      <div><h1>Animo Crowd Battle</h1><div class="sub">Олуулаа хариулж, мангасыг ялъя</div></div>
+    </div>
+
+    <section class="card" id="name-card">
+      <label for="player-name">Таны нэр</label>
+      <input id="player-name" maxlength="40" autocomplete="nickname" placeholder="Нэрээ оруулна уу">
+      <div class="notice">Нэрээ оруулсны дараа асуулт гарч ирэхийг хүлээнэ үү.</div>
+    </section>
+
+    <section class="card hidden" id="waiting-card">
+      <div class="status">
+        <div class="status-icon">⏳</div>
+        <div class="status-title" id="waiting-title">Тулаан хүлээж байна</div>
+        <div class="status-text" id="waiting-text">Ren'Py тоглоомоос шинэ асуулт эхлүүлнэ.</div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="question-card">
+      <div class="round-head">
+        <div class="round-number" id="round-number"></div>
+        <div class="timer" id="timer">--</div>
+      </div>
+      <div class="question" id="question"></div>
+      <div class="answers" id="answers"></div>
+      <div class="notice hidden" id="answer-notice"></div>
+      <div class="meta"><span id="answer-count">0 хариулт</span><span id="power-text"></span></div>
+    </section>
+  </main>
+
+  <script>
+    const createPlayerId = () => {
+      if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+        return globalThis.crypto.randomUUID();
+      }
+      return `player-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    const state = {
+      playerId: localStorage.getItem("animo_player_id") || createPlayerId(),
+      answeredRoundId: localStorage.getItem("animo_answered_round") || "",
+      selectedIndex: Number(localStorage.getItem("animo_selected_index") || -1),
+      lastRoundId: ""
+    };
+    localStorage.setItem("animo_player_id", state.playerId);
+
+    const $ = id => document.getElementById(id);
+    const nameInput = $("player-name");
+    nameInput.value = localStorage.getItem("animo_player_name") || "";
+    nameInput.addEventListener("input", () => localStorage.setItem("animo_player_name", nameInput.value.trim()));
+
+    function show(card) {
+      ["name-card", "waiting-card", "question-card"].forEach(id => $(id).classList.toggle("hidden", id !== card));
+    }
+
+    function playerName() {
+      return nameInput.value.trim() || localStorage.getItem("animo_player_name") || "Тоглогч";
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        cache: "no-store",
+        headers: {"Content-Type": "application/json", ...(options.headers || {})},
+        ...options
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw Object.assign(new Error(body.error || "Серверийн алдаа"), {body, status: response.status});
+      return body;
+    }
+
+    function renderRound(battle, round) {
+      show("question-card");
+      $("round-number").textContent = `${battle.monster_name} · ${round.round_number}-р асуулт`;
+      $("timer").textContent = `${round.remaining_seconds}s`;
+      $("question").textContent = round.question;
+      $("answer-count").textContent = `${round.total_answers} хариулт`;
+      $("power-text").textContent = `⚔ ${round.attack_power} / ☠ ${round.enemy_attack_power}`;
+
+      if (state.lastRoundId !== round.round_id) {
+        state.lastRoundId = round.round_id;
+        if (state.answeredRoundId !== round.round_id) state.selectedIndex = -1;
+        $("answers").replaceChildren();
+        round.choices.forEach((choice, index) => {
+          const button = document.createElement("button");
+          button.textContent = `${String.fromCharCode(65 + index)}. ${choice}`;
+          button.dataset.index = index;
+          button.addEventListener("click", () => submitAnswer(round, index));
+          $("answers").appendChild(button);
+        });
+      }
+
+      const answered = state.answeredRoundId === round.round_id;
+      const finished = round.status === "finished";
+      const correctIndex = finished && round.result ? round.result.correct_index : -1;
+      [...$("answers").children].forEach((button, index) => {
+        button.disabled = answered || finished;
+        button.className = "";
+        if (index === state.selectedIndex) button.classList.add("selected");
+        if (finished && index === correctIndex) button.classList.add("correct");
+        if (finished && index === state.selectedIndex && index !== correctIndex) button.classList.add("wrong");
+      });
+
+      const notice = $("answer-notice");
+      if (finished && round.result) {
+        notice.classList.remove("hidden", "error");
+        notice.textContent = `Зөв: ${round.result.correct_count} · Буруу: ${round.result.wrong_count} · Мангас -${round.result.monster_damage} HP`;
+      } else if (answered) {
+        notice.classList.remove("hidden", "error");
+        notice.textContent = "Хариулт амжилттай илгээгдлээ. Үр дүнг хүлээнэ үү.";
+      } else {
+        notice.classList.add("hidden");
+      }
+    }
+
+    async function submitAnswer(round, choiceIndex) {
+      if (state.answeredRoundId === round.round_id) return;
+      try {
+        await api("/api/round/answer", {
+          method: "POST",
+          body: JSON.stringify({player_id: state.playerId, player_name: playerName(), choice_index: choiceIndex})
+        });
+        state.answeredRoundId = round.round_id;
+        state.selectedIndex = choiceIndex;
+        localStorage.setItem("animo_answered_round", round.round_id);
+        localStorage.setItem("animo_selected_index", String(choiceIndex));
+        localStorage.setItem("animo_player_name", playerName());
+      } catch (error) {
+        const notice = $("answer-notice");
+        notice.classList.remove("hidden");
+        notice.classList.add("error");
+        notice.textContent = error.message;
+        if (error.body && error.body.duplicate) state.answeredRoundId = round.round_id;
+      }
+    }
+
+    async function poll() {
+      try {
+        const {battle} = await api("/api/battle/status");
+        if (!playerName() && battle.status !== "active") {
+          show("name-card");
+        } else if (battle.current_round) {
+          renderRound(battle, battle.current_round);
+        } else {
+          show("waiting-card");
+          $("waiting-title").textContent = battle.status === "idle" ? "Тулаан хүлээж байна" : "Асуулт хүлээж байна";
+        }
+      } catch (error) {
+        show("waiting-card");
+        $("waiting-title").textContent = "Сервертэй холбогдсонгүй";
+        $("waiting-text").textContent = "Интернэт холболтоо шалгаад дахин оролдоно уу.";
+      } finally {
+        setTimeout(poll, 700);
+      }
+    }
+    poll();
+  </script>
+</body>
+</html>

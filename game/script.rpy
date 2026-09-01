@@ -1,33 +1,66 @@
-﻿# The script of the game goes in this file.
+define guide = Character("Систем", color="#8999FF")
 
-# Declare characters used by this game. The color argument colorizes the
-# name of the character.
-
-define e = Character("Eileen")
-
-
-# The game starts here.
 
 label start:
+    $ quick_menu = False
+    $ cb_connection_message = ""
 
-    # Show a background. This uses a placeholder by default, but you can
-    # add a file (named either "bg room.png" or "bg room.jpg") to the
-    # images directory to show it.
+    call screen crowd_server_settings
 
-    scene bg room
+    jump crowd_monster_battle
 
-    # This shows a character sprite. A placeholder is used, but you can
-    # replace it by adding a file named "eileen happy.png" to the images
-    # directory.
 
-    show eileen happy
+label crowd_monster_battle:
+    $ response = cb_start_battle()
+    $ renpy.block_rollback()
 
-    # These display lines of dialogue.
+    while not response.get("success", False):
+        call screen crowd_connection_error(response.get("error", "Сервертэй холбогдсонгүй."))
 
-    e "You've created a new Ren'Py game."
+        if _return == "settings":
+            call screen crowd_server_settings
 
-    e "Once you add a story, pictures, and music, you can release it to the world!"
+        $ response = cb_start_battle()
+        $ renpy.block_rollback()
 
-    # This ends the game.
+    call screen crowd_battle_intro
 
+    $ question_index = 0
+
+    while cb_battle_status == "active":
+        $ question = CROWD_BATTLE_QUESTIONS[question_index % len(CROWD_BATTLE_QUESTIONS)]
+        $ response = cb_start_round(question)
+        $ renpy.block_rollback()
+
+        while not response.get("success", False):
+            call screen crowd_connection_error(response.get("error", "Асуулт эхлүүлж чадсангүй."))
+
+            if _return == "settings":
+                call screen crowd_server_settings
+
+            $ response = cb_start_round(question)
+            $ renpy.block_rollback()
+
+        call screen crowd_battle_round
+        $ result = _return or cb_round_result
+
+        if not result:
+            $ response = cb_force_finish_round()
+            $ result = cb_round_result
+            $ renpy.block_rollback()
+
+        call screen crowd_round_result(result)
+        $ question_index += 1
+
+    $ victory = cb_battle_status == "victory"
+    call screen crowd_battle_ending(victory)
+
+    if _return == "restart":
+        jump crowd_monster_battle
+    elif _return == "settings":
+        call screen crowd_server_settings
+        jump crowd_monster_battle
+
+    $ cb_reset_battle()
+    $ renpy.block_rollback()
     return
