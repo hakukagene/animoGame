@@ -16,10 +16,12 @@ default cb_remaining_seconds = 0
 
 
 init -10 python:
-    if not getattr(persistent, "crowd_server_url", None):
+    saved_server_url = getattr(persistent, "crowd_server_url", None)
+    if not isinstance(saved_server_url, str) or not saved_server_url.strip():
         persistent.crowd_server_url = CROWD_DEFAULT_SERVER_URL
 
-    if not hasattr(persistent, "crowd_host_token"):
+    saved_host_token = getattr(persistent, "crowd_host_token", None)
+    if not isinstance(saved_host_token, str):
         persistent.crowd_host_token = ""
 
 
