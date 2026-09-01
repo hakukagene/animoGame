@@ -10,6 +10,7 @@ Ren'Py audience battle connected to a Flask service on Render. Players open the 
 - `game/script.rpy` — complete playable battle flow
 - `voting_server/` — Flask API and mobile voting page
 - `render.yaml` — Render Blueprint configuration
+- `server.py` — compatibility entry point for an existing root-level Render service
 
 ## Run locally
 
@@ -27,6 +28,12 @@ For another phone on the same Wi-Fi, use the computer's LAN URL, such as `http:/
 ## Deploy to Render
 
 Create a new Render Blueprint from this repository. Render reads `render.yaml` and starts `voting_server/app.py`. When deployment completes, enter the resulting `https://...onrender.com` URL in the Ren'Py server settings screen.
+
+An existing Render Web Service can keep the previous start command:
+
+```text
+gunicorn --workers 1 server:app
+```
 
 Optional: add a Render environment variable named `BATTLE_HOST_TOKEN`. Enter the same token in the Ren'Py settings screen. Never commit a real token to this public repository.
 

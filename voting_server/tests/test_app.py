@@ -1,4 +1,7 @@
-from app import app, store
+try:
+    from voting_server.app import app, store
+except ModuleNotFoundError:
+    from app import app, store
 
 
 def host_headers():
