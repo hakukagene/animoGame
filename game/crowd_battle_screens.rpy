@@ -130,6 +130,7 @@ screen crowd_battle_intro():
 
 screen crowd_battle_round():
     modal True
+    $ current_round = cb_battle.get("current_round") or {}
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
@@ -198,8 +199,8 @@ screen crowd_battle_round():
                 bold True
                 xalign 0.5
 
-            if cb_battle.get("current_round"):
-                text "[cb_battle['current_round']['question']]":
+            if current_round:
+                text current_round.get("question", ""):
                     color "#FFFFFF"
                     size 37
                     bold True
@@ -224,6 +225,11 @@ screen crowd_battle_round():
 
 screen crowd_round_result(result):
     modal True
+    $ correct_count = result.get("correct_count", 0)
+    $ wrong_count = result.get("wrong_count", 0)
+    $ monster_damage = result.get("monster_damage", 0)
+    $ player_damage = result.get("player_damage", 0)
+    $ total_answers = result.get("total_answers", 0)
     add Solid("#070B14")
     add Solid("#7C3AED22")
 
@@ -248,16 +254,16 @@ screen crowd_round_result(result):
                 vbox:
                     spacing 8
                     text "ЗӨВ" color "#59E6A8" size 28 bold True xalign 0.5
-                    text "[result['correct_count']]" color "#FFFFFF" size 78 bold True xalign 0.5
-                    text "Мангас -[result['monster_damage']] HP" color "#59E6A8" size 24 xalign 0.5
+                    text "[correct_count]" color "#FFFFFF" size 78 bold True xalign 0.5
+                    text "Мангас -[monster_damage] HP" color "#59E6A8" size 24 xalign 0.5
 
                 vbox:
                     spacing 8
                     text "БУРУУ" color "#FF8296" size 28 bold True xalign 0.5
-                    text "[result['wrong_count']]" color "#FFFFFF" size 78 bold True xalign 0.5
-                    text "Баг -[result['player_damage']] HP" color "#FF8296" size 24 xalign 0.5
+                    text "[wrong_count]" color "#FFFFFF" size 78 bold True xalign 0.5
+                    text "Баг -[player_damage] HP" color "#FF8296" size 24 xalign 0.5
 
-            text "Нийт хариулт: [result['total_answers']]" style "cb_small_text" xalign 0.5
+            text "Нийт хариулт: [total_answers]" style "cb_small_text" xalign 0.5
 
             textbutton "ДАРААГИЙН АСУУЛТ":
                 style "cb_button"
