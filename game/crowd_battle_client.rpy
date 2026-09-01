@@ -42,7 +42,10 @@ init python:
             )
 
             if not hasattr(result, "get"):
-                return {\n                    "success": False,\n                    "error": "Серверийн JSON хариу object биш байна: {}".format(type(result).__name__),\n                }
+                return {
+                    "success": False,
+                    "error": "Серверийн JSON хариу object биш байна: {}".format(type(result).__name__),
+                }
 
             return result
         except Exception as exc:
