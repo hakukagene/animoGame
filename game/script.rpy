@@ -4,9 +4,6 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-
-    call screen crowd_server_settings
-
     jump crowd_monster_battle
 
 
@@ -16,10 +13,6 @@ label crowd_monster_battle:
 
     while not response.get("success", False):
         call screen crowd_connection_error(response.get("error", "Сервертэй холбогдсонгүй."))
-
-        if _return == "settings":
-            call screen crowd_server_settings
-
         $ response = cb_start_battle()
         $ renpy.block_rollback()
 
@@ -34,10 +27,6 @@ label crowd_monster_battle:
 
         while not response.get("success", False):
             call screen crowd_connection_error(response.get("error", "Асуулт эхлүүлж чадсангүй."))
-
-            if _return == "settings":
-                call screen crowd_server_settings
-
             $ response = cb_start_round(question)
             $ renpy.block_rollback()
 
@@ -56,9 +45,6 @@ label crowd_monster_battle:
     call screen crowd_battle_ending(victory)
 
     if _return == "restart":
-        jump crowd_monster_battle
-    elif _return == "settings":
-        call screen crowd_server_settings
         jump crowd_monster_battle
 
     $ cb_reset_battle()

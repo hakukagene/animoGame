@@ -1,5 +1,6 @@
 init -100 python:
-    CROWD_DEFAULT_SERVER_URL = "http://127.0.0.1:5000"
+    CROWD_BATTLE_SERVER_URL = "https://animogame.onrender.com"
+    CROWD_BATTLE_HOST_TOKEN = ""
 
 default cb_connection_message = ""
 default cb_connection_ok = False
@@ -15,25 +16,13 @@ default cb_total_answers = 0
 default cb_remaining_seconds = 0
 
 
-init -10 python:
-    saved_server_url = getattr(persistent, "crowd_server_url", None)
-    if not isinstance(saved_server_url, str) or not saved_server_url.strip():
-        persistent.crowd_server_url = CROWD_DEFAULT_SERVER_URL
-
-    saved_host_token = getattr(persistent, "crowd_host_token", None)
-    if not isinstance(saved_host_token, str):
-        persistent.crowd_host_token = ""
-
-
 init python:
     def cb_server_url():
-        url = getattr(persistent, "crowd_server_url", CROWD_DEFAULT_SERVER_URL)
-        url = (url or CROWD_DEFAULT_SERVER_URL).strip().rstrip("/")
-        return url
+        return CROWD_BATTLE_SERVER_URL.rstrip("/")
 
 
     def cb_host_headers():
-        token = (getattr(persistent, "crowd_host_token", "") or "").strip()
+        token = CROWD_BATTLE_HOST_TOKEN.strip()
         if token:
             return {"X-Host-Token": token}
         return {}
@@ -81,26 +70,6 @@ init python:
         store.cb_remaining_seconds = int(current.get("remaining_seconds", 0))
         store.cb_round_result = current.get("result") or {}
         return True
-
-
-    def cb_test_connection():
-        store.cb_connection_message = "Холболтыг шалгаж байна..."
-        store.cb_connection_ok = False
-        response = cb_api("/api/health", timeout=4)
-
-        if response.get("success"):
-            store.cb_connection_ok = True
-            store.cb_connection_message = "Сервертэй амжилттай холбогдлоо."
-        else:
-            store.cb_connection_message = response.get("error", "Сервертэй холбогдсонгүй.")
-
-
-    def cb_normalize_server_settings():
-        persistent.crowd_server_url = cb_server_url()
-        persistent.crowd_host_token = (
-            getattr(persistent, "crowd_host_token", "") or ""
-        ).strip()
-        renpy.save_persistent()
 
 
     def cb_start_battle():

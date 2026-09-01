@@ -38,67 +38,6 @@ style cb_button_text is button_text:
     bold True
     text_align 0.5
 
-style cb_input is input:
-    color "#FFFFFF"
-    size 25
-
-
-screen crowd_server_settings():
-    modal True
-    add Solid("#070B14")
-
-    frame:
-        background Solid("#11192BEF")
-        xalign 0.5
-        yalign 0.5
-        xsize 1100
-        padding (54, 44)
-
-        vbox:
-            spacing 20
-
-            text "CROWD BATTLE SERVER" style "cb_title_text"
-            text "Render URL эсвэл local серверийн хаягийг оруулна уу." style "cb_small_text"
-
-            null height 8
-            text "Server URL" style "cb_body_text"
-            frame:
-                background Solid("#0A1020")
-                padding (18, 14)
-                xfill True
-                input:
-                    value FieldInputValue(persistent, "crowd_server_url")
-                    style "cb_input"
-                    length 180
-                    xfill True
-
-            text "Host token — Render дээр тохируулаагүй бол хоосон үлдээнэ." style "cb_small_text"
-            frame:
-                background Solid("#0A1020")
-                padding (18, 14)
-                xfill True
-                input:
-                    value FieldInputValue(persistent, "crowd_host_token")
-                    style "cb_input"
-                    length 100
-                    xfill True
-
-            if cb_connection_message:
-                text cb_connection_message:
-                    color ("#5EE6A8" if cb_connection_ok else "#FF899D")
-                    size 22
-
-            hbox:
-                spacing 18
-                textbutton "Холболт шалгах":
-                    style "cb_button"
-                    action [Function(cb_normalize_server_settings), Function(cb_test_connection)]
-
-                textbutton "Үргэлжлүүлэх":
-                    style "cb_button"
-                    action [Function(cb_normalize_server_settings), Return(True)]
-
-
 screen crowd_battle_intro():
     modal True
     add Solid("#070B14")
@@ -293,9 +232,6 @@ screen crowd_battle_ending(victory):
             textbutton "ДАХИН ТОГЛОХ":
                 style "cb_button"
                 action Return("restart")
-            textbutton "SERVER ТОХИРГОО":
-                style "cb_button"
-                action Return("settings")
             textbutton "ГАРАХ":
                 style "cb_button"
                 action Return("quit")
@@ -322,6 +258,3 @@ screen crowd_connection_error(message):
                 textbutton "ДАХИН ОРОЛДОХ":
                     style "cb_button"
                     action Return("retry")
-                textbutton "SERVER ТОХИРГОО":
-                    style "cb_button"
-                    action Return("settings")
