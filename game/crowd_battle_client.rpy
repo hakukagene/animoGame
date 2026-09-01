@@ -1,4 +1,5 @@
-define CROWD_DEFAULT_SERVER_URL = "http://127.0.0.1:5000"
+init -100 python:
+    CROWD_DEFAULT_SERVER_URL = "http://127.0.0.1:5000"
 
 default cb_connection_message = ""
 default cb_connection_ok = False
