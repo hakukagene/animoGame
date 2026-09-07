@@ -40,36 +40,55 @@ class BattleStore:
         if not force and time.time() < current["ends_at"]:
             return current
 
-        answers = current["answers"].values()
-        correct_count = sum(
-            1 for answer in answers
-            if answer["choice_index"] == current["correct_index"]
+        answers = list(current["answers"].values())
+        choice_counts = [0] * len(current["choices"])
+        for answer in answers:
+            choice_counts[answer["choice_index"]] += 1
+
+        total_answers = len(answers)
+        mode = current.get("mode", "battle")
+        correct_index = current.get("correct_index")
+
+        if mode == "survey":
+            correct_count = 0
+            wrong_count = 0
+            monster_damage = 0
+            player_damage = 0
+        else:
+            correct_count = choice_counts[correct_index]
+            wrong_count = total_answers - correct_count
+
+            requested_monster_damage = correct_count * current["attack_power"]
+            requested_player_damage = wrong_count * current["enemy_attack_power"]
+            monster_damage = min(requested_monster_damage, self.battle["monster_hp"])
+            player_damage = min(requested_player_damage, self.battle["player_hp"])
+
+            self.battle["monster_hp"] -= monster_damage
+            self.battle["player_hp"] -= player_damage
+
+            if self.battle["monster_hp"] <= 0:
+                self.battle["status"] = "victory"
+            elif self.battle["player_hp"] <= 0:
+                self.battle["status"] = "defeat"
+
+        highest_count = max(choice_counts) if choice_counts else 0
+        top_choice_indices = (
+            [index for index, count in enumerate(choice_counts) if count == highest_count]
+            if highest_count > 0 else []
         )
-        total_answers = len(current["answers"])
-        wrong_count = total_answers - correct_count
-
-        requested_monster_damage = correct_count * current["attack_power"]
-        requested_player_damage = wrong_count * current["enemy_attack_power"]
-        monster_damage = min(requested_monster_damage, self.battle["monster_hp"])
-        player_damage = min(requested_player_damage, self.battle["player_hp"])
-
-        self.battle["monster_hp"] -= monster_damage
-        self.battle["player_hp"] -= player_damage
-
-        if self.battle["monster_hp"] <= 0:
-            self.battle["status"] = "victory"
-        elif self.battle["player_hp"] <= 0:
-            self.battle["status"] = "defeat"
 
         current["status"] = "finished"
         current["finished_at"] = time.time()
         current["result"] = {
             "round_id": current["round_id"],
             "round_number": current["round_number"],
-            "correct_index": current["correct_index"],
+            "mode": mode,
+            "correct_index": correct_index,
             "correct_count": correct_count,
             "wrong_count": wrong_count,
             "total_answers": total_answers,
+            "choice_counts": choice_counts,
+            "top_choice_indices": top_choice_indices,
             "monster_damage": monster_damage,
             "player_damage": player_damage,
             "monster_hp": self.battle["monster_hp"],
@@ -110,17 +129,27 @@ class BattleStore:
             choices = payload.get("choices")
             if not question:
                 raise ValueError("question хоосон байж болохгүй.")
-            if not isinstance(choices, list) or not 2 <= len(choices) <= 6:
-                raise ValueError("choices нь 2-6 сонголттой жагсаалт байна.")
+            if not isinstance(choices, list) or not 2 <= len(choices) <= 10:
+                raise ValueError("choices нь 2-10 сонголттой жагсаалт байна.")
 
             choices = [clean_text(choice, "", 160) for choice in choices]
             if any(not choice for choice in choices):
                 raise ValueError("Сонголтын текст хоосон байж болохгүй.")
 
-            correct_index = clamp_int(payload.get("correct_index"), 0, len(choices) - 1)
+            mode = clean_text(payload.get("mode"), "battle", 20).lower()
+            if mode not in ("battle", "survey"):
+                raise ValueError("mode нь battle эсвэл survey байна.")
+
             duration = clamp_int(payload.get("duration", 15), 5, 120)
-            attack_power = clamp_int(payload.get("attack_power", 5), 0, 10_000)
-            enemy_attack_power = clamp_int(payload.get("enemy_attack_power", 3), 0, 10_000)
+            if mode == "survey":
+                correct_index = None
+                attack_power = 0
+                enemy_attack_power = 0
+            else:
+                correct_index = clamp_int(payload.get("correct_index"), 0, len(choices) - 1)
+                attack_power = clamp_int(payload.get("attack_power", 5), 0, 10_000)
+                enemy_attack_power = clamp_int(payload.get("enemy_attack_power", 3), 0, 10_000)
+
             now = time.time()
 
             self.battle["round_number"] += 1
@@ -129,6 +158,7 @@ class BattleStore:
                 "round_number": self.battle["round_number"],
                 "question": question,
                 "choices": choices,
+                "mode": mode,
                 "correct_index": correct_index,
                 "duration": duration,
                 "attack_power": attack_power,
@@ -193,6 +223,7 @@ class BattleStore:
         data = {
             "round_id": current["round_id"],
             "round_number": current["round_number"],
+            "mode": current.get("mode", "battle"),
             "question": current["question"],
             "choices": current["choices"],
             "duration": current["duration"],
