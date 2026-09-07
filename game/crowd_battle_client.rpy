@@ -187,13 +187,26 @@ init python:
 
 
     def cb_poll_round():
-        response = cb_api(cb_uncached_path("/api/round/status"), timeout=4)
+        response = cb_api(
+            cb_uncached_path("/api/round/status"), 
+            timeout=4
+            )
+
         if response.get("success"):
             store.cb_connection_message = ""
             cb_apply_battle(response)
         else:
-            store.cb_connection_message = response.get("error", "Холболтын алдаа")
-        #return response
+            store.cb_connection_message = response.get(
+                "error",
+                "Холболтын алдаа"
+            )
+
+        return response
+
+
+    def cb_poll_round_action():
+        cb_poll_round()
+        return None
 
 
     def cb_fetch_round_result(expected_round_id):
