@@ -163,6 +163,11 @@ init python:
         if current.get("status") != "finished" or not current.get("result"):
             return False
 
+        # 0 хариулттай result-ийг хүчинтэй round result гэж үзэхгүй.
+        total_answers = max(0, int(current.get("total_answers", 0)))
+        if total_answers <= 0:
+            return False
+
         expected_answers = max(0, int(current.get("expected_answers", 0)))
         all_answers_received = (
             expected_answers > 0
