@@ -154,11 +154,16 @@
 
     function renderRound(battle, round) {
       show("question-card");
-      $("round-number").textContent = `${battle.monster_name} · ${round.round_number}-р асуулт`;
+      const isSurvey = round.mode === "survey";
+      $("round-number").textContent = isSurvey
+        ? `CREATORS' QUESTION · ${round.round_number}`
+        : `${battle.monster_name} · ${round.round_number}-р асуулт`;
       $("timer").textContent = `${round.remaining_seconds}s`;
       $("question").textContent = round.question;
       $("answer-count").textContent = `${round.total_answers} хариулт`;
-      $("power-text").textContent = `⚔ ${round.attack_power} / ☠ ${round.enemy_attack_power}`;
+      $("power-text").textContent = isSurvey
+        ? "Санал асуулга"
+        : `⚔ ${round.attack_power} / ☠ ${round.enemy_attack_power}`;
 
       if (state.lastRoundId !== round.round_id) {
         state.lastRoundId = round.round_id;
@@ -180,17 +185,21 @@
         button.disabled = answered || finished;
         button.className = "";
         if (index === state.selectedIndex) button.classList.add("selected");
-        if (finished && index === correctIndex) button.classList.add("correct");
-        if (finished && index === state.selectedIndex && index !== correctIndex) button.classList.add("wrong");
+        if (finished && !isSurvey && index === correctIndex) button.classList.add("correct");
+        if (finished && !isSurvey && index === state.selectedIndex && index !== correctIndex) button.classList.add("wrong");
       });
 
       const notice = $("answer-notice");
       if (finished && round.result) {
         notice.classList.remove("hidden", "error");
-        notice.textContent = `Зөв: ${round.result.correct_count} · Буруу: ${round.result.wrong_count} · Мангас -${round.result.monster_damage} HP`;
+        notice.textContent = isSurvey
+          ? `Санал асуулга дууслаа. Нийт ${round.result.total_answers} санал.`
+          : `Зөв: ${round.result.correct_count} · Буруу: ${round.result.wrong_count} · Мангас -${round.result.monster_damage} HP`;
       } else if (answered) {
         notice.classList.remove("hidden", "error");
-        notice.textContent = "Хариулт амжилттай илгээгдлээ. Үр дүнг хүлээнэ үү.";
+        notice.textContent = isSurvey
+          ? "Санал амжилттай илгээгдлээ. Үр дүнг хүлээнэ үү."
+          : "Хариулт амжилттай илгээгдлээ. Үр дүнг хүлээнэ үү.";
       } else {
         notice.classList.add("hidden");
       }

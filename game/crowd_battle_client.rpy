@@ -92,14 +92,22 @@ init python:
 
 
     def cb_start_round(question):
+        mode = question.get("mode", "battle")
         payload = {
             "question": question["question"],
             "choices": question["choices"],
-            "correct_index": question["correct_index"],
+            "mode": mode,
             "duration": question.get("duration", 15),
-            "attack_power": question.get("attack_power", 25),
-            "enemy_attack_power": question.get("enemy_attack_power", 20),
         }
+
+        if mode == "survey":
+            payload["attack_power"] = 0
+            payload["enemy_attack_power"] = 0
+        else:
+            payload["correct_index"] = question["correct_index"]
+            payload["attack_power"] = question.get("attack_power", 25)
+            payload["enemy_attack_power"] = question.get("enemy_attack_power", 20)
+
         response = cb_api(
             "/api/round/start",
             method="POST",

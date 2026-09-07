@@ -1,30 +1,36 @@
 define Creators_Question = [
-    {  
+    {
         "question": "ТА ХЭН БЭ?",
-        "choices" : ["Student", "Worker", "Creators", "Gamer", "Explorer", "Fan", "Just Here"],
-        "duration": 15, 
-    }
-    {  
+        "choices": ["Student", "Worker", "Creators", "Gamer", "Explorer", "Fan", "Just Here"],
+        "duration": 15,
+        "mode": "survey",
+    },
+    {
         "question": "ANIMO World ямар төрлийн ертөнц байх вэ?",
-        "choices" : ["Futuristic", "Fantasy", "Modern", "Post-apocalyptic"],
-        "duration": 15, 
-    }
-    {  
+        "choices": ["Futuristic", "Fantasy", "Modern", "Post-apocalyptic"],
+        "duration": 15,
+        "mode": "survey",
+    },
+    {
         "question": "Ертөнц хаана байдаг вэ?",
-        "choices" : ["Earth", "Another Planet", "Floating World", "Underground", "Another Dimension"],
-        "duration": 15, 
-    }
-    {  
+        "choices": ["Earth", "Another Planet", "Floating World", "Underground", "Another Dimension"],
+        "duration": 15,
+        "mode": "survey",
+    },
+    {
         "question": "ANIMO Ертөнцөд ХЭН амьдардаг ВЭ?",
-        "choices" : ["Humans", "Robots", "Magic Creatures", "Aliens", "Anime Characters", "Elfs", "Monsters", "Orcs"],
-        "duration": 15, 
-    }
-    {  
+        "choices": ["Humans", "Robots", "Magic Creatures", "Aliens", "Anime Characters", "Elfs", "Monsters", "Orcs"],
+        "duration": 15,
+        "mode": "survey",
+    },
+    {
         "question": "Анимо Ертөнцийн оршин суугчид ямар зан, характертай вэ?",
-        "choices" : ["Peaceful", "Competitive", "Creative", "Adventurous", "Adventurous"],
-        "duration": 15, 
-    }
+        "choices": ["Peaceful", "Competitive", "Creative", "Adventurous", "Adventurous"],
+        "duration": 15,
+        "mode": "survey",
+    },
 ]
+
 define CROWD_BATTLE_QUESTIONS = [
     {
         "question": "Naruto-д Kakashi-ийн Sharingan-г хэн өгсөн бэ?",

@@ -8,6 +8,41 @@ label start:
     jump crowd_monster_battle
 
 
+label crowd_creators_questions:
+    $ response = cb_start_battle()
+    $ renpy.block_rollback()
+
+    while not response.get("success", False):
+        call screen crowd_connection_error(response.get("error", "Сервертэй холбогдсонгүй."))
+        $ response = cb_start_battle()
+        $ renpy.block_rollback()
+
+    $ creator_question_index = 0
+
+    while creator_question_index < len(Creators_Question):
+        $ question = Creators_Question[creator_question_index]
+        $ response = cb_start_round(question)
+        $ renpy.block_rollback()
+
+        while not response.get("success", False):
+            call screen crowd_connection_error(response.get("error", "Санал асуулгыг эхлүүлж чадсангүй."))
+            $ response = cb_start_round(question)
+            $ renpy.block_rollback()
+
+        call screen crowd_creators_round(creator_question_index + 1, len(Creators_Question))
+        $ result = _return or cb_round_result
+
+        if not result:
+            $ response = cb_force_finish_round()
+            $ result = cb_round_result
+            $ renpy.block_rollback()
+
+        call screen crowd_creators_result(question, result)
+        $ creator_question_index += 1
+
+    return
+
+
 label crowd_monster_battle:
     $ response = cb_start_battle()
     $ renpy.block_rollback()
