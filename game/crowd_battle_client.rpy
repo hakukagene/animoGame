@@ -175,7 +175,7 @@ init python:
         )
         duration_finished = (
             store.cb_round_guard_id == expected_round_id
-            and store.cb_round_local_deadline > 0
+            and store.cb_round_local_deadline > 15
             and time.monotonic() >= store.cb_round_local_deadline
         )
         return all_answers_received or duration_finished
@@ -193,7 +193,7 @@ init python:
             cb_apply_battle(response)
         else:
             store.cb_connection_message = response.get("error", "Холболтын алдаа")
-        return response
+        #return response
 
 
     def cb_fetch_round_result(expected_round_id):

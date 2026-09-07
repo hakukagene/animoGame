@@ -4,7 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump intro 
+    jump crowd_creators_questions 
     jump crowd_monster_battle
 
 
@@ -33,7 +33,8 @@ label crowd_creators_questions:
 
         # Одоо эхэлсэн асуултын ID.
         $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
-
+        $ print("========== shuud ==========")
+        $ print("==========  ajillad bna  ==========")
         # Энэ screen duration дуусаж, сервер finished болтол return хийхгүй.
         call screen crowd_creators_round(
             creator_question_index + 1,

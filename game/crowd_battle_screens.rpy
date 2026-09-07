@@ -71,7 +71,8 @@ screen crowd_battle_round(expected_round_id=None):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ has_answers = max(0, int(current_round.get("total_answers", 0))) > 0
+    $ has_answers = false
+    '''max(0, int(current_round.get("total_answers", 0))) > 0'''
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
@@ -227,7 +228,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
     # Дор хаяж нэг хариулттай бөгөөд: бүгд хариулсан ЭСВЭЛ duration дууссан үед return хийнэ.
     if has_answers and cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(True)
-
+    
     frame:
         background Solid("#121B30F7")
         xalign 0.5
