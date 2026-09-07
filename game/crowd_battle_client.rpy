@@ -17,6 +17,9 @@ default cb_remaining_seconds = 0
 
 
 init python:
+    import time
+
+
     def cb_server_url():
         return CROWD_BATTLE_SERVER_URL.rstrip("/")
 
@@ -29,7 +32,12 @@ init python:
 
 
     def cb_api(path, method="GET", payload=None, host=False, timeout=6):
-        headers = cb_host_headers() if host else {}
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        }
+        if host:
+            headers.update(cb_host_headers())
 
         try:
             result = renpy.fetch(
@@ -125,14 +133,34 @@ init python:
         return response
 
 
+    def cb_uncached_path(path):
+        separator = "&" if "?" in path else "?"
+        return "{}{}cb={}".format(path, separator, int(time.time() * 1000))
+
+
     def cb_poll_round():
-        response = cb_api("/api/round/status", timeout=4)
+        response = cb_api(cb_uncached_path("/api/round/status"), timeout=4)
         if response.get("success"):
             store.cb_connection_message = ""
             cb_apply_battle(response)
         else:
             store.cb_connection_message = response.get("error", "Холболтын алдаа")
         return response
+
+
+    def cb_fetch_round_result(expected_round_id):
+        response = cb_api(cb_uncached_path("/api/round/result"), timeout=6)
+        if not response.get("success"):
+            return {}
+
+        result = response.get("result") or {}
+        if expected_round_id and result.get("round_id") != expected_round_id:
+            return {}
+
+        cb_apply_battle(response)
+        store.cb_round_result = result
+        store.cb_connection_message = ""
+        return result
 
 
     def cb_force_finish_round():
