@@ -1,13 +1,12 @@
 label intro:
-
-    scene black
+    scene expression Solid("#000000")   
     with fade
 
     python:
         for i in range(len(TextArray)):
 
             cb_voice_line(
-                presenter,
+                N,
                 TextArray[i],
                 "audio/hutlugch{}.ogg".format(i + 1)
             )

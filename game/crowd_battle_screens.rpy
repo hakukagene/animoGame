@@ -212,16 +212,23 @@ screen crowd_round_result(result):
 
 screen crowd_creators_round(question_number, question_total, expected_round_id):
     modal True
-    $ current_round = cb_battle.get("current_round") or {}
-    $ is_expected_round = current_round.get("round_id") == expected_round_id
-    add Solid("#070B14")
-    add Solid("#6F7CFF18")
 
-    # Keep the timer and round status current, but deliberately hide voting
-    # totals until the survey closes so live results do not influence voters.
+    $ current_round = cb_battle.get("current_round") or {}
+    $ is_expected_round = (
+        current_round.get("round_id") == expected_round_id
+    )
+
+    add Solid("#070B14")
+
+    # Серверийн хугацаа, status-ийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    if is_expected_round and current_round.get("status") == "finished" and current_round.get("result"):
+    # Зөвхөн энэ асуултын duration дууссан үед return хийнэ.
+    if (
+        is_expected_round
+        and current_round.get("status") == "finished"
+        and current_round.get("result")
+    ):
         timer 0.10 action Return(True)
 
     frame:
@@ -232,12 +239,8 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
         padding (60, 42)
 
         vbox:
-            spacing 16
+            spacing 18
             xfill True
-
-            text "ANIMO ЕРТӨНЦИЙГ ХАМТДАА БҮТЭЭЕ":
-                style "cb_title_text"
-                xalign 0.5
 
             text "CREATORS' QUESTION · [question_number]/[question_total]":
                 color "#8999FF"
@@ -258,6 +261,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
                 text_align 0.5
                 xalign 0.5
 
+            # Санал авч байх үед зөвхөн хариултууд харагдана.
             vbox:
                 spacing 12
                 xalign 0.5
@@ -267,17 +271,6 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
                         color "#D7DCEF"
                         size 28
                         xalign 0.5
-
-            text "Утаснаасаа: [cb_server_url()]":
-                color "#8999FF"
-                size 24
-                xalign 0.5
-
-            if cb_connection_message:
-                text cb_connection_message:
-                    color "#FF899D"
-                    size 20
-                    xalign 0.5
 
 
 screen crowd_creators_result(question, result):
