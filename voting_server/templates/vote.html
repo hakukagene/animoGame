@@ -232,7 +232,9 @@
 
     async function poll() {
       try {
-        const {battle} = await api("/api/battle/status");
+        const {battle} = await api(
+          `/api/battle/status?player_id=${encodeURIComponent(state.playerId)}`
+        );
         if (!playerName() && battle.status !== "active") {
           show("name-card");
         } else if (battle.current_round) {

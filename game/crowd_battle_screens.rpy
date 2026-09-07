@@ -67,16 +67,17 @@ screen crowd_battle_intro():
             action Return(True)
 
 
-screen crowd_battle_round():
+screen crowd_battle_round(expected_round_id=None):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
+    $ guarded_round_id = expected_round_id or cb_round_guard_id
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
-    timer 0.7 repeat True action Function(cb_poll_round)
+    timer 0.25 repeat True action Function(cb_poll_round)
 
-    if cb_round_status == "finished":
-        timer 0.25 action Return(cb_round_result)
+    if cb_round_can_finish(guarded_round_id):
+        timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
     vbox:
         xpos 90
@@ -210,32 +211,19 @@ screen crowd_round_result(result):
                 action Return(True)
 
 
-screen crowd_creators_round(question_number, question_total, expected_round_id, question_duration):
+screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):
     modal True
 
-    default duration_finished = False
-
-    $ safe_duration = max(0.1, float(question_duration))
     $ current_round = cb_battle.get("current_round") or {}
-    $ is_expected_round = (
-        current_round.get("round_id") == expected_round_id
-    )
+    $ guarded_round_id = expected_round_id or cb_round_guard_id
 
     add Solid("#070B14")
 
-    # Ren'Py талын duration бүрэн өнгөрснийг тусад нь баталгаажуулна.
-    timer safe_duration action SetScreenVariable("duration_finished", True)
-
-    # Серверийн хугацаа, status-ийг шинэчилнэ.
+    # Серверийн хугацаа, хариултын төлөвийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    # Local duration болон server round хоёулаа дууссан үед л return хийнэ.
-    if (
-        duration_finished
-        and is_expected_round
-        and current_round.get("status") == "finished"
-        and current_round.get("result")
-    ):
+    # Бүх идэвхтэй тоглогч хариулсан ЭСВЭЛ duration дууссан үед л return хийнэ.
+    if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(True)
 
     frame:
