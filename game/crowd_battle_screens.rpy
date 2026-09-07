@@ -210,6 +210,142 @@ screen crowd_round_result(result):
                 action Return(True)
 
 
+screen crowd_creators_round(question_number, question_total):
+    modal True
+    $ current_round = cb_battle.get("current_round") or {}
+    add Solid("#070B14")
+    add Solid("#6F7CFF18")
+
+    timer 0.7 repeat True action Function(cb_poll_round)
+
+    if cb_round_status == "finished":
+        timer 0.25 action Return(cb_round_result)
+
+    frame:
+        background Solid("#121B30F7")
+        xalign 0.5
+        yalign 0.5
+        xsize 1500
+        padding (60, 42)
+
+        vbox:
+            spacing 16
+            xfill True
+
+            text "ANIMO ЕРТӨНЦИЙГ ХАМТДАА БҮТЭЭЕ":
+                style "cb_title_text"
+                xalign 0.5
+
+            text "CREATORS' QUESTION · [question_number]/[question_total]":
+                color "#8999FF"
+                size 24
+                bold True
+                xalign 0.5
+
+            text "[cb_remaining_seconds] секунд":
+                color "#FF899D"
+                size 30
+                bold True
+                xalign 0.5
+
+            text current_round.get("question", ""):
+                color "#FFFFFF"
+                size 38
+                bold True
+                text_align 0.5
+                xalign 0.5
+
+            vbox:
+                spacing 8
+                xalign 0.5
+                for choice in current_round.get("choices", []):
+                    text choice:
+                        color "#D7DCEF"
+                        size 25
+                        xalign 0.5
+
+            text "Хариулсан хүн: [cb_total_answers]":
+                style "cb_small_text"
+                xalign 0.5
+
+            text "Утаснаасаа: [cb_server_url()]":
+                color "#8999FF"
+                size 24
+                xalign 0.5
+
+            if cb_connection_message:
+                text cb_connection_message:
+                    color "#FF899D"
+                    size 20
+                    xalign 0.5
+
+
+screen crowd_creators_result(question, result):
+    modal True
+    $ choices = question.get("choices", [])
+    $ counts = result.get("choice_counts", [])
+    $ total_answers = max(0, int(result.get("total_answers", 0)))
+    add Solid("#070B14")
+    add Solid("#6F7CFF18")
+
+    frame:
+        at cb_result_pop
+        background Solid("#121B30F7")
+        xalign 0.5
+        yalign 0.5
+        xsize 1400
+        padding (65, 42)
+
+        vbox:
+            spacing 18
+            xfill True
+
+            text "САНАЛ АСУУЛГЫН ҮР ДҮН":
+                style "cb_title_text"
+                xalign 0.5
+
+            text question.get("question", ""):
+                color "#FFFFFF"
+                size 32
+                bold True
+                text_align 0.5
+                xalign 0.5
+
+            vbox:
+                spacing 12
+                xfill True
+
+                for index, choice in enumerate(choices):
+                    $ count = counts[index] if index < len(counts) else 0
+                    $ percentage = int(round(100.0 * count / total_answers)) if total_answers else 0
+
+                    hbox:
+                        spacing 18
+                        xfill True
+
+                        text choice:
+                            color "#D7DCEF"
+                            size 24
+                            xsize 780
+
+                        text "[count] · [percentage]%":
+                            color "#8999FF"
+                            size 24
+                            bold True
+                            xalign 1.0
+                            xsize 360
+                            text_align 1.0
+
+            text "Нийт санал: [total_answers]":
+                style "cb_small_text"
+                xalign 0.5
+
+            textbutton "ДАРААГИЙН АСУУЛТ":
+                style "cb_button"
+                xalign 0.5
+                action Return(True)
+
+
 screen crowd_battle_ending(victory):
     modal True
     add Solid("#070B14")
