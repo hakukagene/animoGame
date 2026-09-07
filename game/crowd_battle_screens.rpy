@@ -71,12 +71,13 @@ screen crowd_battle_round(expected_round_id=None):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
+    $ has_answers = max(0, int(current_round.get("total_answers", 0))) > 0
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    if cb_round_can_finish(guarded_round_id):
+    if has_answers and cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
     vbox:
@@ -216,14 +217,15 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
+    $ has_answers = max(0, int(current_round.get("total_answers", 0))) > 0
 
     add Solid("#070B14")
 
     # Серверийн хугацаа, хариултын төлөвийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    # Бүх идэвхтэй тоглогч хариулсан ЭСВЭЛ duration дууссан үед л return хийнэ.
-    if cb_round_can_finish(guarded_round_id):
+    # Дор хаяж нэг хариулттай бөгөөд: бүгд хариулсан ЭСВЭЛ duration дууссан үед return хийнэ.
+    if has_answers and cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(True)
 
     frame:

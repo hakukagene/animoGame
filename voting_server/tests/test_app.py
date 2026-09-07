@@ -185,7 +185,7 @@ def test_round_finishes_after_every_active_player_answers(monkeypatch):
         assert current["result"]["completion_reason"] == "all_answered"
 
 
-def test_round_finishes_when_duration_expires(monkeypatch):
+def test_empty_round_stays_open_after_duration(monkeypatch):
     monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
     store.reset()
 
@@ -205,7 +205,40 @@ def test_round_finishes_when_duration_expires(monkeypatch):
             store.battle["current_round"]["ends_at"] = time.time() - 1
 
         current = client.get("/api/round/status").get_json()["round"]
+        assert current["status"] == "open"
+        assert current["total_answers"] == 0
+        assert current["result"] is None
+
+
+def test_round_finishes_after_duration_once_an_answer_exists(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "2 + 2 = ?",
+                "choices": ["3", "4"],
+                "correct_index": 1,
+                "duration": 15,
+            },
+        )
+
+        with store.lock:
+            store.battle["current_round"]["ends_at"] = time.time() - 1
+
+        answer = client.post(
+            "/api/round/answer",
+            json={"player_id": "player-late1", "choice_index": 1},
+        )
+        assert answer.status_code == 200
+
+        current = client.get("/api/round/status").get_json()["round"]
         assert current["status"] == "finished"
+        assert current["total_answers"] == 1
+        assert current["result"]["total_answers"] == 1
         assert current["result"]["completion_reason"] == "duration"
 
 
