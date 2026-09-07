@@ -65,7 +65,7 @@ init -90 python:
         what:
             Text shown in the say screen.
         voice_id:
-            "001", "nova_001.ogg", or a full game-relative audio path.
+            "001", "nova_001.ogg", or a full game-relative audio path.                                                                                                          
 
         If the audio file is missing, the line falls back to normal
         click-to-continue dialogue instead of crashing the game.
