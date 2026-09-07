@@ -283,7 +283,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
 screen crowd_creators_result(question, result):
     modal True
     $ latest_round = cb_battle.get("current_round") or {}
-    $ latest_result = latest_round.get("result") or result or {}
+    $ latest_result = result or latest_round.get("result") or {}
     $ choices = question.get("choices", [])
     $ counts = latest_result.get("choice_counts", latest_round.get("choice_counts", []))
     $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
