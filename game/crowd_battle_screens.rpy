@@ -218,10 +218,12 @@ screen crowd_creators_round(question_number, question_total):
     add Solid("#070B14")
     add Solid("#6F7CFF18")
 
-    timer 0.7 repeat True action Function(cb_poll_round)
+    # Only the Ren'Py host polls this quickly. Audience browsers keep their
+    # lighter polling interval, so a submitted vote appears here near-instantly.
+    timer 0.25 repeat True action Function(cb_poll_round)
 
     if cb_round_status == "finished":
-        timer 0.25 action Return(cb_round_result)
+        timer 0.10 action Return(True)
 
     frame:
         background Solid("#121B30F7")
@@ -299,9 +301,11 @@ screen crowd_creators_round(question_number, question_total):
 
 screen crowd_creators_result(question, result):
     modal True
+    $ latest_round = cb_battle.get("current_round") or {}
+    $ latest_result = latest_round.get("result") or result or {}
     $ choices = question.get("choices", [])
-    $ counts = result.get("choice_counts", [])
-    $ total_answers = max(0, int(result.get("total_answers", 0)))
+    $ counts = latest_result.get("choice_counts", latest_round.get("choice_counts", []))
+    $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
     add Solid("#070B14")
     add Solid("#6F7CFF18")
 
