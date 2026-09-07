@@ -92,6 +92,13 @@ init python:
 
 
     def cb_start_round(question):
+        # Never let the previous round's finished/result state leak into the
+        # screen that is about to display a newly-created round.
+        store.cb_round_status = "starting"
+        store.cb_round_result = {}
+        store.cb_total_answers = 0
+        store.cb_remaining_seconds = int(question.get("duration", 15))
+
         mode = question.get("mode", "battle")
         payload = {
             "question": question["question"],
