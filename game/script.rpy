@@ -32,11 +32,11 @@ label crowd_creators_questions:
         $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
         call screen crowd_creators_round(creator_question_index + 1, len(Creators_Question), creator_round_id)
 
-        # Read once more after the server itself closes this exact round.
-        # Creator surveys are never force-finished early.
-        $ response = cb_poll_round()
+        # Fetch the authoritative result endpoint for this exact round.
+        # The cache-busting query prevents an older zero-vote response.
+        $ result = cb_fetch_round_result(creator_round_id)
         $ latest_round = cb_battle.get("current_round") or {}
-        $ result = latest_round.get("result") or cb_round_result or {}
+        $ result = result or latest_round.get("result") or cb_round_result or {}
 
         call screen crowd_creators_result(question, result)
         $ creator_question_index += 1
