@@ -220,10 +220,11 @@ class BattleStore:
     def public_round(current):
         if not current:
             return None
+        mode = current.get("mode", "battle")
         data = {
             "round_id": current["round_id"],
             "round_number": current["round_number"],
-            "mode": current.get("mode", "battle"),
+            "mode": mode,
             "question": current["question"],
             "choices": current["choices"],
             "duration": current["duration"],
@@ -236,6 +237,13 @@ class BattleStore:
             "remaining_seconds": max(0, math.ceil(current["ends_at"] - time.time())),
             "result": current["result"],
         }
+
+        if mode == "survey":
+            choice_counts = [0] * len(current["choices"])
+            for answer in current["answers"].values():
+                choice_counts[answer["choice_index"]] += 1
+            data["choice_counts"] = choice_counts
+
         return data
 
 

@@ -181,7 +181,15 @@
       const answered = state.answeredRoundId === round.round_id;
       const finished = round.status === "finished";
       const correctIndex = finished && round.result ? round.result.correct_index : -1;
+      const liveCounts = Array.isArray(round.choice_counts) ? round.choice_counts : [];
+      const showSurveyCounts = isSurvey && (answered || finished);
+
       [...$("answers").children].forEach((button, index) => {
+        const voteCount = Number(liveCounts[index] || 0);
+        const choiceLabel = `${String.fromCharCode(65 + index)}. ${round.choices[index]}`;
+        button.textContent = showSurveyCounts
+          ? `${choiceLabel} — ${voteCount} санал`
+          : choiceLabel;
         button.disabled = answered || finished;
         button.className = "";
         if (index === state.selectedIndex) button.classList.add("selected");
