@@ -122,6 +122,11 @@ def test_survey_round(monkeypatch):
             )
             assert answer.status_code == 200
 
+        live_round = client.get("/api/round/status").get_json()["round"]
+        assert live_round["status"] == "open"
+        assert live_round["total_answers"] == 3
+        assert live_round["choice_counts"] == [0, 0, 2, 0, 0, 0, 0, 1]
+
         finished = client.post("/api/round/finish", json={"force": True})
         result = finished.get_json()["round"]["result"]
 
