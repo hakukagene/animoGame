@@ -128,8 +128,10 @@ def test_survey_round(monkeypatch):
         assert live_round["choice_counts"] == [0, 0, 2, 0, 0, 0, 0, 1]
 
         finished = client.post("/api/round/finish", json={"force": True})
-        result = finished.get_json()["round"]["result"]
+        finished_round = finished.get_json()["round"]
+        result = finished_round["result"]
 
+        assert finished_round["remaining_seconds"] == 0
         assert result["mode"] == "survey"
         assert result["correct_index"] is None
         assert result["choice_counts"] == [0, 0, 2, 0, 0, 0, 0, 1]

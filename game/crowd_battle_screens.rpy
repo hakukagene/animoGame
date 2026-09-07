@@ -210,10 +210,11 @@ screen crowd_round_result(result):
                 action Return(True)
 
 
-screen crowd_creators_round(question_number, question_total):
+screen crowd_creators_round(question_number, question_total, expected_round_id):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
-    $ live_counts = current_round.get("choice_counts", [])
+    $ is_expected_round = current_round.get("round_id") == expected_round_id
+    $ live_counts = current_round.get("choice_counts", []) if is_expected_round else []
     $ live_total = max(0, int(current_round.get("total_answers", 0)))
     add Solid("#070B14")
     add Solid("#6F7CFF18")
@@ -222,7 +223,7 @@ screen crowd_creators_round(question_number, question_total):
     # lighter polling interval, so a submitted vote appears here near-instantly.
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    if cb_round_status == "finished":
+    if is_expected_round and current_round.get("status") == "finished" and current_round.get("result"):
         timer 0.10 action Return(True)
 
     frame:

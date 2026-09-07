@@ -234,7 +234,10 @@ class BattleStore:
             "ends_at": current["ends_at"],
             "status": current["status"],
             "total_answers": len(current["answers"]),
-            "remaining_seconds": max(0, math.ceil(current["ends_at"] - time.time())),
+            "remaining_seconds": (
+                max(0, math.ceil(current["ends_at"] - time.time()))
+                if current["status"] == "open" else 0
+            ),
             "result": current["result"],
         }
 

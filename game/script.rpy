@@ -29,19 +29,14 @@ label crowd_creators_questions:
             $ response = cb_start_round(question)
             $ renpy.block_rollback()
 
-        call screen crowd_creators_round(creator_question_index + 1, len(Creators_Question))
+        $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
+        call screen crowd_creators_round(creator_question_index + 1, len(Creators_Question), creator_round_id)
 
-        # Read once more after the timer closes so the result screen never
-        # receives the empty response saved when the round was first opened.
+        # Read once more after the server itself closes this exact round.
+        # Creator surveys are never force-finished early.
         $ response = cb_poll_round()
         $ latest_round = cb_battle.get("current_round") or {}
         $ result = latest_round.get("result") or cb_round_result or {}
-
-        if not result:
-            $ response = cb_force_finish_round()
-            $ latest_round = cb_battle.get("current_round") or {}
-            $ result = latest_round.get("result") or cb_round_result or {}
-            $ renpy.block_rollback()
 
         call screen crowd_creators_result(question, result)
         $ creator_question_index += 1
