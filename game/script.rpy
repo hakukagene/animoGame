@@ -30,11 +30,17 @@ label crowd_creators_questions:
             $ renpy.block_rollback()
 
         call screen crowd_creators_round(creator_question_index + 1, len(Creators_Question))
-        $ result = _return or cb_round_result
+
+        # Read once more after the timer closes so the result screen never
+        # receives the empty response saved when the round was first opened.
+        $ response = cb_poll_round()
+        $ latest_round = cb_battle.get("current_round") or {}
+        $ result = latest_round.get("result") or cb_round_result or {}
 
         if not result:
             $ response = cb_force_finish_round()
-            $ result = cb_round_result
+            $ latest_round = cb_battle.get("current_round") or {}
+            $ result = latest_round.get("result") or cb_round_result or {}
             $ renpy.block_rollback()
 
         call screen crowd_creators_result(question, result)
