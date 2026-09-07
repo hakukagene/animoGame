@@ -79,3 +79,57 @@ def test_host_token(monkeypatch):
             json={},
         )
         assert allowed.status_code == 200
+
+
+def test_survey_round(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        started = client.post(
+            "/api/battle/start",
+            headers=host_headers(),
+            json={"player_hp": 100, "monster_hp": 100},
+        )
+        assert started.status_code == 200
+
+        choices = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        round_started = client.post(
+            "/api/round/start",
+            headers=host_headers(),
+            json={
+                "question": "ANIMO world?",
+                "choices": choices,
+                "mode": "survey",
+                "duration": 15,
+            },
+        )
+        assert round_started.status_code == 200
+        assert round_started.get_json()["battle"]["current_round"]["mode"] == "survey"
+
+        for player_id, choice_index in (
+            ("player-0001", 2),
+            ("player-0002", 2),
+            ("player-0003", 7),
+        ):
+            answer = client.post(
+                "/api/round/answer",
+                json={
+                    "player_id": player_id,
+                    "player_name": player_id,
+                    "choice_index": choice_index,
+                },
+            )
+            assert answer.status_code == 200
+
+        finished = client.post("/api/round/finish", json={"force": True})
+        result = finished.get_json()["round"]["result"]
+
+        assert result["mode"] == "survey"
+        assert result["correct_index"] is None
+        assert result["choice_counts"] == [0, 0, 2, 0, 0, 0, 0, 1]
+        assert result["top_choice_indices"] == [2]
+        assert result["monster_damage"] == 0
+        assert result["player_damage"] == 0
+        assert result["monster_hp"] == 100
+        assert result["player_hp"] == 100
