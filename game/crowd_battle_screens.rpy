@@ -210,9 +210,12 @@ screen crowd_round_result(result):
                 action Return(True)
 
 
-screen crowd_creators_round(question_number, question_total, expected_round_id):
+screen crowd_creators_round(question_number, question_total, expected_round_id, question_duration):
     modal True
 
+    default duration_finished = False
+
+    $ safe_duration = max(0.1, float(question_duration))
     $ current_round = cb_battle.get("current_round") or {}
     $ is_expected_round = (
         current_round.get("round_id") == expected_round_id
@@ -220,12 +223,16 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
 
     add Solid("#070B14")
 
+    # Ren'Py талын duration бүрэн өнгөрснийг тусад нь баталгаажуулна.
+    timer safe_duration action SetScreenVariable("duration_finished", True)
+
     # Серверийн хугацаа, status-ийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round)
 
-    # Зөвхөн энэ асуултын duration дууссан үед return хийнэ.
+    # Local duration болон server round хоёулаа дууссан үед л return хийнэ.
     if (
-        is_expected_round
+        duration_finished
+        and is_expected_round
         and current_round.get("status") == "finished"
         and current_round.get("result")
     ):
