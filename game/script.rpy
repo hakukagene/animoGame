@@ -20,36 +20,36 @@ label crowd_creators_questions:
     $ creator_question_index = 0
 
     while creator_question_index < len(Creators_Question):
-    $ question = Creators_Question[creator_question_index]
-    $ response = cb_start_round(question)
-    $ renpy.block_rollback()
-
-    while not response.get("success", False):
-        call screen crowd_connection_error(
-            response.get("error", "Санал асуулгыг эхлүүлж чадсангүй.")
-        )
+        $ question = Creators_Question[creator_question_index]
         $ response = cb_start_round(question)
         $ renpy.block_rollback()
 
-    # Одоо эхэлсэн асуултын ID.
-    $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
+        while not response.get("success", False):
+            call screen crowd_connection_error(
+                response.get("error", "Санал асуулгыг эхлүүлж чадсангүй.")
+            )
+            $ response = cb_start_round(question)
+            $ renpy.block_rollback()
 
-    # Энэ screen duration дуусаж, сервер finished болтол return хийхгүй.
-    call screen crowd_creators_round(
-        creator_question_index + 1,
-        len(Creators_Question),
-        creator_round_id
-    )
+        # Одоо эхэлсэн асуултын ID.
+        $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
 
-    # Duration дууссаны дараа серверээс эцсийн үр дүнг авна.
-    $ result = cb_fetch_round_result(creator_round_id)
-    $ latest_round = cb_battle.get("current_round") or {}
-    $ result = result or latest_round.get("result") or cb_round_result or {}
+        # Энэ screen duration дуусаж, сервер finished болтол return хийхгүй.
+        call screen crowd_creators_round(
+            creator_question_index + 1,
+            len(Creators_Question),
+            creator_round_id
+        )
 
-    # Зөвхөн одоо үр дүнгийн дэлгэц гарна.
-    call screen crowd_creators_result(question, result)
+        # Duration дууссаны дараа серверээс эцсийн үр дүнг авна.
+        $ result = cb_fetch_round_result(creator_round_id)
+        $ latest_round = cb_battle.get("current_round") or {}
+        $ result = result or latest_round.get("result") or cb_round_result or {}
 
-    $ creator_question_index += 1
+        # Зөвхөн одоо үр дүнгийн дэлгэц гарна.
+        call screen crowd_creators_result(question, result)
+
+        $ creator_question_index += 1
 
 return
 
