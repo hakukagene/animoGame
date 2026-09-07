@@ -38,7 +38,8 @@ label crowd_creators_questions:
         call screen crowd_creators_round(
             creator_question_index + 1,
             len(Creators_Question),
-            creator_round_id
+            creator_round_id,
+            question.get("duration", 15)
         )
 
         # Duration дууссаны дараа серверээс эцсийн үр дүнг авна.
@@ -51,7 +52,7 @@ label crowd_creators_questions:
 
         $ creator_question_index += 1
 
-return
+    return
 
 
 label crowd_monster_battle:
