@@ -213,6 +213,8 @@ screen crowd_round_result(result):
 screen crowd_creators_round(question_number, question_total):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
+    $ live_counts = current_round.get("choice_counts", [])
+    $ live_total = max(0, int(current_round.get("total_answers", 0)))
     add Solid("#070B14")
     add Solid("#6F7CFF18")
 
@@ -258,11 +260,26 @@ screen crowd_creators_round(question_number, question_total):
             vbox:
                 spacing 8
                 xalign 0.5
-                for choice in current_round.get("choices", []):
-                    text choice:
-                        color "#D7DCEF"
-                        size 25
-                        xalign 0.5
+
+                for index, choice in enumerate(current_round.get("choices", [])):
+                    $ live_count = live_counts[index] if index < len(live_counts) else 0
+                    $ live_percentage = int(round(100.0 * live_count / live_total)) if live_total else 0
+
+                    hbox:
+                        spacing 20
+                        xsize 1120
+
+                        text choice:
+                            color "#D7DCEF"
+                            size 25
+                            xsize 760
+
+                        text "[live_count] санал · [live_percentage]%":
+                            color "#8999FF"
+                            size 25
+                            bold True
+                            xsize 340
+                            text_align 1.0
 
             text "Хариулсан хүн: [cb_total_answers]":
                 style "cb_small_text"
