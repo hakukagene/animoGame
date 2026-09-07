@@ -78,7 +78,8 @@ label crowd_monster_battle:
             $ response = cb_start_round(question)
             $ renpy.block_rollback()
 
-        call screen crowd_battle_round
+        $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
+        call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
         if not result:

@@ -9,6 +9,8 @@ from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
+ACTIVE_PLAYER_TTL = 30
+
 
 class BattleStore:
     """Thread-safe in-memory state for one live audience battle."""
@@ -19,6 +21,7 @@ class BattleStore:
 
     def reset(self):
         with getattr(self, "lock", threading.RLock()):
+            self.active_players = {}
             self.battle = {
                 "battle_id": None,
                 "status": "idle",
@@ -32,12 +35,39 @@ class BattleStore:
                 "current_round": None,
             }
 
+    def touch_player(self, player_id):
+        player_id = clean_text(player_id, "", 100)
+        if len(player_id) < 8:
+            return
+
+        with self.lock:
+            self.active_players[player_id] = time.time()
+
+    def _active_player_ids(self, now=None):
+        now = time.time() if now is None else now
+        cutoff = now - ACTIVE_PLAYER_TTL
+        self.active_players = {
+            player_id: last_seen
+            for player_id, last_seen in self.active_players.items()
+            if last_seen >= cutoff
+        }
+        return sorted(self.active_players)
+
     def _finalize_if_due(self, force=False):
         current = self.battle.get("current_round")
         if not current or current["status"] != "open":
             return current
 
-        if not force and time.time() < current["ends_at"]:
+        now = time.time()
+        expected_player_ids = set(current.get("expected_player_ids", []))
+        answered_player_ids = set(current["answers"])
+        all_answers_received = (
+            bool(expected_player_ids)
+            and expected_player_ids.issubset(answered_player_ids)
+        )
+        duration_finished = now >= current["ends_at"]
+
+        if not force and not all_answers_received and not duration_finished:
             return current
 
         answers = list(current["answers"].values())
@@ -78,7 +108,12 @@ class BattleStore:
         )
 
         current["status"] = "finished"
-        current["finished_at"] = time.time()
+        current["finished_at"] = now
+        current["completion_reason"] = (
+            "forced" if force
+            else "all_answered" if all_answers_received
+            else "duration"
+        )
         current["result"] = {
             "round_id": current["round_id"],
             "round_number": current["round_number"],
@@ -94,6 +129,8 @@ class BattleStore:
             "monster_hp": self.battle["monster_hp"],
             "player_hp": self.battle["player_hp"],
             "battle_status": self.battle["status"],
+            "expected_answers": len(expected_player_ids),
+            "completion_reason": current["completion_reason"],
         }
         return current
 
@@ -151,6 +188,7 @@ class BattleStore:
                 enemy_attack_power = clamp_int(payload.get("enemy_attack_power", 3), 0, 10_000)
 
             now = time.time()
+            expected_player_ids = self._active_player_ids(now)
 
             self.battle["round_number"] += 1
             self.battle["current_round"] = {
@@ -168,6 +206,8 @@ class BattleStore:
                 "finished_at": None,
                 "status": "open",
                 "answers": {},
+                "expected_player_ids": expected_player_ids,
+                "completion_reason": None,
                 "result": None,
             }
             return self.public_battle()
@@ -192,10 +232,12 @@ class BattleStore:
                 "choice_index": choice_index,
                 "answered_at": time.time(),
             }
+            total_answers = len(current["answers"])
+            self._finalize_if_due()
             return {
                 "accepted": True,
                 "round_id": current["round_id"],
-                "total_answers": len(current["answers"]),
+                "total_answers": total_answers,
             }
 
     def finish_round(self, force=False):
@@ -221,6 +263,10 @@ class BattleStore:
         if not current:
             return None
         mode = current.get("mode", "battle")
+        expected_player_ids = set(current.get("expected_player_ids", []))
+        answered_player_ids = set(current["answers"])
+        answered_expected = len(expected_player_ids.intersection(answered_player_ids))
+        expected_answers = len(expected_player_ids)
         data = {
             "round_id": current["round_id"],
             "round_number": current["round_number"],
@@ -234,6 +280,12 @@ class BattleStore:
             "ends_at": current["ends_at"],
             "status": current["status"],
             "total_answers": len(current["answers"]),
+            "expected_answers": expected_answers,
+            "answered_expected": answered_expected,
+            "all_answers_received": (
+                expected_answers > 0 and answered_expected >= expected_answers
+            ),
+            "completion_reason": current.get("completion_reason"),
             "remaining_seconds": (
                 max(0, math.ceil(current["ends_at"] - time.time()))
                 if current["status"] == "open" else 0
@@ -332,6 +384,7 @@ def reset_battle():
 
 @app.get("/api/battle/status")
 def battle_status():
+    store.touch_player(request.args.get("player_id"))
     return jsonify({"success": True, "battle": store.public_battle()})
 
 

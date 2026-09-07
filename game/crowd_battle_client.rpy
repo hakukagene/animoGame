@@ -14,6 +14,10 @@ default cb_monster_hp = 250
 default cb_monster_max_hp = 250
 default cb_total_answers = 0
 default cb_remaining_seconds = 0
+default cb_round_guard_id = ""
+default cb_round_local_deadline = 0.0
+default cb_expected_answers = 0
+default cb_all_answers_received = False
 
 
 init python:
@@ -80,6 +84,8 @@ init python:
         store.cb_total_answers = int(current.get("total_answers", 0))
         store.cb_remaining_seconds = int(current.get("remaining_seconds", 0))
         store.cb_round_result = current.get("result") or {}
+        store.cb_expected_answers = max(0, int(current.get("expected_answers", 0)))
+        store.cb_all_answers_received = bool(current.get("all_answers_received", False))
         return True
 
 
@@ -105,14 +111,20 @@ init python:
         store.cb_round_status = "starting"
         store.cb_round_result = {}
         store.cb_total_answers = 0
-        store.cb_remaining_seconds = int(question.get("duration", 15))
+        store.cb_expected_answers = 0
+        store.cb_all_answers_received = False
+        store.cb_round_guard_id = ""
+        store.cb_round_local_deadline = 0.0
+
+        requested_duration = max(5, min(120, int(question.get("duration", 15))))
+        store.cb_remaining_seconds = requested_duration
 
         mode = question.get("mode", "battle")
         payload = {
             "question": question["question"],
             "choices": question["choices"],
             "mode": mode,
-            "duration": question.get("duration", 15),
+            "duration": requested_duration,
         }
 
         if mode == "survey":
@@ -130,7 +142,38 @@ init python:
             host=True,
         )
         cb_apply_battle(response)
+
+        if response.get("success"):
+            current = store.cb_battle.get("current_round") or {}
+            round_id = current.get("round_id")
+            if round_id:
+                server_duration = max(5, min(120, int(current.get("duration", requested_duration))))
+                store.cb_round_guard_id = round_id
+                store.cb_round_local_deadline = time.monotonic() + server_duration
+
         return response
+
+
+    def cb_round_can_finish(expected_round_id):
+        current = store.cb_battle.get("current_round") or {}
+
+        if not expected_round_id or current.get("round_id") != expected_round_id:
+            return False
+
+        if current.get("status") != "finished" or not current.get("result"):
+            return False
+
+        expected_answers = max(0, int(current.get("expected_answers", 0)))
+        all_answers_received = (
+            expected_answers > 0
+            and bool(current.get("all_answers_received", False))
+        )
+        duration_finished = (
+            store.cb_round_guard_id == expected_round_id
+            and store.cb_round_local_deadline > 0
+            and time.monotonic() >= store.cb_round_local_deadline
+        )
+        return all_answers_received or duration_finished
 
 
     def cb_uncached_path(path):
@@ -175,6 +218,10 @@ init python:
 
 
     def cb_reset_battle():
+        store.cb_round_guard_id = ""
+        store.cb_round_local_deadline = 0.0
+        store.cb_expected_answers = 0
+        store.cb_all_answers_received = False
         response = cb_api(
             "/api/battle/reset",
             method="POST",
