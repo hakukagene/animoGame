@@ -214,13 +214,11 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
     $ is_expected_round = current_round.get("round_id") == expected_round_id
-    $ live_counts = current_round.get("choice_counts", []) if is_expected_round else []
-    $ live_total = max(0, int(current_round.get("total_answers", 0)))
     add Solid("#070B14")
     add Solid("#6F7CFF18")
 
-    # Only the Ren'Py host polls this quickly. Audience browsers keep their
-    # lighter polling interval, so a submitted vote appears here near-instantly.
+    # Keep the timer and round status current, but deliberately hide voting
+    # totals until the survey closes so live results do not influence voters.
     timer 0.25 repeat True action Function(cb_poll_round)
 
     if is_expected_round and current_round.get("status") == "finished" and current_round.get("result"):
@@ -261,32 +259,14 @@ screen crowd_creators_round(question_number, question_total, expected_round_id):
                 xalign 0.5
 
             vbox:
-                spacing 8
+                spacing 12
                 xalign 0.5
 
-                for index, choice in enumerate(current_round.get("choices", [])):
-                    $ live_count = live_counts[index] if index < len(live_counts) else 0
-                    $ live_percentage = int(round(100.0 * live_count / live_total)) if live_total else 0
-
-                    hbox:
-                        spacing 20
-                        xsize 1120
-
-                        text choice:
-                            color "#D7DCEF"
-                            size 25
-                            xsize 760
-
-                        text "[live_count] санал · [live_percentage]%":
-                            color "#8999FF"
-                            size 25
-                            bold True
-                            xsize 340
-                            text_align 1.0
-
-            text "Хариулсан хүн: [cb_total_answers]":
-                style "cb_small_text"
-                xalign 0.5
+                for choice in current_round.get("choices", []):
+                    text choice:
+                        color "#D7DCEF"
+                        size 28
+                        xalign 0.5
 
             text "Утаснаасаа: [cb_server_url()]":
                 color "#8999FF"
@@ -307,6 +287,9 @@ screen crowd_creators_result(question, result):
     $ choices = question.get("choices", [])
     $ counts = latest_result.get("choice_counts", latest_round.get("choice_counts", []))
     $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
+    $ top_indices = latest_result.get("top_choice_indices", [])
+    $ winner_labels = [choices[index] for index in top_indices if 0 <= index < len(choices)]
+    $ winner_text = ", ".join(winner_labels)
     add Solid("#070B14")
     add Solid("#6F7CFF18")
 
@@ -358,9 +341,16 @@ screen crowd_creators_result(question, result):
                             xsize 360
                             text_align 1.0
 
-            text "Нийт санал: [total_answers]":
+            text "Нийт оролцогч: [total_answers] · Нийт санал: [total_answers]":
                 style "cb_small_text"
                 xalign 0.5
+
+            if winner_text:
+                text "Хамгийн олон санал: [winner_text]":
+                    color "#59E6A8"
+                    size 25
+                    bold True
+                    xalign 0.5
 
             textbutton "ДАРААГИЙН АСУУЛТ":
                 style "cb_button"

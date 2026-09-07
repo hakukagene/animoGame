@@ -155,12 +155,15 @@
     function renderRound(battle, round) {
       show("question-card");
       const isSurvey = round.mode === "survey";
+      const finished = round.status === "finished";
       $("round-number").textContent = isSurvey
         ? `CREATORS' QUESTION · ${round.round_number}`
         : `${battle.monster_name} · ${round.round_number}-р асуулт`;
       $("timer").textContent = `${round.remaining_seconds}s`;
       $("question").textContent = round.question;
-      $("answer-count").textContent = `${round.total_answers} хариулт`;
+      $("answer-count").textContent = isSurvey
+        ? (finished ? "Санал хураалт дууссан" : "Сонголтоо дарна уу")
+        : `${round.total_answers} хариулт`;
       $("power-text").textContent = isSurvey
         ? "Санал асуулга"
         : `⚔ ${round.attack_power} / ☠ ${round.enemy_attack_power}`;
@@ -179,17 +182,10 @@
       }
 
       const answered = state.answeredRoundId === round.round_id;
-      const finished = round.status === "finished";
       const correctIndex = finished && round.result ? round.result.correct_index : -1;
-      const liveCounts = Array.isArray(round.choice_counts) ? round.choice_counts : [];
-      const showSurveyCounts = isSurvey && (answered || finished);
 
       [...$("answers").children].forEach((button, index) => {
-        const voteCount = Number(liveCounts[index] || 0);
-        const choiceLabel = `${String.fromCharCode(65 + index)}. ${round.choices[index]}`;
-        button.textContent = showSurveyCounts
-          ? `${choiceLabel} — ${voteCount} санал`
-          : choiceLabel;
+        button.textContent = `${String.fromCharCode(65 + index)}. ${round.choices[index]}`;
         button.disabled = answered || finished;
         button.className = "";
         if (index === state.selectedIndex) button.classList.add("selected");
@@ -201,7 +197,7 @@
       if (finished && round.result) {
         notice.classList.remove("hidden", "error");
         notice.textContent = isSurvey
-          ? `Санал асуулга дууслаа. Нийт ${round.result.total_answers} санал.`
+          ? "Санал асуулга дууслаа. Нэгдсэн үр дүн тоглоомын дэлгэц дээр гарна."
           : `Зөв: ${round.result.correct_count} · Буруу: ${round.result.wrong_count} · Мангас -${round.result.monster_damage} HP`;
       } else if (answered) {
         notice.classList.remove("hidden", "error");
