@@ -30,7 +30,7 @@ define Creators_Question = [
     {
         "question": "Анимо Ертөнцийн оршин суугчид ямар зан, характертай вэ?",
         "voice": "audio/hutlugch16.ogg",
-        "choices": ["Peaceful", "Competitive", "Creative", "Adventurous", "Adventurous"],
+        "choices": ["Peaceful", "Competitive", "Creative", "Adventurous"],
         "duration": 15,
         "mode": "survey",
     },

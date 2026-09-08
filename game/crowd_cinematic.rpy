@@ -565,7 +565,7 @@ label crowd_victory_ending:
 
     play sound "audio/cinematic_impact.ogg"
     with hpunch
-    with flash
+    with fade
     show expression cb_enemy_idle_image as crowd_enemy at cb_boss_death
     $ renpy.pause(2.9, hard=True)
     hide crowd_enemy
