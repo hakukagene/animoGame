@@ -242,11 +242,12 @@ init -90 python:
         )
 
         # Begin an interaction so queued audio starts, then wait until the
-        # channel no longer has a playing filename.
-        renpy.pause(interval, hard=True)
+        # channel no longer has a playing filename. The battle HUD is modal,
+        # so modal=False is required for each timed pause to finish beneath it.
+        renpy.pause(interval, hard=True, modal=False)
 
         while renpy.music.get_playing(channel="voice_wait") is not None:
-            renpy.pause(interval, hard=True)
+            renpy.pause(interval, hard=True, modal=False)
 
         return True
 

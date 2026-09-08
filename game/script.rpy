@@ -80,8 +80,16 @@ label crowd_monster_battle:
     while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
         $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
-        # Battle асуултыг мөн voice_sync-ээр бүрэн уншуулсны дараа санал авна.
-        $ cb_voice_line(guide, question.get("question", ""), question.get("voice"))
+        # Асуултыг default say screen-ээр биш, battle HUD дээр харуулна.
+        # OGG бүрэн дууссаны дараа л server round эхлэх тул санал авах
+        # хугацаа бүтнээрээ үлдэнэ.
+        show screen crowd_battle_round(None, question, True)
+        $ voice_finished = cb_play_ogg_and_wait(question.get("voice"))
+
+        # Voice файл байхгүй үед ч асуултыг унших богино хугацаа өгнө.
+        if not voice_finished:
+            $ renpy.pause(2.5, hard=True, modal=False)
+
         $ renpy.block_rollback()
 
         $ response = cb_start_round(question)
@@ -93,6 +101,7 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
+        hide screen crowd_battle_round
         call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
