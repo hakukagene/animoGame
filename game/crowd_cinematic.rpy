@@ -449,7 +449,7 @@ label crowd_world_cinematic:
     show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
     play sound "audio/cinematic_impact.ogg"
     with hpunch
-    with flash
+    with fade
     $ renpy.pause(0.7, hard=True)
     hide crowd_enemy
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
