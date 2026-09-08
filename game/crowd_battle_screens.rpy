@@ -159,13 +159,15 @@ screen crowd_battle_round(expected_round_id=None):
                     xalign 0.5
 
 
-screen crowd_round_result(result):
+screen crowd_round_result(result, final_question=False):
     modal True
     $ correct_count = result.get("correct_count", 0)
     $ wrong_count = result.get("wrong_count", 0)
     $ monster_damage = result.get("monster_damage", 0)
     $ player_damage = result.get("player_damage", 0)
     $ total_answers = result.get("total_answers", 0)
+    $ battle_finished = result.get("battle_status", "active") in ("victory", "defeat")
+    $ result_button_text = "ТӨГСГӨЛ ҮЗЭХ" if battle_finished or final_question else "ДАРААГИЙН АСУУЛТ"
     add Solid("#070B14")
     add Solid("#7C3AED22")
 
@@ -201,7 +203,7 @@ screen crowd_round_result(result):
 
             text "Нийт хариулт: [total_answers]" style "cb_small_text" xalign 0.5
 
-            textbutton "ДАРААГИЙН АСУУЛТ":
+            textbutton result_button_text:
                 style "cb_button"
                 xalign 0.5
                 action Return(True)
@@ -356,7 +358,11 @@ screen crowd_battle_ending(victory):
             text "Үзэгчдийн баг [cb_enemy_name]-г яллаа." style "cb_body_text" xalign 0.5
         else:
             text "ЯЛАГДАЛ" color "#FF8296" size 100 bold True xalign 0.5
-            text "Багийн HP дууслаа. Дахин оролдоорой." style "cb_body_text" xalign 0.5
+            text "Ертөнцийг хамгаалж чадсангүй." style "cb_body_text" xalign 0.5
+
+        text "[cb_battle_end_reason]":
+            style "cb_small_text"
+            xalign 0.5
 
         hbox:
             spacing 20
