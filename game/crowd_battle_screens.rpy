@@ -47,7 +47,7 @@ screen crowd_battle_intro():
         yalign 0.5
         spacing 28
 
-        text "СҮҮДРИЙН МАНГАС" style "cb_title_text" xalign 0.5
+        text "[cb_enemy_title]" style "cb_title_text" xalign 0.5
         text "Үзэгчдийн зөв хариулт бүр мангасад damage өгнө.\nБуруу хариулт бүр танай багийн HP-г хасна.":
             style "cb_body_text"
             text_align 0.5
@@ -71,13 +71,12 @@ screen crowd_battle_round(expected_round_id=None):
     modal True
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ has_answers = max(0, int(current_round.get("total_answers", 0))) > 0
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
-    if has_answers and cb_round_can_finish(guarded_round_id):
+    if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
     vbox:
@@ -102,7 +101,7 @@ screen crowd_battle_round(expected_round_id=None):
         ypos 45
         xsize 760
         spacing 10
-        text "СҮҮДРИЙН МАНГАС" style "cb_small_text" xalign 1.0
+        text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
         text "[cb_monster_hp] / [cb_monster_max_hp] HP":
             color "#FF8296"
             size 29
@@ -116,14 +115,10 @@ screen crowd_battle_round(expected_round_id=None):
             right_bar Solid("#24304A")
             xalign 1.0
 
-    text "МАНГАС":
+    add cb_enemy_idle_image:
         at cb_monster_idle
         xalign 0.5
-        ypos 395
-        color "#B983FF"
-        size 94
-        bold True
-        outlines [(6, "#3B174FFF", 0, 0)]
+        ycenter 470
 
     frame:
         background Solid("#121B30EE")
@@ -217,15 +212,14 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ has_answers = max(0, int(current_round.get("total_answers", 0))) > 0
 
     add Solid("#070B14")
 
     # Серверийн хугацаа, хариултын төлөвийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
-    # Дор хаяж нэг хариулттай бөгөөд: бүгд хариулсан ЭСВЭЛ duration дууссан үед return хийнэ.
-    if has_answers and cb_round_can_finish(guarded_round_id):
+    # Бүгд хариулсан ЭСВЭЛ duration дууссан үед return хийнэ.
+    if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(True)
     
     frame:
@@ -359,7 +353,7 @@ screen crowd_battle_ending(victory):
 
         if victory:
             text "ЯЛАЛТ!" color "#59E6A8" size 100 bold True xalign 0.5
-            text "Үзэгчдийн баг Сүүдрийн мангасыг яллаа." style "cb_body_text" xalign 0.5
+            text "Үзэгчдийн баг [cb_enemy_name]-г яллаа." style "cb_body_text" xalign 0.5
         else:
             text "ЯЛАГДАЛ" color "#FF8296" size 100 bold True xalign 0.5
             text "Багийн HP дууслаа. Дахин оролдоорой." style "cb_body_text" xalign 0.5

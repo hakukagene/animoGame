@@ -95,7 +95,7 @@ init python:
             method="POST",
             payload={
                 "team_name": "Үзэгчдийн баг",
-                "monster_name": "Сүүдрийн мангас",
+                "monster_name": getattr(store, "cb_enemy_name", "Сүүдрийн мангас"),
                 "player_hp": 200,
                 "monster_hp": 250,
             },
@@ -163,11 +163,7 @@ init python:
         if current.get("status") != "finished" or not current.get("result"):
             return False
 
-        # 0 хариулттай result-ийг хүчинтэй round result гэж үзэхгүй.
         total_answers = max(0, int(current.get("total_answers", 0)))
-        if total_answers <= 0:
-            return False
-
         expected_answers = max(0, int(current.get("expected_answers", 0)))
         all_answers_received = (
             expected_answers > 0
@@ -175,10 +171,13 @@ init python:
         )
         duration_finished = (
             store.cb_round_guard_id == expected_round_id
-            and store.cb_round_local_deadline > 15
+            and store.cb_round_local_deadline > 0.0
             and time.monotonic() >= store.cb_round_local_deadline
         )
-        return all_answers_received or duration_finished
+        # Хэн ч хариулаагүй байсан ч 15 секунд дуусвал round хаагдах ёстой.
+        # Харин хугацаанаас өмнө зөвхөн бүртгэгдсэн бүх тоглогч хариулсан
+        # тохиолдолд л үр дүн рүү шилжинэ.
+        return duration_finished or (total_answers > 0 and all_answers_received)
 
 
     def cb_uncached_path(path):

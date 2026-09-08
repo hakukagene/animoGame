@@ -65,13 +65,12 @@ class BattleStore:
             bool(expected_player_ids)
             and expected_player_ids.issubset(answered_player_ids)
         )
-        has_answers = bool(answered_player_ids)
         duration_finished = now >= current["ends_at"]
-        duration_can_finish = duration_finished and has_answers
 
-        # Duration дууссан ч нэг ч хүн хариулаагүй бол result үүсгэхгүй.
-        # Round open хэвээр үлдэх тул тоглогч дараа нь ч хариулах боломжтой.
-        if not force and not all_answers_received and not duration_can_finish:
+        # Бүгд хариулбал эрт, үгүй бол duration дуусмагц (0 хариулттай ч)
+        # round-ыг заавал хаана. Ингэснээр Ren'Py result screen-ээ хүлээгээд
+        # гацахгүй.
+        if not force and not all_answers_received and not duration_finished:
             return current
 
         answers = list(current["answers"].values())
