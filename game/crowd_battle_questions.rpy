@@ -34,6 +34,13 @@ define Creators_Question = [
         "duration": 15,
         "mode": "survey",
     },
+    {
+        "question": "Тэдний дайсан хэн бэ?",
+        "voice": "audio/hutlugch17.ogg",
+        "choices": ["The Void — “Хоосрол”", "THE DEVOURER — “Ертөнц залгигч”", "THE COLOSSUS — “Аварга машин”"],
+        "duration": 15,
+        "mode": "survey",
+    },
 ]
 
 define CROWD_BATTLE_QUESTIONS = [
