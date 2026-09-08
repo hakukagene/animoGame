@@ -4,8 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump intro 
-    jump crowd_monster_battle
+    jump intro
 
 
 label crowd_creators_questions:
@@ -18,6 +17,7 @@ label crowd_creators_questions:
         $ renpy.block_rollback()
 
     $ creator_question_index = 0
+    $ cb_creator_results = []
 
     while creator_question_index < len(Creators_Question):
         $ question = Creators_Question[creator_question_index]
@@ -52,6 +52,9 @@ label crowd_creators_questions:
         $ result = cb_fetch_round_result(creator_round_id)
         $ latest_round = cb_battle.get("current_round") or {}
         $ result = result or latest_round.get("result") or cb_round_result or {}
+
+        # Cinematic-д ертөнц, мангасын төрлийг бодит саналын ялагчаар сонгоно.
+        $ cb_record_creator_result(creator_question_index, question, result)
 
         # Зөвхөн одоо үр дүнгийн дэлгэц гарна.
         call screen crowd_creators_result(question, result)
