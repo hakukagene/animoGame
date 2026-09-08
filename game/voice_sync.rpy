@@ -13,6 +13,22 @@ define config.afm_bonus = 0
 define config.afm_characters = 10000
 
 
+transform cb_speaker_nova:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.68
+    alpha 0.0
+    linear 0.20 alpha 1.0
+
+
+transform cb_speaker_monster:
+    xalign 0.82
+    yalign 0.5
+    zoom 0.88
+    alpha 0.0
+    linear 0.20 alpha 1.0
+
+
 init -90 python:
     if not renpy.music.channel_defined("voice_wait"):
         renpy.music.register_channel(
@@ -56,6 +72,50 @@ init -90 python:
         return True
 
 
+    def cb_dialogue_enemy_displayable(st, at):
+        """Returns the monster selected by the creators' final vote."""
+
+        image_path = getattr(
+            store,
+            "cb_enemy_idle_image",
+            "images/cinematic/boss_void.webp",
+        ) or "images/cinematic/boss_void.webp"
+        return renpy.easy_displayable(image_path), 0.25
+
+
+    def cb_show_speaker_portrait(who):
+        """Keeps the visible portrait in sync with the speaking character."""
+
+        nova_character = getattr(store, "N", None)
+        monster_character = getattr(store, "Monster", None)
+
+        if nova_character is not None and who is nova_character:
+            renpy.hide("crowd_enemy")
+            renpy.show("nova", at_list=[store.cb_speaker_nova])
+        elif monster_character is not None and who is monster_character:
+            renpy.hide("nova")
+            renpy.show(
+                "crowd_enemy dialogue",
+                at_list=[store.cb_speaker_monster],
+            )
+        else:
+            # Narration/System/Creators lines do not leave an old speaker up.
+            renpy.hide("nova")
+            renpy.hide("crowd_enemy")
+
+
+    def cb_nova_portrait_callback(event, interact=True, **kwargs):
+        # Direct `N "..."` lines also receive the same portrait behavior.
+        if event == "begin" and not renpy.showing("nova"):
+            cb_show_speaker_portrait(getattr(store, "N", None))
+
+
+    def cb_monster_portrait_callback(event, interact=True, **kwargs):
+        # Direct `Monster "..."` lines use the creators' selected monster.
+        if event == "begin" and not renpy.showing("crowd_enemy dialogue"):
+            cb_show_speaker_portrait(getattr(store, "Monster", None))
+
+
     def cb_voice_line(who, what, voice_id):
         """
         Shows one dialogue line and advances immediately after its OGG finishes.
@@ -73,6 +133,7 @@ init -90 python:
 
         global _cb_voice_lock_dismiss
 
+        cb_show_speaker_portrait(who)
         voice_file = cb_voice_path(voice_id)
 
         if not voice_file or not renpy.loadable(voice_file):
@@ -152,3 +213,6 @@ init -90 python:
 
 
     config.say_allow_dismiss = cb_voice_allow_dismiss
+
+
+image crowd_enemy dialogue = DynamicDisplayable(cb_dialogue_enemy_displayable)

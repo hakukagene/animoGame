@@ -74,8 +74,6 @@ label crowd_monster_battle:
         $ response = cb_start_battle()
         $ renpy.block_rollback()
 
-    call screen crowd_battle_intro
-
     $ question_index = 0
 
     # Нэг battle-д 20 асуултыг нэг удаа л ашиглана.

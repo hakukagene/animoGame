@@ -13,6 +13,80 @@ transform cb_result_pop:
     linear 0.12 zoom 1.0
 
 
+define CB_RESULT_DISPLAY_SECONDS = 4
+
+
+init -35 python:
+    # Creators-ийн ертөнцийн асуултад тоглох жижиг video preview-үүд.
+    CB_WORLD_PREVIEW_DATA = {
+        "Futuristic": "cb_preview_futuristic",
+        "Fantasy": "cb_preview_fantasy",
+        "Modern": "cb_preview_modern",
+        "Post-apocalyptic": "cb_preview_post",
+    }
+
+    # Citizen хавтас дахь сонголт бүрийн зураг.
+    CB_CITIZEN_PREVIEW_DATA = {
+        "Humans": "citizen/Human.png",
+        "Robots": "citizen/Robots.png",
+        "Magic Creatures": "citizen/Magic Creatures.png",
+        "Aliens": "citizen/Alien.png",
+        "Anime Characters": "citizen/Anime.png",
+        "Elfs": "citizen/elf.png",
+        "Monsters": "images/cinematic/boss_void.webp",
+        "Orcs": "citizen/Orc.png",
+    }
+
+    # Нэг дэлгэц дээр дөрвөн Movie зэрэг ажиллах тул тус бүр өөр channel-тэй.
+    for _cb_movie_channel in (
+        "cb_preview_futuristic",
+        "cb_preview_fantasy",
+        "cb_preview_modern",
+        "cb_preview_post",
+    ):
+        if not renpy.music.channel_defined(_cb_movie_channel):
+            renpy.music.register_channel(
+                _cb_movie_channel,
+                mixer="sfx",
+                loop=True,
+                stop_on_mute=False,
+                buffer_queue=False,
+                movie=True,
+            )
+
+
+# Movie displayable-уудыг screen ажиллахаас өмнө init үеэр үүсгэнэ.
+# `image` нь video байхгүй/дэмжигдэхгүй төхөөрөмж дээрх fallback зураг.
+image cb_preview_futuristic = Movie(
+    play="video/cinematic/BG/BG_Futuristic.webm",
+    channel="cb_preview_futuristic",
+    loop=True,
+    size=(300, 169),
+    image="images/cinematic/world_futuristic.webp",
+)
+image cb_preview_fantasy = Movie(
+    play="video/cinematic/BG/BG_Fantasy.webm",
+    channel="cb_preview_fantasy",
+    loop=True,
+    size=(300, 169),
+    image="images/cinematic/world_fantasy.webp",
+)
+image cb_preview_modern = Movie(
+    play="video/cinematic/BG/BG_Modern.webm",
+    channel="cb_preview_modern",
+    loop=True,
+    size=(300, 169),
+    image="images/cinematic/world_modern.webp",
+)
+image cb_preview_post = Movie(
+    play="video/cinematic/BG/BG_Post.webm",
+    channel="cb_preview_post",
+    loop=True,
+    size=(300, 169),
+    image="images/cinematic/world_post.webp",
+)
+
+
 style cb_title_text:
     color "#F6F7FF"
     size 46
@@ -161,15 +235,25 @@ screen crowd_battle_round(expected_round_id=None):
 
 screen crowd_round_result(result, final_question=False):
     modal True
+    default auto_seconds = CB_RESULT_DISPLAY_SECONDS
+
     $ correct_count = result.get("correct_count", 0)
     $ wrong_count = result.get("wrong_count", 0)
     $ monster_damage = result.get("monster_damage", 0)
     $ player_damage = result.get("player_damage", 0)
     $ total_answers = result.get("total_answers", 0)
     $ battle_finished = result.get("battle_status", "active") in ("victory", "defeat")
-    $ result_button_text = "ТӨГСГӨЛ ҮЗЭХ" if battle_finished or final_question else "ДАРААГИЙН АСУУЛТ"
+    $ next_part_text = "төгсгөлийн хэсэг" if battle_finished or final_question else "дараагийн асуулт"
+
     add Solid("#070B14")
     add Solid("#7C3AED22")
+
+    # Button шаардахгүй: үр дүнг дөрвөн секунд үзүүлээд өөрөө үргэлжилнэ.
+    timer 1.0 repeat True action If(
+        auto_seconds > 1,
+        SetScreenVariable("auto_seconds", auto_seconds - 1),
+        Return(True)
+    )
 
     frame:
         at cb_result_pop
@@ -203,10 +287,11 @@ screen crowd_round_result(result, final_question=False):
 
             text "Нийт хариулт: [total_answers]" style "cb_small_text" xalign 0.5
 
-            textbutton result_button_text:
-                style "cb_button"
+            text "[auto_seconds] секундын дараа [next_part_text] руу автоматаар шилжинэ.":
+                color "#8999FF"
+                size 23
                 xalign 0.5
-                action Return(True)
+                text_align 0.5
 
 
 screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):
@@ -254,20 +339,94 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                 text_align 0.5
                 xalign 0.5
 
-            # Санал авч байх үед зөвхөн хариултууд харагдана.
-            vbox:
-                spacing 12
-                xalign 0.5
+            # 2-р асуулт: BG хавтасны cinematic бүрийг жижиг preview болгоно.
+            if question_number == 2:
+                hbox:
+                    spacing 18
+                    xalign 0.5
 
-                for choice in current_round.get("choices", []):
-                    text choice:
-                        color "#D7DCEF"
-                        size 28
-                        xalign 0.5
+                    for choice in current_round.get("choices", []):
+                        $ preview_image = CB_WORLD_PREVIEW_DATA.get(choice)
+
+                        frame:
+                            background Solid("#18233BF5")
+                            xsize 330
+                            ysize 235
+                            padding (14, 14)
+
+                            vbox:
+                                spacing 10
+                                xalign 0.5
+
+                                if preview_image:
+                                    add preview_image:
+                                        xysize (300, 169)
+                                        xalign 0.5
+
+                                text choice:
+                                    color "#F6F7FF"
+                                    size 23
+                                    bold True
+                                    xalign 0.5
+                                    text_align 0.5
+
+            # 4-р асуулт: Citizen зургуудыг 4 x 2 сонголтын карт болгоно.
+            elif question_number == 4:
+                vbox:
+                    spacing 12
+                    xalign 0.5
+
+                    for row_start in range(0, len(current_round.get("choices", [])), 4):
+                        hbox:
+                            spacing 16
+                            xalign 0.5
+
+                            for choice in current_round.get("choices", [])[row_start:row_start + 4]:
+                                $ citizen_image = CB_CITIZEN_PREVIEW_DATA.get(choice)
+
+                                frame:
+                                    background Solid("#18233BF5")
+                                    xsize 330
+                                    ysize 205
+                                    padding (12, 10)
+
+                                    vbox:
+                                        spacing 7
+                                        xalign 0.5
+
+                                        if citizen_image:
+                                            add citizen_image:
+                                                xysize (230, 135)
+                                                xalign 0.5
+
+                                        text choice:
+                                            color "#F6F7FF"
+                                            size 21
+                                            bold True
+                                            xalign 0.5
+                                            text_align 0.5
+
+            # Бусад creators асуултын layout өөрчлөгдөхгүй.
+            else:
+                vbox:
+                    spacing 12
+                    xalign 0.5
+
+                    for choice in current_round.get("choices", []):
+                        text choice:
+                            color "#D7DCEF"
+                            size 28
+                            xalign 0.5
+
+            text "Утаснаасаа сонголтоо хийнэ үү.":
+                style "cb_small_text"
+                xalign 0.5
 
 
 screen crowd_creators_result(question, result):
     modal True
+    default auto_seconds = CB_RESULT_DISPLAY_SECONDS
+
     $ latest_round = cb_battle.get("current_round") or {}
     $ latest_result = result or latest_round.get("result") or {}
     $ choices = question.get("choices", [])
@@ -278,6 +437,13 @@ screen crowd_creators_result(question, result):
     $ winner_text = ", ".join(winner_labels)
     add Solid("#070B14")
     add Solid("#6F7CFF18")
+
+    # Result-ийг дөрвөн секунд харуулаад дараагийн үйл явдал руу орно.
+    timer 1.0 repeat True action If(
+        auto_seconds > 1,
+        SetScreenVariable("auto_seconds", auto_seconds - 1),
+        Return(True)
+    )
 
     frame:
         at cb_result_pop
@@ -338,10 +504,11 @@ screen crowd_creators_result(question, result):
                     bold True
                     xalign 0.5
 
-            textbutton "ДАРААГИЙН АСУУЛТ":
-                style "cb_button"
+            text "[auto_seconds] секундын дараа автоматаар үргэлжилнэ.":
+                color "#8999FF"
+                size 23
                 xalign 0.5
-                action Return(True)
+                text_align 0.5
 
 
 screen crowd_battle_ending(victory):
