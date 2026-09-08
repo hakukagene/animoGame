@@ -21,6 +21,12 @@ label crowd_creators_questions:
 
     while creator_question_index < len(Creators_Question):
         $ question = Creators_Question[creator_question_index]
+
+        # Асуултыг OGG дуустал дэлгэцэнд харуулна. Үүний дараа server
+        # round эхлэх тул 15 секундийн санал авах хугацаа бүтнээрээ үлдэнэ.
+        $ cb_voice_line(C, question.get("question", ""), question.get("voice"))
+        $ renpy.block_rollback()
+
         $ response = cb_start_round(question)
         $ renpy.block_rollback()
 
@@ -33,8 +39,7 @@ label crowd_creators_questions:
 
         # Одоо эхэлсэн асуултын ID.
         $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
-        $ print("========== shuud ==========")
-        $ print("==========  ajillad bna  ==========")
+
         # Энэ screen duration дуусаж, сервер finished болтол return хийхгүй.
         call screen crowd_creators_round(
             creator_question_index + 1,
@@ -71,6 +76,11 @@ label crowd_monster_battle:
 
     while cb_battle_status == "active":
         $ question = CROWD_BATTLE_QUESTIONS[question_index % len(CROWD_BATTLE_QUESTIONS)]
+
+        # Battle асуултыг мөн voice_sync-ээр бүрэн уншуулсны дараа санал авна.
+        $ cb_voice_line(guide, question.get("question", ""), question.get("voice"))
+        $ renpy.block_rollback()
+
         $ response = cb_start_round(question)
         $ renpy.block_rollback()
 
