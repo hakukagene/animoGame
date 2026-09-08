@@ -65,6 +65,7 @@ label crowd_creators_questions:
 
 
 label crowd_monster_battle:
+    $ cb_battle_end_reason = ""
     $ response = cb_start_battle()
     $ renpy.block_rollback()
 
@@ -77,8 +78,9 @@ label crowd_monster_battle:
 
     $ question_index = 0
 
-    while cb_battle_status == "active":
-        $ question = CROWD_BATTLE_QUESTIONS[question_index % len(CROWD_BATTLE_QUESTIONS)]
+    # Нэг battle-д 20 асуултыг нэг удаа л ашиглана.
+    while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
+        $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
         # Battle асуултыг мөн voice_sync-ээр бүрэн уншуулсны дараа санал авна.
         $ cb_voice_line(guide, question.get("question", ""), question.get("voice"))
@@ -101,10 +103,24 @@ label crowd_monster_battle:
             $ result = cb_round_result
             $ renpy.block_rollback()
 
-        call screen crowd_round_result(result)
+        $ is_final_question = question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
+        call screen crowd_round_result(result, is_final_question)
         $ question_index += 1
 
-    $ victory = cb_battle_status == "victory"
+    # Хожих нөхцөл: мангасын HP 0. Хоёр тал зэрэг 0 болсон бол серверийн
+    # одоогийн дүрмээр final strike хийсэн тоглогчдын баг ялна.
+    $ victory = cb_battle_status == "victory" or cb_monster_hp <= 0
+
+    if victory:
+        $ cb_battle_end_reason = "Мангасын HP 0 болсон."
+        call crowd_victory_ending
+    else:
+        if cb_player_hp <= 0:
+            $ cb_battle_end_reason = "Үзэгчдийн багийн HP 0 болсон."
+        else:
+            $ cb_battle_end_reason = "20 асуулт дуусахад мангас амьд үлдсэн."
+        call crowd_defeat_ending
+
     call screen crowd_battle_ending(victory)
 
     if _return == "restart":
