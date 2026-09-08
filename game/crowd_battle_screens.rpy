@@ -13,7 +13,18 @@ transform cb_result_pop:
     linear 0.12 zoom 1.0
 
 
+transform cb_damage_float:
+    anchor (0.5, 0.5)
+    alpha 0.0
+    yoffset 35
+    zoom 0.75
+    linear 0.14 alpha 1.0 zoom 1.15
+    pause 0.18
+    easeout 1.35 yoffset -125 alpha 0.0 zoom 1.0
+
+
 define CB_RESULT_DISPLAY_SECONDS = 4
+define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
 
 
 init -35 python:
@@ -37,6 +48,22 @@ init -35 python:
         "Orcs": "citizen/Orc.png",
     }
 
+    # Сонгогдсон мангасын battle үеийн нэг удаагийн attack болон loop idle.
+    CB_BATTLE_MONSTER_MOVIES = {
+        "void": {
+            "attack": "video/cinematic/Attack/Void_Attack.webm",
+            "idle": "video/cinematic/Attack/Void_Idle.webm",
+        },
+        "devourer": {
+            "attack": "video/cinematic/Attack/Devourer_attack.webm",
+            "idle": "video/cinematic/Attack/Devourer_idle.webm",
+        },
+        "colossus": {
+            "attack": "video/cinematic/Attack/Colosus_attack.webm",
+            "idle": "video/cinematic/Attack/Colosus_idle.webm",
+        },
+    }
+
     # Нэг дэлгэц дээр дөрвөн Movie зэрэг ажиллах тул тус бүр өөр channel-тэй.
     for _cb_movie_channel in (
         "cb_preview_futuristic",
@@ -53,6 +80,62 @@ init -35 python:
                 buffer_queue=False,
                 movie=True,
             )
+
+    if not renpy.music.channel_defined("cb_monster_movie"):
+        renpy.music.register_channel(
+            "cb_monster_movie",
+            mixer="sfx",
+            loop=False,
+            stop_on_mute=False,
+            buffer_queue=False,
+            movie=True,
+            framedrop=True,
+        )
+
+
+    def cb_start_battle_feedback(result):
+        """Play one attack for a wrong answer, then loop the idle movie."""
+
+        result = result or {}
+        enemy_key = getattr(store, "cb_enemy_key", "void")
+        media = CB_BATTLE_MONSTER_MOVIES.get(
+            enemy_key,
+            CB_BATTLE_MONSTER_MOVIES["void"],
+        )
+        attack_movie = media["attack"]
+        idle_movie = media["idle"]
+        should_attack = max(0, int(result.get("wrong_count", 0))) > 0
+
+        renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
+
+        if should_attack and renpy.loadable(attack_movie):
+            renpy.music.play(
+                attack_movie,
+                channel="cb_monster_movie",
+                loop=False,
+                fadeout=0.0,
+            )
+            if renpy.loadable(idle_movie):
+                renpy.music.queue(
+                    idle_movie,
+                    channel="cb_monster_movie",
+                    loop=True,
+                    clear_queue=False,
+                )
+        elif renpy.loadable(idle_movie):
+            renpy.music.play(
+                idle_movie,
+                channel="cb_monster_movie",
+                loop=True,
+                fadeout=0.0,
+            )
+
+        return should_attack
+
+
+    def cb_stop_battle_feedback():
+        renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
+        return None
 
 
 # Movie displayable-уудыг screen ажиллахаас өмнө init үеэр үүсгэнэ.
@@ -197,31 +280,28 @@ screen crowd_battle_round(expected_round_id=None, preview_question=None, preview
 
     add cb_enemy_idle_image:
         at cb_monster_idle
-        xalign 0.5
+        xcenter 1510
         ycenter 470
 
     frame:
         background Solid("#121B30EE")
         xalign 0.5
-        ypos 660
+        ypos 680
         xsize 1540
+        ysize 280
         padding (50, 34)
 
-        vbox:
-            spacing 18
+        fixed:
+            xsize 1440
+            ysize 212
 
-            if preview_mode:
-                text "АСУУЛТ УНШИЖ БАЙНА...":
-                    color "#8999FF"
-                    size 28
-                    bold True
-                    xalign 0.5
-            else:
+            if not preview_mode:
                 text "[cb_remaining_seconds] секунд":
                     color "#FF899D"
                     size 30
                     bold True
                     xalign 0.5
+                    yalign 0.0
 
             if shown_question:
                 text shown_question:
@@ -230,31 +310,32 @@ screen crowd_battle_round(expected_round_id=None, preview_question=None, preview
                     bold True
                     text_align 0.5
                     xalign 0.5
+                    yalign 0.5
+                    xmaximum 1380
 
-            if preview_mode:
-                text "Дуу дуусмагц санал авах 15 секунд эхэлнэ.":
-                    style "cb_small_text"
+            if not preview_mode:
+                hbox:
                     xalign 0.5
-            else:
-                text "Хариулсан тоглогч: [cb_total_answers]":
-                    style "cb_small_text"
-                    xalign 0.5
+                    yalign 1.0
+                    spacing 60
 
-                text "Утаснаасаа: [cb_server_url()]":
-                    color "#8999FF"
-                    size 24
-                    xalign 0.5
+                    text "Хариулсан тоглогч: [cb_total_answers]":
+                        style "cb_small_text"
 
-                if cb_connection_message:
-                    text cb_connection_message:
-                        color "#FF899D"
-                        size 20
-                        xalign 0.5
+                    text "Утаснаасаа: [cb_server_url()]":
+                        color "#8999FF"
+                        size 24
+
+            if not preview_mode and cb_connection_message:
+                text cb_connection_message:
+                    color "#FF899D"
+                    size 20
+                    xalign 0.5
+                    yalign 0.82
 
 
 screen crowd_round_result(result, final_question=False):
     modal True
-    default auto_seconds = CB_RESULT_DISPLAY_SECONDS
 
     $ correct_count = result.get("correct_count", 0)
     $ wrong_count = result.get("wrong_count", 0)
@@ -263,50 +344,108 @@ screen crowd_round_result(result, final_question=False):
     $ total_answers = result.get("total_answers", 0)
     $ battle_finished = result.get("battle_status", "active") in ("victory", "defeat")
     $ next_part_text = "төгсгөлийн хэсэг" if battle_finished or final_question else "дараагийн асуулт"
+    $ result_display_seconds = CB_ATTACK_RESULT_DISPLAY_SECONDS if wrong_count > 0 else CB_RESULT_DISPLAY_SECONDS
+    $ result_display_label = int(round(result_display_seconds))
 
     add Solid("#070B14")
-    add Solid("#7C3AED22")
+    add Solid("#101A31") xysize (1920, 270)
 
-    # Button шаардахгүй: үр дүнг дөрвөн секунд үзүүлээд өөрөө үргэлжилнэ.
-    timer 1.0 repeat True action If(
-        auto_seconds > 1,
-        SetScreenVariable("auto_seconds", auto_seconds - 1),
-        Return(True)
-    )
+    timer result_display_seconds action Return(True)
+
+    vbox:
+        xpos 90
+        ypos 45
+        xsize 760
+        spacing 10
+        text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
+        text "[cb_player_hp] / [cb_player_max_hp] HP":
+            color "#7FF0BB"
+            size 29
+            bold True
+        bar:
+            value StaticValue(cb_player_hp, cb_player_max_hp)
+            xsize 700
+            ysize 28
+            left_bar Solid("#38D99A")
+            right_bar Solid("#24304A")
+
+    vbox:
+        xpos 1070
+        ypos 45
+        xsize 760
+        spacing 10
+        text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
+        text "[cb_monster_hp] / [cb_monster_max_hp] HP":
+            color "#FF8296"
+            size 29
+            bold True
+            xalign 1.0
+        bar:
+            value StaticValue(cb_monster_hp, cb_monster_max_hp)
+            xsize 700
+            ysize 28
+            left_bar Solid("#FF5F78")
+            right_bar Solid("#24304A")
+            xalign 1.0
+
+    # Video decode эхлэхээс өмнө болон файл олдохгүй үед idle зураг харагдана.
+    add cb_enemy_idle_image:
+        at cb_monster_idle
+        xcenter 1510
+        ycenter 500
+
+    add Movie(channel="cb_monster_movie", size=(820, 458)):
+        xcenter 1510
+        ycenter 500
+
+    if monster_damage > 0:
+        text "-[monster_damage] HP":
+            at cb_damage_float
+            xcenter 1510
+            ycenter 500
+            color "#FF3B5C"
+            size 68
+            bold True
+            outlines [(5, "#2A0008DD", 0, 0)]
 
     frame:
         at cb_result_pop
         background Solid("#121B30F7")
-        xalign 0.5
-        yalign 0.5
-        xsize 1180
-        padding (70, 54)
+        xpos 90
+        ypos 330
+        xsize 850
+        ysize 570
+        padding (55, 42)
 
         vbox:
-            spacing 24
+            spacing 22
             xfill True
 
-            text "АСУУЛТЫН ҮР ДҮН" style "cb_title_text" xalign 0.5
+            text "АСУУЛТЫН ҮР ДҮН":
+                color "#F6F7FF"
+                size 42
+                bold True
+                xalign 0.5
 
             hbox:
                 xalign 0.5
-                spacing 120
+                spacing 70
 
                 vbox:
                     spacing 8
                     text "ЗӨВ" color "#59E6A8" size 28 bold True xalign 0.5
-                    text "[correct_count]" color "#FFFFFF" size 78 bold True xalign 0.5
+                    text "[correct_count]" color "#FFFFFF" size 68 bold True xalign 0.5
                     text "Мангас -[monster_damage] HP" color "#59E6A8" size 24 xalign 0.5
 
                 vbox:
                     spacing 8
                     text "БУРУУ" color "#FF8296" size 28 bold True xalign 0.5
-                    text "[wrong_count]" color "#FFFFFF" size 78 bold True xalign 0.5
+                    text "[wrong_count]" color "#FFFFFF" size 68 bold True xalign 0.5
                     text "Баг -[player_damage] HP" color "#FF8296" size 24 xalign 0.5
 
             text "Нийт хариулт: [total_answers]" style "cb_small_text" xalign 0.5
 
-            text "[auto_seconds] секундын дараа [next_part_text] руу автоматаар шилжинэ.":
+            text "[result_display_label] секундын дараа [next_part_text] руу автоматаар шилжинэ.":
                 color "#8999FF"
                 size 23
                 xalign 0.5
