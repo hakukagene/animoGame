@@ -14,6 +14,7 @@ default cb_enemy_idle_image = "images/cinematic/boss_void.webp"
 default cb_enemy_attack_image = "images/cinematic/boss_void_attack.webp"
 default cb_enemy_reveal_movie = "video/cinematic/reveal_void.webm"
 default cb_enemy_name_voice = "audio/mangas6.ogg"
+default cb_battle_end_reason = ""
 
 
 init -20 python:
@@ -175,6 +176,25 @@ transform cb_cinematic_attack:
     linear 0.16 zoom 1.05
 
 
+transform cb_boss_death:
+    anchor (0.5, 0.5)
+    xalign 0.5
+    yalign 0.48
+    alpha 1.0
+    zoom 1.0
+    parallel:
+        easeout 2.8 alpha 0.0
+    parallel:
+        easeout 2.8 zoom 1.35 yoffset -45
+
+
+transform cb_destroyed_world:
+    xysize (config.screen_width, config.screen_height)
+    xalign 0.5
+    yalign 0.5
+    matrixcolor TintMatrix("#B85C68") * BrightnessMatrix(-0.20)
+
+
 screen crowd_creator_summary(rows, participant_count):
     modal True
     add Solid("#070B14")
@@ -324,6 +344,34 @@ screen crowd_cinematic_movie(movie_path, duration=9.12):
         action Return("skip")
 
 
+screen crowd_stability_tick(stability):
+    modal True
+    $ tick_duration = 0.8 if stability == 0 else 0.32
+    $ stability_color = "#FF405F" if stability <= 3 else "#FF899D"
+
+    add Solid("#05070DB8")
+    timer tick_duration action Return(True)
+    key "dismiss" action NullAction()
+
+    vbox:
+        xalign 0.5
+        yalign 0.5
+        spacing 12
+
+        text "WORLD STABILITY":
+            color "#D7DCEF"
+            size 38
+            bold True
+            xalign 0.5
+
+        text "[stability]%":
+            color stability_color
+            size 128
+            bold True
+            xalign 0.5
+            outlines [(3, "#000000B0", 0, 0)]
+
+
 label crowd_world_cinematic:
     $ quick_menu = False
     $ cb_prepare_cinematic()
@@ -470,3 +518,75 @@ label crowd_world_cinematic:
     )
 
     jump crowd_monster_battle
+
+
+label crowd_defeat_ending:
+    $ quick_menu = False
+    window hide
+
+    scene expression cb_world_image at cb_cinematic_world
+    show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
+    play sound "audio/cinematic_impact.ogg"
+    with hpunch
+    with vpunch
+    with flash
+
+    scene expression "images/cinematic/world_post.webp" at cb_destroyed_world
+    show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
+    with Fade(0.35, 0.15, 0.65, color="#5A0714")
+
+    $ cb_voice_line(N, "...үгүй ээ.", "audio/defeat1.ogg")
+    $ cb_voice_line(Monster, "Та нар хангалттай хичээлээ.", "audio/mangas13.ogg")
+    $ cb_voice_line(Monster, "Гэхдээ энэ ертөнц...", "audio/mangas14.ogg")
+    $ renpy.pause(0.9, hard=True)
+    $ cb_voice_line(Monster, "...одоо минийх.", "audio/mangas15.ogg")
+
+    window hide
+    play sound "audio/cinematic_rumble.ogg" fadein 0.8
+    $ world_stability = 10
+    while world_stability >= 0:
+        call screen crowd_stability_tick(world_stability)
+        $ world_stability -= 1
+
+    stop sound fadeout 0.4
+    scene expression Solid("#000000")
+    with Fade(0.8, 0.4, 1.0)
+    $ renpy.pause(2.0, hard=True)
+    return
+
+
+label crowd_victory_ending:
+    $ quick_menu = False
+    window hide
+
+    scene expression cb_world_image at cb_cinematic_world
+    show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
+    with dissolve
+
+    play sound "audio/cinematic_impact.ogg"
+    with hpunch
+    with flash
+    show expression cb_enemy_idle_image as crowd_enemy at cb_boss_death
+    $ renpy.pause(2.9, hard=True)
+    hide crowd_enemy
+
+    call screen crowd_system_panel(
+        "SYSTEM",
+        [
+            "WORLD STABILITY — 100%.",
+            "POPULATION — SAFE.",
+            "CITY — STABLE.",
+            "CORE — STABLE.",
+        ],
+        4.0
+    )
+
+    $ cb_voice_line(N, "ANIMO World...", "audio/win2.ogg")
+    $ cb_voice_line(N, "...амьд үлдлээ.", "audio/win3.ogg")
+    $ cb_voice_line(N, "Та нар өөрсдийн бүтээсэн ертөнцийг хамгаалж чадлаа.", "audio/win4.ogg")
+
+    window hide
+    call screen crowd_cinematic_title("YOUR WORLD.", "", 1.5)
+    call screen crowd_cinematic_title("YOUR CHOICES.", "", 1.5)
+    call screen crowd_cinematic_title("YOUR ANIMO.", "", 2.5)
+    return
