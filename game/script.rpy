@@ -111,7 +111,9 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ is_final_question = question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
+        $ cb_start_battle_feedback(result)
         call screen crowd_round_result(result, is_final_question)
+        $ cb_stop_battle_feedback()
         $ question_index += 1
 
     # Хожих нөхцөл: мангасын HP 0. Хоёр тал зэрэг 0 болсон бол серверийн

@@ -160,24 +160,15 @@ init python:
         if not expected_round_id or current.get("round_id") != expected_round_id:
             return False
 
-        if current.get("status") != "finished" or not current.get("result"):
+        result = current.get("result") or {}
+        if current.get("status") != "finished" or not result:
             return False
 
-        total_answers = max(0, int(current.get("total_answers", 0)))
-        expected_answers = max(0, int(current.get("expected_answers", 0)))
-        all_answers_received = (
-            expected_answers > 0
-            and bool(current.get("all_answers_received", False))
-        )
-        duration_finished = (
-            store.cb_round_guard_id == expected_round_id
-            and store.cb_round_local_deadline > 0.0
-            and time.monotonic() >= store.cb_round_local_deadline
-        )
-        # Хэн ч хариулаагүй байсан ч 15 секунд дуусвал round хаагдах ёстой.
-        # Харин хугацаанаас өмнө зөвхөн бүртгэгдсэн бүх тоглогч хариулсан
-        # тохиолдолд л үр дүн рүү шилжинэ.
-        return duration_finished or (total_answers > 0 and all_answers_received)
+        # Server өөрөө бүх идэвхтэй тоглогч хариулсан эсвэл duration дууссан
+        # үед л round-ыг finished болгодог. Client талд deadline/participant
+        # нөхцөлийг дахин шалгавал server/local timer-ийн зөрүүнээс болж
+        # result гацаж болно. Энд зөвхөн хамгаалагдсан round_id-г шалгана.
+        return result.get("round_id") == expected_round_id
 
 
     def cb_uncached_path(path):
