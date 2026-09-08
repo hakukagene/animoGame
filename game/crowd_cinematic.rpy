@@ -12,7 +12,7 @@ default cb_enemy_name = "The Void"
 default cb_enemy_title = "THE VOID — ХООСРОЛ"
 default cb_enemy_idle_image = "images/cinematic/boss_void.webp"
 default cb_enemy_attack_image = "images/cinematic/boss_void_attack.webp"
-default cb_enemy_reveal_movie = "video/cinematic/reveal_void.webm"
+default cb_enemy_reveal_movie = "video/cinematic/reveal/reveal_void.webm"
 default cb_enemy_name_voice = "audio/mangas6.ogg"
 default cb_battle_end_reason = ""
 
@@ -103,7 +103,7 @@ init -20 python:
                 "title": "THE VOID — ХООСРОЛ",
                 "idle": "images/cinematic/boss_void.webp",
                 "attack": "images/cinematic/boss_void_attack.webp",
-                "movie": "video/cinematic/reveal_void.webm",
+                "movie": "video/cinematic/reveal/reveal_void.webm",
                 "voice": "audio/mangas6.ogg",
             },
             1: {
@@ -112,7 +112,7 @@ init -20 python:
                 "title": "THE DEVOURER — ЕРТӨНЦ ЗАЛГИГЧ",
                 "idle": "images/cinematic/boss_devourer.webp",
                 "attack": "images/cinematic/boss_devourer_attack.webp",
-                "movie": "video/cinematic/reveal_devourer.webm",
+                "movie": "video/cinematic/reveal/reveal_devourer.webm",
                 "voice": "audio/mangas7.ogg",
             },
             2: {
@@ -121,7 +121,7 @@ init -20 python:
                 "title": "THE COLOSSUS — АВАРГА МАШИН",
                 "idle": "images/cinematic/boss_colossus.webp",
                 "attack": "images/cinematic/boss_colossus_attack.webp",
-                "movie": "video/cinematic/reveal_colossus.webm",
+                "movie": "video/cinematic/reveal/reveal_colossus.webm",
                 # mangas8.ogg is not present in the repository. The line below
                 # therefore uses a timed text fallback instead of wrong audio.
                 "voice": None,
