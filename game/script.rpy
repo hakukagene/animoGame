@@ -24,7 +24,7 @@ label crowd_creators_questions:
 
         # Асуултыг OGG дуустал дэлгэцэнд харуулна. Үүний дараа server
         # round эхлэх тул 15 секундийн санал авах хугацаа бүтнээрээ үлдэнэ.
-        $ cb_voice_line(C, question.get("question", ""), question.get("voice"))
+        $ cb_voice_line(N, question.get("question", ""), question.get("voice"))
         $ renpy.block_rollback()
 
         $ response = cb_start_round(question)

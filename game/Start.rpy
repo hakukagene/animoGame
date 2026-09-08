@@ -1,7 +1,14 @@
+image nova = "images/cinematic/nova.png"
+transform nova_anim:
+    xalign 0.5
+    yalign 0.5
+    zoom 0.7
+    
 label intro:
     scene expression Solid("#000000")
     with fade
-
+    show nova at nova_anim
+    
     python:
         for i in range(len(TextArray)):
             cb_voice_line(
