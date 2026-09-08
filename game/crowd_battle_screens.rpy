@@ -141,17 +141,23 @@ screen crowd_battle_intro():
             action Return(True)
 
 
-screen crowd_battle_round(expected_round_id=None):
+screen crowd_battle_round(expected_round_id=None, preview_question=None, preview_mode=False):
     modal True
+
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
+    $ shown_question = (preview_question or {}).get("question", "") if preview_mode else current_round.get("question", "")
+
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
-    timer 0.25 repeat True action Function(cb_poll_round_action)
+    # Уншиж байх үед server round хараахан эхлээгүй учраас poll/Return
+    # ажиллуулахгүй. Voice дууссаны дараах active mode-д л ажиллана.
+    if not preview_mode:
+        timer 0.25 repeat True action Function(cb_poll_round_action)
 
-    if cb_round_can_finish(guarded_round_id):
-        timer 0.10 action Return(current_round.get("result") or cb_round_result)
+        if cb_round_can_finish(guarded_round_id):
+            timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
     vbox:
         xpos 90
@@ -203,34 +209,47 @@ screen crowd_battle_round(expected_round_id=None):
 
         vbox:
             spacing 18
-            text "[cb_remaining_seconds] секунд":
-                color "#FF899D"
-                size 30
-                bold True
-                xalign 0.5
 
-            if current_round:
-                text current_round.get("question", ""):
+            if preview_mode:
+                text "АСУУЛТ УНШИЖ БАЙНА...":
+                    color "#8999FF"
+                    size 28
+                    bold True
+                    xalign 0.5
+            else:
+                text "[cb_remaining_seconds] секунд":
+                    color "#FF899D"
+                    size 30
+                    bold True
+                    xalign 0.5
+
+            if shown_question:
+                text shown_question:
                     color "#FFFFFF"
                     size 37
                     bold True
                     text_align 0.5
                     xalign 0.5
 
-            text "Хариулсан тоглогч: [cb_total_answers]":
-                style "cb_small_text"
-                xalign 0.5
-
-            text "Утаснаасаа: [cb_server_url()]":
-                color "#8999FF"
-                size 24
-                xalign 0.5
-
-            if cb_connection_message:
-                text cb_connection_message:
-                    color "#FF899D"
-                    size 20
+            if preview_mode:
+                text "Дуу дуусмагц санал авах 15 секунд эхэлнэ.":
+                    style "cb_small_text"
                     xalign 0.5
+            else:
+                text "Хариулсан тоглогч: [cb_total_answers]":
+                    style "cb_small_text"
+                    xalign 0.5
+
+                text "Утаснаасаа: [cb_server_url()]":
+                    color "#8999FF"
+                    size 24
+                    xalign 0.5
+
+                if cb_connection_message:
+                    text cb_connection_message:
+                        color "#FF899D"
+                        size 20
+                        xalign 0.5
 
 
 screen crowd_round_result(result, final_question=False):
