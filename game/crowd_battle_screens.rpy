@@ -71,6 +71,15 @@ init -35 python:
         "Just Here": "images/creator_roles/just_here.png",
     }
 
+    # "Ертөнц хаана байдаг вэ?" асуултын location зургууд.
+    CB_LOCATION_PREVIEW_DATA = {
+        "Earth": "images/world_locations/earth.png",
+        "Another Planet": "images/world_locations/another_planet.png",
+        "Floating World": "images/world_locations/floating_world.png",
+        "Underground": "images/world_locations/underground.png",
+        "Another Dimension": "images/world_locations/another_dimension.png",
+    }
+
     # Creators-ийн ертөнцийн асуултад тоглох жижиг video preview-үүд.
     CB_WORLD_PREVIEW_DATA = {
         "Futuristic": "cb_preview_futuristic",
@@ -906,6 +915,42 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                     bold True
                                     xalign 0.5
                                     text_align 0.5
+
+            # 3-р асуулт: location бүрийг 3 + 2 зурагтай карт болгоно.
+            elif question_number == 3:
+                vbox:
+                    spacing 12
+                    xalign 0.5
+
+                    for row_start in range(0, len(current_round.get("choices", [])), 3):
+                        hbox:
+                            spacing 16
+                            xalign 0.5
+
+                            for choice in current_round.get("choices", [])[row_start:row_start + 3]:
+                                $ location_image = CB_LOCATION_PREVIEW_DATA.get(choice)
+
+                                frame:
+                                    background Solid("#18233BF5")
+                                    xsize 400
+                                    ysize 255
+                                    padding (8, 8)
+
+                                    vbox:
+                                        spacing 6
+                                        xalign 0.5
+
+                                        if location_image:
+                                            add location_image:
+                                                xysize (200, 200)
+                                                xalign 0.5
+
+                                        text choice:
+                                            color "#F6F7FF"
+                                            size 22
+                                            bold True
+                                            xalign 0.5
+                                            text_align 0.5
 
             # 4-р асуулт: Citizen зургуудыг 4 x 2 сонголтын карт болгоно.
             elif question_number == 4:
