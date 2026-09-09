@@ -1,5 +1,5 @@
 init -100 python:
-    CROWD_BATTLE_SERVER_URL = "https://animogame.onrender.com"
+    CROWD_BATTLE_SERVER_URL = "https://game-bnkw.onrender.com/"
     CROWD_BATTLE_HOST_TOKEN = ""
 
 default cb_connection_message = ""
@@ -105,9 +105,11 @@ init python:
         return response
 
 
+
     def cb_start_round(question):
-        # Never let the previous round's finished/result state leak into the
-        # screen that is about to display a newly-created round.
+
+        print("DEBUG 1: cb_start_round START")
+
         store.cb_round_status = "starting"
         store.cb_round_result = {}
         store.cb_total_answers = 0
@@ -116,10 +118,17 @@ init python:
         store.cb_round_guard_id = ""
         store.cb_round_local_deadline = 0.0
 
-        requested_duration = max(5, min(120, int(question.get("duration", 15))))
+        print("DEBUG 2: state reset OK")
+
+        requested_duration = max(
+            5,
+            min(120, int(question.get("duration", 15)))
+        )
+
         store.cb_remaining_seconds = requested_duration
 
         mode = question.get("mode", "battle")
+
         payload = {
             "question": question["question"],
             "choices": question["choices"],
@@ -130,26 +139,84 @@ init python:
         if mode == "survey":
             payload["attack_power"] = 0
             payload["enemy_attack_power"] = 0
+
         else:
             payload["correct_index"] = question["correct_index"]
             payload["attack_power"] = question.get("attack_power", 25)
-            payload["enemy_attack_power"] = question.get("enemy_attack_power", 20)
+            payload["enemy_attack_power"] = question.get(
+                "enemy_attack_power",
+                20
+            )
 
-        response = cb_api(
-            "/api/round/start",
-            method="POST",
-            payload=payload,
-            host=True,
-        )
+        print("DEBUG 3: PAYLOAD READY")
+        print(payload)
+
+        print("DEBUG 4: BEFORE cb_api")
+
+        try:
+
+            response = cb_api(
+                "/api/round/start",
+                method="POST",
+                payload=payload,
+                host=True,
+            )
+
+        except Exception as e:
+            import traceback
+
+            print("====================================")
+            print("CB_API ERROR")
+            print("TYPE =", type(e))
+            print("REPR =", repr(e))
+            print("STR =", str(e))
+            traceback.print_exc()
+            print("====================================")
+
+            return {
+                "success": False,
+                "error": "Сервертэй холбогдсонгүй: {}".format(repr(e)),
+        }
+
+        print("DEBUG 5: AFTER cb_api")
+        print("RESPONSE =", response)
+
         cb_apply_battle(response)
 
+        print("DEBUG 6: AFTER cb_apply_battle")
+
         if response.get("success"):
+
             current = store.cb_battle.get("current_round") or {}
+
+            print("CURRENT ROUND =", current)
+
             round_id = current.get("round_id")
+
+            print("ROUND ID =", round_id)
+
             if round_id:
-                server_duration = max(5, min(120, int(current.get("duration", requested_duration))))
+
+                server_duration = max(
+                    5,
+                    min(
+                        120,
+                        int(
+                            current.get(
+                                "duration",
+                                requested_duration
+                            )
+                        )
+                    )
+                )
+
                 store.cb_round_guard_id = round_id
-                store.cb_round_local_deadline = time.monotonic() + server_duration
+                store.cb_round_local_deadline = (
+                    time.monotonic()
+                    + server_duration
+                )
+
+        print("DEBUG 7: cb_start_round RETURN")
 
         return response
 

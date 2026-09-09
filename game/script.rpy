@@ -4,7 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -74,22 +74,16 @@ label crowd_monster_battle:
         $ response = cb_start_battle()
         $ renpy.block_rollback()
 
+    call screen crowd_battle_intro
+
     $ question_index = 0
 
     # Нэг battle-д 20 асуултыг нэг удаа л ашиглана.
     while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
         $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
-        # Асуултыг default say screen-ээр биш, battle HUD дээр харуулна.
-        # OGG бүрэн дууссаны дараа л server round эхлэх тул санал авах
-        # хугацаа бүтнээрээ үлдэнэ.
-        show screen crowd_battle_voice_preview(question)
-        $ voice_finished = cb_play_ogg_and_wait(question.get("voice"))
-
-        # Voice файл байхгүй үед ч асуултыг унших богино хугацаа өгнө.
-        if not voice_finished:
-            $ renpy.pause(2.5, hard=True, modal=False)
-
+        # Battle асуултыг мөн voice_sync-ээр бүрэн уншуулсны дараа санал авна.
+        $ cb_voice_line(guide, question.get("question", ""), question.get("voice"))
         $ renpy.block_rollback()
 
         $ response = cb_start_round(question)
@@ -101,7 +95,6 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
-        hide screen crowd_battle_voice_preview
         call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
@@ -111,9 +104,7 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ is_final_question = question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
-        $ cb_start_battle_feedback(result)
         call screen crowd_round_result(result, is_final_question)
-        $ cb_stop_battle_feedback()
         $ question_index += 1
 
     # Хожих нөхцөл: мангасын HP 0. Хоёр тал зэрэг 0 болсон бол серверийн

@@ -219,9 +219,9 @@ init -90 python:
 
         Returns False when the requested file does not exist.
         """
-
+        
         voice_file = cb_voice_path(voice_id)
-
+        
         if not voice_file or not renpy.loadable(voice_file):
             if voice_file:
                 renpy.notify("OGG файл олдсонгүй: {}".format(voice_file))

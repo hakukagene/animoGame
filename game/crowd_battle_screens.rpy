@@ -325,7 +325,7 @@ screen crowd_battle_stage(shown_question, voting_active=False):
 # preview аргументыг хадгалж, polling timer-ийг асаахгүй үлдээж болдог.
 screen crowd_battle_voice_preview(question):
     modal True
-
+    
     $ shown_question = (question or {}).get("question", "")
     use crowd_battle_stage(shown_question, False)
 
@@ -337,7 +337,10 @@ screen crowd_battle_round(expected_round_id=None):
     $ guarded_round_id = expected_round_id or cb_round_guard_id
 
     timer 0.25 repeat True action Function(cb_poll_round_action)
-
+    text "DEBUG STATUS: [current_round.get('status', 'NONE')]" xpos 20 ypos 20
+    text "DEBUG ROUND: [current_round.get('round_id', 'NONE')]" xpos 20 ypos 60
+    text "GUARD: [guarded_round_id]" xpos 20 ypos 100
+    text "RESULT: [bool(current_round.get('result'))]" xpos 20 ypos 140
     if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
