@@ -80,12 +80,12 @@ init -35 python:
         "Another Dimension": "images/world_locations/another_dimension.png",
     }
 
-    # Creators-ийн ертөнцийн асуултад тоглох жижиг video preview-үүд.
+    # Creators-ийн ертөнцийн төрлийн асуултын шинэ static зургууд.
     CB_WORLD_PREVIEW_DATA = {
-        "Futuristic": "cb_preview_futuristic",
-        "Fantasy": "cb_preview_fantasy",
-        "Modern": "cb_preview_modern",
-        "Post-apocalyptic": "cb_preview_post",
+        "Futuristic": "images/world_types/futuristic.webp",
+        "Fantasy": "images/world_types/fantasy.webp",
+        "Modern": "images/world_types/modern.webp",
+        "Post-apocalyptic": "images/world_types/post_apocalyptic.webp",
     }
 
     # answer_citizen хавтас дахь 7 сонголтын зураг.
