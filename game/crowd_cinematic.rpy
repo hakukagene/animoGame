@@ -6,6 +6,7 @@ default cb_creator_count = 0
 
 default cb_world_name = "FUTURISTIC"
 default cb_world_image = "images/cinematic/world_futuristic.webp"
+default cb_team_city_image = "cb_team_city_futuristic"
 
 default cb_enemy_key = "void"
 default cb_enemy_name = "The Void"
@@ -90,10 +91,10 @@ init -20 python:
             participant_count = max(participant_count, total)
 
         worlds = {
-            0: ("FUTURISTIC", "images/cinematic/world_futuristic.webp"),
-            1: ("FANTASY", "images/cinematic/world_fantasy.webp"),
-            2: ("MODERN", "images/cinematic/world_modern.webp"),
-            3: ("POST-APOCALYPTIC", "images/cinematic/world_post.webp"),
+            0: ("FUTURISTIC", "images/cinematic/world_futuristic.webp", "cb_team_city_futuristic"),
+            1: ("FANTASY", "images/cinematic/world_fantasy.webp", "cb_team_city_fantasy"),
+            2: ("MODERN", "images/cinematic/world_modern.webp", "cb_team_city_modern"),
+            3: ("POST-APOCALYPTIC", "images/cinematic/world_post.webp", "cb_team_city_post"),
         }
 
         enemies = {
@@ -130,13 +131,17 @@ init -20 python:
 
         world_snapshot = snapshots[1] if len(snapshots) > 1 else None
         enemy_snapshot = snapshots[5] if len(snapshots) > 5 else None
-        world_name, world_image = worlds.get(cb_creator_winner_index(world_snapshot), worlds[0])
+        world_name, world_image, team_city_image = worlds.get(
+            cb_creator_winner_index(world_snapshot),
+            worlds[0],
+        )
         enemy = enemies.get(cb_creator_winner_index(enemy_snapshot), enemies[0])
 
         store.cb_creator_summary_rows = rows
         store.cb_creator_count = participant_count
         store.cb_world_name = world_name
         store.cb_world_image = world_image
+        store.cb_team_city_image = team_city_image
         store.cb_enemy_key = enemy["key"]
         store.cb_enemy_name = enemy["name"]
         store.cb_enemy_title = enemy["title"]
