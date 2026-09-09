@@ -11,6 +11,29 @@ app = Flask(__name__)
 
 ACTIVE_PLAYER_TTL = 30
 
+# Damage нь оролцогчийн тооноос үл хамаарч зөв/буруу хариултын хувиар
+# бодогдоно. 100% зөв = 40, 100% буруу = 25 damage.
+MONSTER_DAMAGE_AT_100_PERCENT = 40
+PLAYER_DAMAGE_AT_100_PERCENT = 25
+
+# Boss mechanics. Random биш, deterministic байх нь live event дээр бүх
+# төхөөрөмжид ижил дүрэм хэрэгжих болон тестлэхэд найдвартай.
+VOID_GLITCH_EVERY_ROUNDS = 3
+VOID_GLITCH_SECONDS = 5
+DEVOURER_HEAL_AT_100_PERCENT_WRONG = 20
+COLOSSUS_COMBO_TARGET = 2
+COLOSSUS_COMBO_THRESHOLD = 0.60
+SUPPORTED_MONSTERS = {"void", "devourer", "colossus"}
+
+
+def percentage_amount(max_amount, answer_count, total_answers):
+    """Scale max_amount by answer percentage using conventional .5-up rounding."""
+
+    if total_answers <= 0 or answer_count <= 0:
+        return 0
+    scaled = float(max_amount) * float(answer_count) / float(total_answers)
+    return int(math.floor(scaled + 0.5))
+
 
 class BattleStore:
     """Thread-safe in-memory state for one live audience battle."""
@@ -27,11 +50,16 @@ class BattleStore:
                 "status": "idle",
                 "team_name": "Үзэгчдийн баг",
                 "monster_name": "Сүүдрийн мангас",
+                "monster_key": "void",
                 "player_hp": 500,
                 "player_max_hp": 500,
                 "monster_hp": 1000,
                 "monster_max_hp": 1000,
                 "round_number": 0,
+                "battle_question_number": 0,
+                "colossus_armor_active": False,
+                "colossus_combo": 0,
+                "colossus_combo_target": COLOSSUS_COMBO_TARGET,
                 "current_round": None,
             }
 
@@ -82,22 +110,80 @@ class BattleStore:
         mode = current.get("mode", "battle")
         correct_index = current.get("correct_index")
 
+        correct_count = 0
+        wrong_count = 0
+        correct_percentage = 0.0
+        wrong_percentage = 0.0
+        requested_monster_damage = 0
+        requested_player_damage = 0
+        monster_damage = 0
+        player_damage = 0
+        monster_heal = 0
+        monster_damage_blocked = 0
+        armor_broken_this_round = False
+        mechanic_event = current.get("mechanic_event")
+
         if mode == "survey":
-            correct_count = 0
-            wrong_count = 0
-            monster_damage = 0
-            player_damage = 0
+            pass
         else:
             correct_count = choice_counts[correct_index]
             wrong_count = total_answers - correct_count
 
-            requested_monster_damage = correct_count * current["attack_power"]
-            requested_player_damage = wrong_count * current["enemy_attack_power"]
+            if total_answers > 0:
+                correct_percentage = round(100.0 * correct_count / total_answers, 1)
+                wrong_percentage = round(100.0 * wrong_count / total_answers, 1)
+
+            requested_monster_damage = percentage_amount(
+                MONSTER_DAMAGE_AT_100_PERCENT,
+                correct_count,
+                total_answers,
+            )
+            requested_player_damage = percentage_amount(
+                PLAYER_DAMAGE_AT_100_PERCENT,
+                wrong_count,
+                total_answers,
+            )
+
+            monster_key = self.battle.get("monster_key", "void")
+
+            # Colossus: armor-тай үед 60%+ зөв хариулсан хоёр дараалсан
+            # round combo болно. Хоёр дахь round дээр armor эвдэрч damage орно.
+            if monster_key == "colossus" and self.battle.get("colossus_armor_active", False):
+                if total_answers > 0 and correct_percentage >= COLOSSUS_COMBO_THRESHOLD * 100.0:
+                    self.battle["colossus_combo"] += 1
+                else:
+                    self.battle["colossus_combo"] = 0
+
+                if self.battle["colossus_combo"] >= COLOSSUS_COMBO_TARGET:
+                    self.battle["colossus_armor_active"] = False
+                    self.battle["colossus_combo"] = COLOSSUS_COMBO_TARGET
+                    armor_broken_this_round = True
+                    mechanic_event = "colossus_armor_break"
+                else:
+                    monster_damage_blocked = requested_monster_damage
+                    requested_monster_damage = 0
+                    mechanic_event = "colossus_armor_block"
+
             monster_damage = min(requested_monster_damage, self.battle["monster_hp"])
             player_damage = min(requested_player_damage, self.battle["player_hp"])
 
             self.battle["monster_hp"] -= monster_damage
             self.battle["player_hp"] -= player_damage
+
+            # Devourer: буруу хариултын хувиар хамгийн ихдээ 20 HP нөхнө.
+            # Damage орсны дараа heal хийх тул холимог санал дээр амьд үлдэх
+            # боломжтой, харин 100% зөв round дээр heal хийхгүй.
+            if monster_key == "devourer":
+                requested_heal = percentage_amount(
+                    DEVOURER_HEAL_AT_100_PERCENT_WRONG,
+                    wrong_count,
+                    total_answers,
+                )
+                missing_hp = self.battle["monster_max_hp"] - self.battle["monster_hp"]
+                monster_heal = min(requested_heal, max(0, missing_hp))
+                self.battle["monster_hp"] += monster_heal
+                if monster_heal > 0:
+                    mechanic_event = "devourer_heal"
 
             if self.battle["monster_hp"] <= 0:
                 self.battle["status"] = "victory"
@@ -124,11 +210,23 @@ class BattleStore:
             "correct_index": correct_index,
             "correct_count": correct_count,
             "wrong_count": wrong_count,
+            "correct_percentage": correct_percentage,
+            "wrong_percentage": wrong_percentage,
             "total_answers": total_answers,
             "choice_counts": choice_counts,
             "top_choice_indices": top_choice_indices,
+            "requested_monster_damage": requested_monster_damage + monster_damage_blocked,
+            "requested_player_damage": requested_player_damage,
             "monster_damage": monster_damage,
             "player_damage": player_damage,
+            "monster_heal": monster_heal,
+            "monster_damage_blocked": monster_damage_blocked,
+            "mechanic_event": mechanic_event,
+            "duration_penalty": current.get("duration_penalty", 0),
+            "armor_active": self.battle.get("colossus_armor_active", False),
+            "armor_broken_this_round": armor_broken_this_round,
+            "armor_combo": self.battle.get("colossus_combo", 0),
+            "armor_combo_target": self.battle.get("colossus_combo_target", COLOSSUS_COMBO_TARGET),
             "monster_hp": self.battle["monster_hp"],
             "player_hp": self.battle["player_hp"],
             "battle_status": self.battle["status"],
@@ -141,16 +239,24 @@ class BattleStore:
         with self.lock:
             player_max_hp = clamp_int(payload.get("player_hp", 500), 1, 1_000_000)
             monster_max_hp = clamp_int(payload.get("monster_hp", 1000), 1, 1_000_000)
+            monster_key = clean_text(payload.get("monster_key"), "void", 20).lower()
+            if monster_key not in SUPPORTED_MONSTERS:
+                monster_key = "void"
             self.battle = {
                 "battle_id": uuid.uuid4().hex,
                 "status": "active",
                 "team_name": clean_text(payload.get("team_name"), "Үзэгчдийн баг", 60),
                 "monster_name": clean_text(payload.get("monster_name"), "Сүүдрийн мангас", 60),
+                "monster_key": monster_key,
                 "player_hp": player_max_hp,
                 "player_max_hp": player_max_hp,
                 "monster_hp": monster_max_hp,
                 "monster_max_hp": monster_max_hp,
                 "round_number": 0,
+                "battle_question_number": 0,
+                "colossus_armor_active": monster_key == "colossus",
+                "colossus_combo": 0,
+                "colossus_combo_target": COLOSSUS_COMBO_TARGET,
                 "current_round": None,
             }
             return self.public_battle()
@@ -180,15 +286,31 @@ class BattleStore:
             if mode not in ("battle", "survey"):
                 raise ValueError("mode нь battle эсвэл survey байна.")
 
-            duration = clamp_int(payload.get("duration", 15), 5, 120)
+            base_duration = clamp_int(payload.get("duration", 15), 5, 120)
+            duration = base_duration
+            duration_penalty = 0
+            mechanic_event = None
             if mode == "survey":
                 correct_index = None
                 attack_power = 0
                 enemy_attack_power = 0
             else:
                 correct_index = clamp_int(payload.get("correct_index"), 0, len(choices) - 1)
-                attack_power = clamp_int(payload.get("attack_power", 5), 0, 10_000)
-                enemy_attack_power = clamp_int(payload.get("enemy_attack_power", 3), 0, 10_000)
+                # Client payload-аас үл хамааран server balance-ийг тогтмол
+                # барина. Эдгээр нь 100% үед орох дээд damage юм.
+                attack_power = MONSTER_DAMAGE_AT_100_PERCENT
+                enemy_attack_power = PLAYER_DAMAGE_AT_100_PERCENT
+
+                self.battle["battle_question_number"] += 1
+                battle_question_number = self.battle["battle_question_number"]
+                if (
+                    self.battle.get("monster_key") == "void"
+                    and battle_question_number % VOID_GLITCH_EVERY_ROUNDS == 0
+                ):
+                    duration_penalty = min(VOID_GLITCH_SECONDS, max(0, base_duration - 5))
+                    duration -= duration_penalty
+                    if duration_penalty > 0:
+                        mechanic_event = "void_glitch"
 
             now = time.time()
             expected_player_ids = self._active_player_ids(now)
@@ -201,7 +323,10 @@ class BattleStore:
                 "choices": choices,
                 "mode": mode,
                 "correct_index": correct_index,
+                "base_duration": base_duration,
                 "duration": duration,
+                "duration_penalty": duration_penalty,
+                "mechanic_event": mechanic_event,
                 "attack_power": attack_power,
                 "enemy_attack_power": enemy_attack_power,
                 "started_at": now,
@@ -276,7 +401,10 @@ class BattleStore:
             "mode": mode,
             "question": current["question"],
             "choices": current["choices"],
+            "base_duration": current.get("base_duration", current["duration"]),
             "duration": current["duration"],
+            "duration_penalty": current.get("duration_penalty", 0),
+            "mechanic_event": current.get("mechanic_event"),
             "attack_power": current["attack_power"],
             "enemy_attack_power": current["enemy_attack_power"],
             "started_at": current["started_at"],

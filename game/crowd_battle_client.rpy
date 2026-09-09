@@ -1,6 +1,8 @@
 init -100 python:
     CROWD_BATTLE_SERVER_URL = "https://game-bnkw.onrender.com/"
     CROWD_BATTLE_HOST_TOKEN = ""
+    CROWD_BATTLE_MONSTER_DAMAGE = 40
+    CROWD_BATTLE_PLAYER_DAMAGE = 25
 
 default cb_connection_message = ""
 default cb_connection_ok = False
@@ -96,6 +98,7 @@ init python:
             payload={
                 "team_name": "Үзэгчдийн баг",
                 "monster_name": getattr(store, "cb_enemy_name", "Сүүдрийн мангас"),
+                "monster_key": getattr(store, "cb_enemy_key", "void"),
                 "player_hp": 200,
                 "monster_hp": 250,
             },
@@ -142,11 +145,10 @@ init python:
 
         else:
             payload["correct_index"] = question["correct_index"]
-            payload["attack_power"] = question.get("attack_power", 25)
-            payload["enemy_attack_power"] = question.get(
-                "enemy_attack_power",
-                20
-            )
+            # Нэг хүний хариултыг damage болгохгүй. Server нийт зөв/буруу
+            # хариултын хувийг эдгээр дээд утгаар үржүүлж бодно.
+            payload["attack_power"] = CROWD_BATTLE_MONSTER_DAMAGE
+            payload["enemy_attack_power"] = CROWD_BATTLE_PLAYER_DAMAGE
 
         print("DEBUG 3: PAYLOAD READY")
         print(payload)

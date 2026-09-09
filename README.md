@@ -1,11 +1,11 @@
 # Animo Crowd Monster Battle
 
-Ren'Py audience battle connected to a Flask service on Render. Players open the public service URL on their phones and answer each live question. Every correct answer damages the monster; every wrong answer damages the audience team.
+Ren'Py audience battle connected to a Flask service on Render. Players open the public service URL on their phones and answer each live question. Damage is calculated from the crowd's correct/wrong answer percentages, so the balance stays the same at any audience size.
 
 ## Project layout
 
 - `game/crowd_battle_client.rpy` — Ren'Py HTTP client and shared battle state
-- `game/crowd_battle_questions.rpy` — question bank and damage values
+- `game/crowd_battle_questions.rpy` — question bank
 - `game/crowd_battle_screens.rpy` — battle HUD, timer, results and settings UI
 - `game/script.rpy` — complete playable battle flow
 - `voting_server/` — Flask API and mobile voting page
@@ -39,10 +39,16 @@ Optional: add a Render environment variable named `BATTLE_HOST_TOKEN`. Enter the
 
 ## Damage balance
 
-The demo starts with team HP `200` and monster HP `250`.
+The game starts with team HP `200` and monster HP `250`.
 
-- Correct answer: `25` monster damage
-- Wrong answer: `20` team damage
-- No answer: no damage
+- Monster damage: `round(40 × correct answer percentage)`
+- Team damage: `round(25 × wrong answer percentage)`
+- No answers: no damage
 
-Change per-question values in `game/crowd_battle_questions.rpy`.
+Boss mechanics:
+
+- The Void glitches every third battle question and removes 5 seconds.
+- The Devourer heals up to 20 HP based on the wrong-answer percentage.
+- The Colossus blocks damage until the crowd gets at least 60% correct in two consecutive rounds.
+
+The authoritative balance constants live in `voting_server/app.py`.

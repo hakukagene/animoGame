@@ -164,9 +164,19 @@
       $("answer-count").textContent = isSurvey
         ? (finished ? "Санал хураалт дууссан" : "Сонголтоо дарна уу")
         : `${round.total_answers} хариулт`;
-      $("power-text").textContent = isSurvey
-        ? "Санал асуулга"
-        : `⚔ ${round.attack_power} / ☠ ${round.enemy_attack_power}`;
+      if (isSurvey) {
+        $("power-text").textContent = "Санал асуулга";
+      } else if (round.mechanic_event === "void_glitch") {
+        $("power-text").textContent = `VOID GLITCH · -${round.duration_penalty}s`;
+      } else if (battle.monster_key === "devourer") {
+        $("power-text").textContent = "Буруу хувь → DEVOURER HP";
+      } else if (battle.monster_key === "colossus") {
+        $("power-text").textContent = battle.colossus_armor_active
+          ? `ARMOR · COMBO ${battle.colossus_combo}/${battle.colossus_combo_target}`
+          : "ARMOR BREAK";
+      } else {
+        $("power-text").textContent = "100% зөв → 40 · 100% буруу → 25";
+      }
 
       if (state.lastRoundId !== round.round_id) {
         state.lastRoundId = round.round_id;
@@ -195,10 +205,19 @@
 
       const notice = $("answer-notice");
       if (finished && round.result) {
+        const result = round.result;
+        let battleResult = `Зөв ${result.correct_percentage}% · Буруу ${result.wrong_percentage}% · Мангас -${result.monster_damage} HP · Баг -${result.player_damage} HP`;
+        if (result.monster_heal > 0) {
+          battleResult += ` · DEVOURER +${result.monster_heal} HP`;
+        } else if (result.monster_damage_blocked > 0) {
+          battleResult += ` · ARMOR ${result.monster_damage_blocked} damage хаалаа`;
+        } else if (result.armor_broken_this_round) {
+          battleResult += " · ARMOR BREAK!";
+        }
         notice.classList.remove("hidden", "error");
         notice.textContent = isSurvey
           ? "Санал асуулга дууслаа. Нэгдсэн үр дүн тоглоомын дэлгэц дээр гарна."
-          : `Зөв: ${round.result.correct_count} · Буруу: ${round.result.wrong_count} · Мангас -${round.result.monster_damage} HP`;
+          : battleResult;
       } else if (answered) {
         notice.classList.remove("hidden", "error");
         notice.textContent = isSurvey
