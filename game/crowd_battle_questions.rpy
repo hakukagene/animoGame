@@ -23,7 +23,7 @@ define Creators_Question = [
     {
         "question": "ANIMO Ертөнцөд ХЭН амьдардаг ВЭ?",
         "voice": "audio/hutlugch15.ogg",
-        "choices": ["Humans", "Robots", "Magic Creatures", "Aliens", "Anime Characters", "Elfs", "Monsters", "Orcs"],
+        "choices": ["Humans", "Robots", "Magic Creatures", "Aliens", "Anime Characters", "Elfs", "Orcs"],
         "duration": 15,
         "mode": "survey",
     },
