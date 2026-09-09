@@ -224,23 +224,9 @@ screen crowd_battle_intro():
             action Return(True)
 
 
-screen crowd_battle_round(expected_round_id=None, preview_question=None, preview_mode=False):
-    modal True
-
-    $ current_round = cb_battle.get("current_round") or {}
-    $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ shown_question = (preview_question or {}).get("question", "") if preview_mode else current_round.get("question", "")
-
+screen crowd_battle_stage(shown_question, voting_active=False):
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
-
-    # Уншиж байх үед server round хараахан эхлээгүй учраас poll/Return
-    # ажиллуулахгүй. Voice дууссаны дараах active mode-д л ажиллана.
-    if not preview_mode:
-        timer 0.25 repeat True action Function(cb_poll_round_action)
-
-        if cb_round_can_finish(guarded_round_id):
-            timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
     vbox:
         xpos 90
@@ -295,7 +281,7 @@ screen crowd_battle_round(expected_round_id=None, preview_question=None, preview
             xsize 1440
             ysize 212
 
-            if not preview_mode:
+            if voting_active:
                 text "[cb_remaining_seconds] секунд":
                     color "#FF899D"
                     size 30
@@ -313,7 +299,7 @@ screen crowd_battle_round(expected_round_id=None, preview_question=None, preview
                     yalign 0.5
                     xmaximum 1380
 
-            if not preview_mode:
+            if voting_active:
                 hbox:
                     xalign 0.5
                     yalign 1.0
@@ -326,12 +312,36 @@ screen crowd_battle_round(expected_round_id=None, preview_question=None, preview
                         color "#8999FF"
                         size 24
 
-            if not preview_mode and cb_connection_message:
+            if voting_active and cb_connection_message:
                 text cb_connection_message:
                     color "#FF899D"
                     size 20
                     xalign 0.5
                     yalign 0.82
+
+
+# Voice уншиж байх preview болон санал авч буй round нь тусдаа top-level
+# screen байна. Ижил screen/tag-ийг шууд hide -> call хийхэд Ren'Py өмнөх
+# preview аргументыг хадгалж, polling timer-ийг асаахгүй үлдээж болдог.
+screen crowd_battle_voice_preview(question):
+    modal True
+
+    $ shown_question = (question or {}).get("question", "")
+    use crowd_battle_stage(shown_question, False)
+
+
+screen crowd_battle_round(expected_round_id=None):
+    modal True
+
+    $ current_round = cb_battle.get("current_round") or {}
+    $ guarded_round_id = expected_round_id or cb_round_guard_id
+
+    timer 0.25 repeat True action Function(cb_poll_round_action)
+
+    if cb_round_can_finish(guarded_round_id):
+        timer 0.10 action Return(current_round.get("result") or cb_round_result)
+
+    use crowd_battle_stage(current_round.get("question", ""), True)
 
 
 screen crowd_round_result(result, final_question=False):
