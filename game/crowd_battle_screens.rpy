@@ -23,6 +23,15 @@ transform cb_damage_float:
     easeout 1.35 yoffset -125 alpha 0.0 zoom 1.0
 
 
+transform cb_monster_hit_flash:
+    # Damage авсан мөчид мангасыг богино хугацаанд улаан болгоод
+    # үндсэн өнгөнд нь зөөлөн буцаана.
+    matrixcolor TintMatrix("#FFFFFF")
+    linear 0.08 matrixcolor TintMatrix("#FF3B4F")
+    pause 0.18
+    linear 0.28 matrixcolor TintMatrix("#FFFFFF")
+
+
 define CB_RESULT_DISPLAY_SECONDS = 4
 define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
 
@@ -130,7 +139,9 @@ init -35 python:
                 fadeout=0.0,
             )
 
-        return should_attack
+        # Screen action-д ашиглагдах тул утга буцааж interaction-ийг
+        # санамсаргүй дуусгаж болохгүй.
+        return None
 
 
     def cb_stop_battle_feedback():
@@ -271,99 +282,79 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     add cb_enemy_idle_image:
         at cb_monster_idle
         xcenter 1510
-        ycenter 470
+        ycenter 525
 
-    # Асуултын дээрх хоосон зайд A-D хариултыг 2 x 2 картаар харуулна.
-    # Эдгээр нь host дэлгэцийн мэдээлэл бөгөөд сонголтыг утсаар хийнэ.
-    if battle_choices:
-        vbox:
-            xpos 90
-            ypos 315
-            xsize 990
-            spacing 18
-
-            for row_start in range(0, len(battle_choices), 2):
-                hbox:
-                    spacing 18
-
-                    for choice_index in range(row_start, min(row_start + 2, len(battle_choices))):
-                        $ choice = battle_choices[choice_index]
-                        $ choice_letter = choice_letters[choice_index]
-                        $ choice_color = choice_colors[choice_index % len(choice_colors)]
-
-                        frame:
-                            background Solid("#121B30F2")
-                            xsize 480
-                            ysize 112
-                            padding (16, 14)
-
-                            hbox:
-                                spacing 16
-                                yalign 0.5
-
-                                frame:
-                                    background Solid(choice_color)
-                                    xysize (62, 62)
-                                    padding (0, 0)
-
-                                    text choice_letter:
-                                        color "#FFFFFF"
-                                        size 30
-                                        bold True
-                                        xalign 0.5
-                                        yalign 0.5
-
-                                text choice:
-                                    color "#F6F7FF"
-                                    size 23
-                                    bold True
-                                    xmaximum 360
-                                    yalign 0.5
-
+    # Асуулт болон A-D хариултыг зүүн талын нэг panel-д байрлуулна.
+    # Хариултууд асуултын доор босоогоор дараалж харагдана.
     frame:
         background Solid("#121B30EE")
-        xalign 0.5
-        ypos 680
-        xsize 1540
-        ysize 280
-        padding (50, 34)
+        xpos 70
+        ypos 300
+        xsize 1050
+        ysize 720
+        padding (38, 28)
 
-        fixed:
-            xsize 1440
-            ysize 212
+        vbox:
+            xfill True
+            spacing 14
 
             if voting_active:
                 text "[cb_remaining_seconds] секунд":
                     color "#FF899D"
-                    size 30
+                    size 28
                     bold True
                     xalign 0.5
-                    yalign 0.0
 
             if shown_question:
                 text shown_question:
                     color "#FFFFFF"
-                    size 37
+                    size 33
                     bold True
                     text_align 0.5
                     xalign 0.5
-                    yalign 0.5
-                    xmaximum 1380
+                    xmaximum 950
 
-            if voting_active:
-                hbox:
-                    xalign 0.5
-                    yalign 1.0
-                    spacing 60
+            null height 4
 
-                    
+            # Эдгээр нь host дэлгэцийн мэдээлэл; сонголтыг утсаар хийнэ.
+            for choice_index, choice in enumerate(battle_choices):
+                $ choice_letter = choice_letters[choice_index]
+                $ choice_color = choice_colors[choice_index % len(choice_colors)]
+
+                frame:
+                    background Solid("#1A2540F5")
+                    xfill True
+                    yminimum 88
+                    padding (16, 12)
+
+                    hbox:
+                        spacing 18
+                        yalign 0.5
+
+                        frame:
+                            background Solid(choice_color)
+                            xysize (62, 62)
+                            padding (0, 0)
+
+                            text choice_letter:
+                                color "#FFFFFF"
+                                size 29
+                                bold True
+                                xalign 0.5
+                                yalign 0.5
+
+                        text choice:
+                            color "#F6F7FF"
+                            size 25
+                            bold True
+                            xmaximum 835
+                            yalign 0.5
 
             if voting_active and cb_connection_message:
                 text cb_connection_message:
                     color "#FF899D"
-                    size 20
+                    size 18
                     xalign 0.5
-                    yalign 0.82
 
 
 # Voice уншиж байх preview болон санал авч буй round нь тусдаа top-level
@@ -410,6 +401,11 @@ screen crowd_round_result(result, final_question=False):
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
+    # Буруу хариулт байвал attack-ийг нэг удаа тоглуулаад idle video-г
+    # дараалалд оруулна. Screen хаагдахад movie channel-ийг цэвэрлэнэ.
+    on "show" action Function(cb_start_battle_feedback, result)
+    on "hide" action Function(cb_stop_battle_feedback)
+
     timer result_display_seconds action Return(True)
 
     vbox:
@@ -449,14 +445,26 @@ screen crowd_round_result(result, final_question=False):
             xalign 1.0
 
     # Video decode эхлэхээс өмнө болон файл олдохгүй үед idle зураг харагдана.
-    add cb_enemy_idle_image:
-        at cb_monster_idle
-        xcenter 1510
-        ycenter 500
+    # Monster damage авсан бол зураг ба video хоёул ижил red-hit flash авна.
+    if monster_damage > 0:
+        add cb_enemy_idle_image:
+            at cb_monster_idle, cb_monster_hit_flash
+            xcenter 1510
+            ycenter 500
 
-    add Movie(channel="cb_monster_movie", size=(820, 458)):
-        xcenter 1510
-        ycenter 500
+        add Movie(channel="cb_monster_movie", size=(820, 458)):
+            at cb_monster_hit_flash
+            xcenter 1510
+            ycenter 500
+    else:
+        add cb_enemy_idle_image:
+            at cb_monster_idle
+            xcenter 1510
+            ycenter 500
+
+        add Movie(channel="cb_monster_movie", size=(820, 458)):
+            xcenter 1510
+            ycenter 500
 
     if monster_damage > 0:
         text "-[monster_damage] HP":
