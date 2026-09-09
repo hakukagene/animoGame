@@ -60,6 +60,17 @@ define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
 
 
 init -35 python:
+    # "ТА ХЭН БЭ?" creators question-ийн role portrait-ууд.
+    CB_ROLE_PREVIEW_DATA = {
+        "Student": "images/creator_roles/student.png",
+        "Worker": "images/creator_roles/worker.png",
+        "Creators": "images/creator_roles/creator.png",
+        "Gamer": "images/creator_roles/gamer.png",
+        "Explorer": "images/creator_roles/explorer.png",
+        "Fan": "images/creator_roles/fan.png",
+        "Just Here": "images/creator_roles/just_here.png",
+    }
+
     # Creators-ийн ертөнцийн асуултад тоглох жижиг video preview-үүд.
     CB_WORLD_PREVIEW_DATA = {
         "Futuristic": "cb_preview_futuristic",
@@ -829,8 +840,44 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                 text_align 0.5
                 xalign 0.5
 
+            # 1-р асуулт: role бүрийг 4 + 3 зурагтай карт болгоно.
+            if question_number == 1:
+                vbox:
+                    spacing 12
+                    xalign 0.5
+
+                    for row_start in range(0, len(current_round.get("choices", [])), 4):
+                        hbox:
+                            spacing 16
+                            xalign 0.5
+
+                            for choice in current_round.get("choices", [])[row_start:row_start + 4]:
+                                $ role_image = CB_ROLE_PREVIEW_DATA.get(choice)
+
+                                frame:
+                                    background Solid("#18233BF5")
+                                    xsize 300
+                                    ysize 230
+                                    padding (10, 8)
+
+                                    vbox:
+                                        spacing 4
+                                        xalign 0.5
+
+                                        if role_image:
+                                            add role_image:
+                                                xysize (180, 180)
+                                                xalign 0.5
+
+                                        text choice:
+                                            color "#F6F7FF"
+                                            size 22
+                                            bold True
+                                            xalign 0.5
+                                            text_align 0.5
+
             # 2-р асуулт: BG хавтасны cinematic бүрийг жижиг preview болгоно.
-            if question_number == 2:
+            elif question_number == 2:
                 hbox:
                     spacing 18
                     xalign 0.5
