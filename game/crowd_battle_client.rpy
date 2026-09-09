@@ -1,8 +1,8 @@
 init -100 python:
     CROWD_BATTLE_SERVER_URL = "https://game-bnkw.onrender.com/"
     CROWD_BATTLE_HOST_TOKEN = ""
-    CROWD_BATTLE_MONSTER_DAMAGE = 40
-    CROWD_BATTLE_PLAYER_DAMAGE = 25
+    CROWD_BATTLE_MONSTER_DAMAGE = 100
+    CROWD_BATTLE_PLAYER_DAMAGE = 100
 
 default cb_connection_message = ""
 default cb_connection_ok = False
@@ -10,10 +10,10 @@ default cb_battle = {}
 default cb_round_result = {}
 default cb_battle_status = "idle"
 default cb_round_status = "idle"
-default cb_player_hp = 200
-default cb_player_max_hp = 200
-default cb_monster_hp = 250
-default cb_monster_max_hp = 250
+default cb_player_hp = 1000
+default cb_player_max_hp = 1000
+default cb_monster_hp = 1000
+default cb_monster_max_hp = 1000
 default cb_total_answers = 0
 default cb_remaining_seconds = 0
 default cb_round_guard_id = ""
@@ -99,8 +99,8 @@ init python:
                 "team_name": "Үзэгчдийн баг",
                 "monster_name": getattr(store, "cb_enemy_name", "Сүүдрийн мангас"),
                 "monster_key": getattr(store, "cb_enemy_key", "void"),
-                "player_hp": 200,
-                "monster_hp": 250,
+                "player_hp": 1000,
+                "monster_hp": 1000,
             },
             host=True,
         )

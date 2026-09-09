@@ -4,7 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -60,7 +60,6 @@ label crowd_creators_questions:
         call screen crowd_creators_result(question, result)
 
         $ creator_question_index += 1
-
     return
 
 
