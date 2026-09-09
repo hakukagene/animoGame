@@ -88,16 +88,36 @@ init -35 python:
         "Post-apocalyptic": "cb_preview_post",
     }
 
-    # Citizen хавтас дахь сонголт бүрийн зураг.
+    # answer_citizen хавтас дахь 7 сонголтын зураг.
     CB_CITIZEN_PREVIEW_DATA = {
-        "Humans": "citizen/Human.png",
-        "Robots": "citizen/Robots.png",
-        "Magic Creatures": "citizen/Magic Creatures.png",
-        "Aliens": "citizen/Alien.png",
-        "Anime Characters": "citizen/Anime.png",
-        "Elfs": "citizen/elf.png",
-        "Monsters": "images/cinematic/boss_void.webp",
-        "Orcs": "citizen/Orc.png",
+        "Humans": {
+            "image": "images/cinematic/answer_citizen/human.png",
+            "crop": (558, 419, 671, 394),
+        },
+        "Robots": {
+            "image": "images/cinematic/answer_citizen/robot.png",
+            "crop": (639, 420, 643, 377),
+        },
+        "Magic Creatures": {
+            "image": "images/cinematic/answer_citizen/magic creatures.png",
+            "crop": (636, 423, 650, 382),
+        },
+        "Aliens": {
+            "image": "images/cinematic/answer_citizen/alien.png",
+            "crop": (541, 384, 742, 435),
+        },
+        "Anime Characters": {
+            "image": "images/cinematic/answer_citizen/anime.png",
+            "crop": (625, 411, 671, 394),
+        },
+        "Elfs": {
+            "image": "images/cinematic/answer_citizen/elf.png",
+            "crop": (603, 404, 701, 412),
+        },
+        "Orcs": {
+            "image": "images/cinematic/answer_citizen/orc.png",
+            "crop": (528, 369, 783, 460),
+        },
     }
 
     # Сонгогдсон мангасын battle үеийн нэг удаагийн attack болон loop idle.
@@ -952,7 +972,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                             xalign 0.5
                                             text_align 0.5
 
-            # 4-р асуулт: Citizen зургуудыг 4 x 2 сонголтын карт болгоно.
+            # 4-р асуулт: 7 Citizen зургийг 4 + 3 сонголтын карт болгоно.
             elif question_number == 4:
                 vbox:
                     spacing 12
@@ -964,7 +984,9 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                             xalign 0.5
 
                             for choice in current_round.get("choices", [])[row_start:row_start + 4]:
-                                $ citizen_image = CB_CITIZEN_PREVIEW_DATA.get(choice)
+                                $ citizen_preview = CB_CITIZEN_PREVIEW_DATA.get(choice) or {}
+                                $ citizen_image = citizen_preview.get("image")
+                                $ citizen_crop = citizen_preview.get("crop")
 
                                 frame:
                                     background Solid("#18233BF5")
@@ -978,6 +1000,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
 
                                         if citizen_image:
                                             add citizen_image:
+                                                crop citizen_crop
                                                 xysize (230, 135)
                                                 xalign 0.5
 
