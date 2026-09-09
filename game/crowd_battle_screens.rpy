@@ -352,7 +352,7 @@ screen crowd_battle_intro():
         spacing 28
 
         text "[cb_enemy_title]" style "cb_title_text" xalign 0.5
-        text "Зөв хариултын хувиар мангасад 0–40 damage.\nБуруу хариултын хувиар багт 0–25 damage.":
+        text "Зөв хариултын хувь = мангасад өгөх damage.\nБуруу хариултын хувь = хотод өгөх damage. (Нэг round-д тал бүр 0–100)":
             style "cb_body_text"
             text_align 0.5
             xalign 0.5

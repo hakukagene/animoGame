@@ -39,11 +39,13 @@ Optional: add a Render environment variable named `BATTLE_HOST_TOKEN`. Enter the
 
 ## Damage balance
 
-The game starts with team HP `200` and monster HP `250`.
+The game starts with team/city HP `1000` and monster HP `1000`.
 
-- Monster damage: `round(40 × correct answer percentage)`
-- Team damage: `round(25 × wrong answer percentage)`
-- No answers in a battle round: team/city takes the maximum `25` damage; the monster takes `0`
+- Monster damage: `round(100 × correct-answer ratio)`
+- Team/city damage: the remainder of the round's `100` damage after monster damage
+- Example: `64%` correct means monster `-64 HP`; `36%` wrong means city `-36 HP`
+- For every answered battle round, requested monster and city damage total exactly `100`
+- No answers in a battle round: team/city takes the maximum `100` damage; the monster takes `0`
 
 Boss mechanics:
 
