@@ -74,16 +74,19 @@ label crowd_monster_battle:
         $ response = cb_start_battle()
         $ renpy.block_rollback()
 
-    call screen crowd_battle_intro
-
     $ question_index = 0
 
     # Нэг battle-д 20 асуултыг нэг удаа л ашиглана.
     while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
         $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
-        # Battle асуултыг мөн voice_sync-ээр бүрэн уншуулсны дараа санал авна.
-        $ cb_voice_line(guide, question.get("question", ""), question.get("voice"))
+        # Anime quiz эхэлснээс хойш say/dialogue screen рүү шилжихгүй.
+        # Ижил battle HUD дээр асуулт + хариултыг харуулж OGG-г дуусгана.
+        show screen crowd_battle_voice_preview(question)
+        $ voice_played = cb_play_ogg_and_wait(question.get("voice"))
+        if not voice_played:
+            $ renpy.pause(2.5, hard=True, modal=False)
+        hide screen crowd_battle_voice_preview
         $ renpy.block_rollback()
 
         $ response = cb_start_round(question)
