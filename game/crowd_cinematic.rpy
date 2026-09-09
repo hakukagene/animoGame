@@ -529,7 +529,7 @@ label crowd_defeat_ending:
     play sound "audio/cinematic_impact.ogg"
     with hpunch
     with vpunch
-    with flash
+    with fade
 
     scene expression "images/cinematic/world_post.webp" at cb_destroyed_world
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss

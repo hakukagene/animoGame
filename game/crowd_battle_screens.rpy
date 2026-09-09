@@ -308,7 +308,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                         size 31
                         bold True
                         xsize 1480
-                        xmaximum 1480
+
 
                 if voting_active:
                     text "[cb_remaining_seconds] секунд":
