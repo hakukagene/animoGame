@@ -118,6 +118,7 @@ class BattleStore:
         requested_player_damage = 0
         monster_damage = 0
         player_damage = 0
+        no_answer_penalty = False
         monster_heal = 0
         monster_damage_blocked = 0
         armor_broken_this_round = False
@@ -132,37 +133,46 @@ class BattleStore:
             if total_answers > 0:
                 correct_percentage = round(100.0 * correct_count / total_answers, 1)
                 wrong_percentage = round(100.0 * wrong_count / total_answers, 1)
-
-            requested_monster_damage = percentage_amount(
-                MONSTER_DAMAGE_AT_100_PERCENT,
-                correct_count,
-                total_answers,
-            )
-            requested_player_damage = percentage_amount(
-                PLAYER_DAMAGE_AT_100_PERCENT,
-                wrong_count,
-                total_answers,
-            )
+                requested_monster_damage = percentage_amount(
+                    MONSTER_DAMAGE_AT_100_PERCENT,
+                    correct_count,
+                    total_answers,
+                )
+                requested_player_damage = percentage_amount(
+                    PLAYER_DAMAGE_AT_100_PERCENT,
+                    wrong_count,
+                    total_answers,
+                )
+            else:
+                # Battle round-д хэн ч хариулаагүй бол хот/баг 100% буруу
+                # хариулттай тэнцэх бүтэн damage авна. Survey-д энэ хэсэг
+                # огт ажиллахгүй.
+                no_answer_penalty = True
+                wrong_percentage = 100.0
+                requested_player_damage = PLAYER_DAMAGE_AT_100_PERCENT
 
             monster_key = self.battle.get("monster_key", "void")
 
             # Colossus: armor-тай үед 60%+ зөв хариулсан хоёр дараалсан
             # round combo болно. Хоёр дахь round дээр armor эвдэрч damage орно.
             if monster_key == "colossus" and self.battle.get("colossus_armor_active", False):
-                if total_answers > 0 and correct_percentage >= COLOSSUS_COMBO_THRESHOLD * 100.0:
-                    self.battle["colossus_combo"] += 1
-                else:
+                if no_answer_penalty:
                     self.battle["colossus_combo"] = 0
-
-                if self.battle["colossus_combo"] >= COLOSSUS_COMBO_TARGET:
-                    self.battle["colossus_armor_active"] = False
-                    self.battle["colossus_combo"] = COLOSSUS_COMBO_TARGET
-                    armor_broken_this_round = True
-                    mechanic_event = "colossus_armor_break"
                 else:
-                    monster_damage_blocked = requested_monster_damage
-                    requested_monster_damage = 0
-                    mechanic_event = "colossus_armor_block"
+                    if correct_percentage >= COLOSSUS_COMBO_THRESHOLD * 100.0:
+                        self.battle["colossus_combo"] += 1
+                    else:
+                        self.battle["colossus_combo"] = 0
+
+                    if self.battle["colossus_combo"] >= COLOSSUS_COMBO_TARGET:
+                        self.battle["colossus_armor_active"] = False
+                        self.battle["colossus_combo"] = COLOSSUS_COMBO_TARGET
+                        armor_broken_this_round = True
+                        mechanic_event = "colossus_armor_break"
+                    else:
+                        monster_damage_blocked = requested_monster_damage
+                        requested_monster_damage = 0
+                        mechanic_event = "colossus_armor_block"
 
             monster_damage = min(requested_monster_damage, self.battle["monster_hp"])
             player_damage = min(requested_player_damage, self.battle["player_hp"])
@@ -219,6 +229,7 @@ class BattleStore:
             "requested_player_damage": requested_player_damage,
             "monster_damage": monster_damage,
             "player_damage": player_damage,
+            "no_answer_penalty": no_answer_penalty,
             "monster_heal": monster_heal,
             "monster_damage_blocked": monster_damage_blocked,
             "mechanic_event": mechanic_event,

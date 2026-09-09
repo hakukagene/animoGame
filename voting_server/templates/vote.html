@@ -206,7 +206,9 @@
       const notice = $("answer-notice");
       if (finished && round.result) {
         const result = round.result;
-        let battleResult = `Зөв ${result.correct_percentage}% · Буруу ${result.wrong_percentage}% · Мангас -${result.monster_damage} HP · Баг -${result.player_damage} HP`;
+        let battleResult = result.no_answer_penalty
+          ? `Хэн ч хариулаагүй · Хот -${result.player_damage} HP (MAX)`
+          : `Зөв ${result.correct_percentage}% · Буруу ${result.wrong_percentage}% · Мангас -${result.monster_damage} HP · Баг -${result.player_damage} HP`;
         if (result.monster_heal > 0) {
           battleResult += ` · DEVOURER +${result.monster_heal} HP`;
         } else if (result.monster_damage_blocked > 0) {

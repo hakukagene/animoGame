@@ -187,7 +187,7 @@ def test_round_finishes_after_every_active_player_answers(monkeypatch):
         assert current["result"]["completion_reason"] == "all_answered"
 
 
-def test_empty_round_finishes_after_duration(monkeypatch):
+def test_empty_battle_round_applies_max_player_damage_after_duration(monkeypatch):
     monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
     store.reset()
 
@@ -210,9 +210,42 @@ def test_empty_round_finishes_after_duration(monkeypatch):
         assert current["status"] == "finished"
         assert current["total_answers"] == 0
         assert current["result"]["total_answers"] == 0
+        assert current["result"]["correct_percentage"] == 0.0
+        assert current["result"]["wrong_percentage"] == 100.0
         assert current["result"]["monster_damage"] == 0
-        assert current["result"]["player_damage"] == 0
+        assert current["result"]["requested_player_damage"] == 25
+        assert current["result"]["player_damage"] == 25
+        assert current["result"]["player_hp"] == 75
+        assert current["result"]["no_answer_penalty"] is True
         assert current["result"]["completion_reason"] == "duration"
+
+
+def test_empty_survey_round_does_not_damage_player(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "Choose a world",
+                "choices": ["A", "B"],
+                "mode": "survey",
+                "duration": 15,
+            },
+        )
+
+        result = client.post(
+            "/api/round/finish",
+            json={"force": True},
+        ).get_json()["round"]["result"]
+
+        assert result["total_answers"] == 0
+        assert result["wrong_percentage"] == 0.0
+        assert result["player_damage"] == 0
+        assert result["player_hp"] == 100
+        assert result["no_answer_penalty"] is False
 
 
 def test_round_finishes_after_duration_once_an_answer_exists(monkeypatch):

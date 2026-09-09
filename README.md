@@ -43,7 +43,7 @@ The game starts with team HP `200` and monster HP `250`.
 
 - Monster damage: `round(40 × correct answer percentage)`
 - Team damage: `round(25 × wrong answer percentage)`
-- No answers: no damage
+- No answers in a battle round: team/city takes the maximum `25` damage; the monster takes `0`
 
 Boss mechanics:
 
