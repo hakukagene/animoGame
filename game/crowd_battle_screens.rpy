@@ -224,7 +224,11 @@ screen crowd_battle_intro():
             action Return(True)
 
 
-screen crowd_battle_stage(shown_question, voting_active=False):
+screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=False):
+    $ battle_choices = list(shown_choices or [])
+    $ choice_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    $ choice_colors = ("#5677FF", "#A765FF", "#FF9E45", "#35C991")
+
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
@@ -268,6 +272,53 @@ screen crowd_battle_stage(shown_question, voting_active=False):
         at cb_monster_idle
         xcenter 1510
         ycenter 470
+
+    # Асуултын дээрх хоосон зайд A-D хариултыг 2 x 2 картаар харуулна.
+    # Эдгээр нь host дэлгэцийн мэдээлэл бөгөөд сонголтыг утсаар хийнэ.
+    if battle_choices:
+        vbox:
+            xpos 90
+            ypos 315
+            xsize 990
+            spacing 18
+
+            for row_start in range(0, len(battle_choices), 2):
+                hbox:
+                    spacing 18
+
+                    for choice_index in range(row_start, min(row_start + 2, len(battle_choices))):
+                        $ choice = battle_choices[choice_index]
+                        $ choice_letter = choice_letters[choice_index]
+                        $ choice_color = choice_colors[choice_index % len(choice_colors)]
+
+                        frame:
+                            background Solid("#121B30F2")
+                            xsize 480
+                            ysize 112
+                            padding (16, 14)
+
+                            hbox:
+                                spacing 16
+                                yalign 0.5
+
+                                frame:
+                                    background Solid(choice_color)
+                                    xysize (62, 62)
+                                    padding (0, 0)
+
+                                    text choice_letter:
+                                        color "#FFFFFF"
+                                        size 30
+                                        bold True
+                                        xalign 0.5
+                                        yalign 0.5
+
+                                text choice:
+                                    color "#F6F7FF"
+                                    size 23
+                                    bold True
+                                    xmaximum 360
+                                    yalign 0.5
 
     frame:
         background Solid("#121B30EE")
@@ -327,7 +378,8 @@ screen crowd_battle_voice_preview(question):
     modal True
     
     $ shown_question = (question or {}).get("question", "")
-    use crowd_battle_stage(shown_question, False)
+    $ shown_choices = (question or {}).get("choices", [])
+    use crowd_battle_stage(shown_question, shown_choices, False)
 
 
 screen crowd_battle_round(expected_round_id=None):
@@ -344,7 +396,7 @@ screen crowd_battle_round(expected_round_id=None):
     if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
-    use crowd_battle_stage(current_round.get("question", ""), True)
+    use crowd_battle_stage(current_round.get("question", ""), current_round.get("choices", []), True)
 
 
 screen crowd_round_result(result, final_question=False):
