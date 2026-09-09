@@ -356,12 +356,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                     yalign 1.0
                     spacing 60
 
-                    text "Хариулсан тоглогч: [cb_total_answers]":
-                        style "cb_small_text"
-
-                    text "Утаснаасаа: [cb_server_url()]":
-                        color "#8999FF"
-                        size 24
+                    
 
             if voting_active and cb_connection_message:
                 text cb_connection_message:
