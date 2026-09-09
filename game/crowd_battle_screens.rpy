@@ -908,9 +908,6 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                             size 28
                             xalign 0.5
 
-            text "Утаснаасаа сонголтоо хийнэ үү.":
-                style "cb_small_text"
-                xalign 0.5
 
 
 screen crowd_creators_result(question, result):

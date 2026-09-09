@@ -155,8 +155,8 @@ transform cb_cinematic_world:
     xysize (config.screen_width, config.screen_height)
     xalign 0.5
     yalign 0.5
-    zoom 1.03
-    linear 14.0 zoom 1.10
+    zoom 0.5
+    linear 14.0 zoom 0.6
 
 
 transform cb_cinematic_boss:
