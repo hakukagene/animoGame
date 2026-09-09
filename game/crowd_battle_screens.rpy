@@ -192,7 +192,7 @@ init -35 python:
 
 
     def cb_start_battle_feedback(result):
-        """Play one attack for a wrong answer, then loop the idle movie."""
+        """Play one attack whenever the team takes damage, then loop idle."""
 
         result = result or {}
         enemy_key = getattr(store, "cb_enemy_key", "void")
@@ -202,7 +202,7 @@ init -35 python:
         )
         attack_movie = media["attack"]
         idle_movie = media["idle"]
-        should_attack = max(0, int(result.get("wrong_count", 0))) > 0
+        should_attack = max(0, int(result.get("player_damage", 0))) > 0
 
         renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
 
@@ -605,6 +605,7 @@ screen crowd_round_result(result, final_question=False):
     $ wrong_percentage = result.get("wrong_percentage", 0.0)
     $ monster_damage = result.get("monster_damage", 0)
     $ player_damage = result.get("player_damage", 0)
+    $ no_answer_penalty = bool(result.get("no_answer_penalty", False))
     $ monster_heal = result.get("monster_heal", 0)
     $ monster_damage_blocked = result.get("monster_damage_blocked", 0)
     $ mechanic_event = result.get("mechanic_event")
@@ -615,13 +616,13 @@ screen crowd_round_result(result, final_question=False):
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
     $ battle_finished = result.get("battle_status", "active") in ("victory", "defeat")
     $ next_part_text = "төгсгөлийн хэсэг" if battle_finished or final_question else "дараагийн асуулт"
-    $ result_display_seconds = CB_ATTACK_RESULT_DISPLAY_SECONDS if wrong_count > 0 else CB_RESULT_DISPLAY_SECONDS
+    $ result_display_seconds = CB_ATTACK_RESULT_DISPLAY_SECONDS if player_damage > 0 else CB_RESULT_DISPLAY_SECONDS
     $ result_display_label = int(round(result_display_seconds))
 
     add Solid("#070B14")
     add Solid("#101A31") xysize (1920, 270)
 
-    # Буруу хариулт байвал attack-ийг нэг удаа тоглуулаад idle video-г
+    # Баг damage авбал attack-ийг нэг удаа тоглуулаад idle video-г
     # дараалалд оруулна. Screen хаагдахад movie channel-ийг цэвэрлэнэ.
     on "show" action Function(cb_start_battle_feedback, result)
     on "hide" action Function(cb_stop_battle_feedback)
@@ -786,11 +787,22 @@ screen crowd_round_result(result, final_question=False):
 
                 vbox:
                     spacing 3
-                    text "БУРУУ" color "#FF8296" size 23 bold True xalign 0.5
-                    text "[wrong_percentage]%" color "#FFFFFF" size 47 bold True xalign 0.5
-                    text "[wrong_count] хариулт · Баг -[player_damage] HP" color "#FF8296" size 20 xalign 0.5
+                    if no_answer_penalty:
+                        text "ХАРИУЛТГҮЙ" color "#FF5F78" size 23 bold True xalign 0.5
+                        text "MAX" color "#FFFFFF" size 47 bold True xalign 0.5
+                        text "0 хариулт · Хот -[player_damage] HP" color "#FF5F78" size 20 xalign 0.5
+                    else:
+                        text "БУРУУ" color "#FF8296" size 23 bold True xalign 0.5
+                        text "[wrong_percentage]%" color "#FFFFFF" size 47 bold True xalign 0.5
+                        text "[wrong_count] хариулт · Баг -[player_damage] HP" color "#FF8296" size 20 xalign 0.5
 
-            if mechanic_event == "devourer_heal" and monster_heal > 0:
+            if no_answer_penalty:
+                text "ХЭН Ч ХАРИУЛААГҮЙ · ХОТ MAX DAMAGE АВЛАА":
+                    color "#FF5F78"
+                    size 23
+                    bold True
+                    xalign 0.5
+            elif mechanic_event == "devourer_heal" and monster_heal > 0:
                 text "DEVOURER · +[monster_heal] HP НӨХӨВ":
                     color "#D57CFF"
                     size 22
