@@ -1,9 +1,9 @@
 import time
 
 try:
-    from voting_server.app import app, store
+    from voting_server.app import app, percentage_amount, store
 except ModuleNotFoundError:
-    from app import app, store
+    from app import app, percentage_amount, store
 
 
 def host_headers():
@@ -61,10 +61,12 @@ def test_full_battle_round(monkeypatch):
         result = body["round"]["result"]
         assert result["correct_count"] == 2
         assert result["wrong_count"] == 1
-        assert result["monster_damage"] == 20
-        assert result["player_damage"] == 7
-        assert result["monster_hp"] == 80
-        assert result["player_hp"] == 93
+        assert result["correct_percentage"] == 66.7
+        assert result["wrong_percentage"] == 33.3
+        assert result["monster_damage"] == 27
+        assert result["player_damage"] == 8
+        assert result["monster_hp"] == 73
+        assert result["player_hp"] == 92
 
 
 def test_host_token(monkeypatch):
@@ -185,7 +187,7 @@ def test_round_finishes_after_every_active_player_answers(monkeypatch):
         assert current["result"]["completion_reason"] == "all_answered"
 
 
-def test_empty_round_stays_open_after_duration(monkeypatch):
+def test_empty_round_finishes_after_duration(monkeypatch):
     monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
     store.reset()
 
@@ -205,9 +207,12 @@ def test_empty_round_stays_open_after_duration(monkeypatch):
             store.battle["current_round"]["ends_at"] = time.time() - 1
 
         current = client.get("/api/round/status").get_json()["round"]
-        assert current["status"] == "open"
+        assert current["status"] == "finished"
         assert current["total_answers"] == 0
-        assert current["result"] is None
+        assert current["result"]["total_answers"] == 0
+        assert current["result"]["monster_damage"] == 0
+        assert current["result"]["player_damage"] == 0
+        assert current["result"]["completion_reason"] == "duration"
 
 
 def test_round_finishes_after_duration_once_an_answer_exists(monkeypatch):
@@ -226,14 +231,14 @@ def test_round_finishes_after_duration_once_an_answer_exists(monkeypatch):
             },
         )
 
-        with store.lock:
-            store.battle["current_round"]["ends_at"] = time.time() - 1
-
         answer = client.post(
             "/api/round/answer",
             json={"player_id": "player-late1", "choice_index": 1},
         )
         assert answer.status_code == 200
+
+        with store.lock:
+            store.battle["current_round"]["ends_at"] = time.time() - 1
 
         current = client.get("/api/round/status").get_json()["round"]
         assert current["status"] == "finished"
@@ -265,3 +270,150 @@ def test_answer_from_unregistered_player_does_not_finish_early(monkeypatch):
         current = client.get("/api/round/status").get_json()["round"]
         assert current["expected_answers"] == 0
         assert current["status"] == "open"
+
+
+def test_percentage_damage_is_player_count_independent():
+    assert percentage_amount(40, 7, 10) == 28
+    assert percentage_amount(40, 700, 1000) == 28
+    assert percentage_amount(25, 3, 10) == 8
+    assert percentage_amount(25, 300, 1000) == 8
+
+
+def test_void_glitch_shortens_every_third_battle_round(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post(
+            "/api/battle/start",
+            json={"player_hp": 200, "monster_hp": 250, "monster_key": "void"},
+        )
+
+        for _ in range(2):
+            started = client.post(
+                "/api/round/start",
+                json={
+                    "question": "Void test",
+                    "choices": ["A", "B"],
+                    "correct_index": 0,
+                    "duration": 15,
+                },
+            )
+            assert started.get_json()["battle"]["current_round"]["duration"] == 15
+            client.post("/api/round/finish", json={"force": True})
+
+        third = client.post(
+            "/api/round/start",
+            json={
+                "question": "Void glitch",
+                "choices": ["A", "B"],
+                "correct_index": 0,
+                "duration": 15,
+            },
+        ).get_json()["battle"]["current_round"]
+
+        assert third["base_duration"] == 15
+        assert third["duration"] == 10
+        assert third["duration_penalty"] == 5
+        assert third["mechanic_event"] == "void_glitch"
+
+
+def test_devourer_heals_by_wrong_answer_percentage(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post(
+            "/api/battle/start",
+            json={"player_hp": 100, "monster_hp": 100, "monster_key": "devourer"},
+        )
+
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "Damage first",
+                "choices": ["A", "B"],
+                "correct_index": 0,
+                "duration": 15,
+            },
+        )
+        client.post(
+            "/api/round/answer",
+            json={"player_id": "player-dev-01", "choice_index": 0},
+        )
+        first = client.post("/api/round/finish", json={"force": True}).get_json()["round"]["result"]
+        assert first["monster_damage"] == 40
+        assert first["monster_hp"] == 60
+
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "Heal now",
+                "choices": ["A", "B"],
+                "correct_index": 0,
+                "duration": 15,
+            },
+        )
+        client.post(
+            "/api/round/answer",
+            json={"player_id": "player-dev-01", "choice_index": 0},
+        )
+        client.post(
+            "/api/round/answer",
+            json={"player_id": "player-dev-02", "choice_index": 1},
+        )
+        second = client.post("/api/round/finish", json={"force": True}).get_json()["round"]["result"]
+
+        assert second["monster_damage"] == 20
+        assert second["monster_heal"] == 10
+        assert second["monster_hp"] == 50
+        assert second["mechanic_event"] == "devourer_heal"
+
+
+def test_colossus_armor_breaks_after_two_qualifying_combo_rounds(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post(
+            "/api/battle/start",
+            json={"player_hp": 100, "monster_hp": 100, "monster_key": "colossus"},
+        )
+
+        results = []
+        for round_number in range(2):
+            client.post(
+                "/api/round/start",
+                json={
+                    "question": "Armor combo {}".format(round_number + 1),
+                    "choices": ["A", "B"],
+                    "correct_index": 0,
+                    "duration": 15,
+                },
+            )
+            for player_number, choice_index in enumerate((0, 0, 0, 1, 1)):
+                client.post(
+                    "/api/round/answer",
+                    json={
+                        "player_id": "player-col-{:02d}".format(player_number),
+                        "choice_index": choice_index,
+                    },
+                )
+            results.append(
+                client.post("/api/round/finish", json={"force": True}).get_json()["round"]["result"]
+            )
+
+        first, second = results
+        assert first["correct_percentage"] == 60.0
+        assert first["monster_damage"] == 0
+        assert first["monster_damage_blocked"] == 24
+        assert first["armor_combo"] == 1
+        assert first["armor_active"] is True
+        assert first["mechanic_event"] == "colossus_armor_block"
+
+        assert second["monster_damage"] == 24
+        assert second["monster_hp"] == 76
+        assert second["armor_combo"] == 2
+        assert second["armor_active"] is False
+        assert second["armor_broken_this_round"] is True
+        assert second["mechanic_event"] == "colossus_armor_break"
