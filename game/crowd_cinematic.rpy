@@ -155,8 +155,10 @@ transform cb_cinematic_world:
     xysize (config.screen_width, config.screen_height)
     xalign 0.5
     yalign 0.5
-    zoom 0.5
-    linear 14.0 zoom 0.6
+    # Background эхний frame-ээс дэлгэцийг бүтэн дүүргэнэ.
+    # Cinematic-ийн удаан zoom үргэлжлэхдээ хоосон ирмэг гаргахгүй.
+    zoom 1.0
+    linear 14.0 zoom 1.08
 
 
 transform cb_cinematic_boss:
