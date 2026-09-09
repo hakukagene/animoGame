@@ -83,7 +83,7 @@ label crowd_monster_battle:
         # Асуултыг default say screen-ээр биш, battle HUD дээр харуулна.
         # OGG бүрэн дууссаны дараа л server round эхлэх тул санал авах
         # хугацаа бүтнээрээ үлдэнэ.
-        show screen crowd_battle_round(None, question, True)
+        show screen crowd_battle_voice_preview(question)
         $ voice_finished = cb_play_ogg_and_wait(question.get("voice"))
 
         # Voice файл байхгүй үед ч асуултыг унших богино хугацаа өгнө.
@@ -101,7 +101,7 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
-        hide screen crowd_battle_round
+        hide screen crowd_battle_voice_preview
         call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
