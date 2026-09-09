@@ -11,10 +11,12 @@ app = Flask(__name__)
 
 ACTIVE_PLAYER_TTL = 30
 
-# Damage нь оролцогчийн тооноос үл хамаарч зөв/буруу хариултын хувиар
-# бодогдоно. 100% зөв = 40, 100% буруу = 25 damage.
-MONSTER_DAMAGE_AT_100_PERCENT = 40
-PLAYER_DAMAGE_AT_100_PERCENT = 25
+# Хоёр тал 1000 HP-тай эхэлнэ. Damage нь оролцогчийн тооноос үл
+# хамаарч зөв/буруу хариултын хувиар бодогдоно:
+# 64% зөв = мангас -64 HP, 36% буруу = хот/баг -36 HP.
+DEFAULT_BATTLE_HP = 1000
+MONSTER_DAMAGE_AT_100_PERCENT = 100
+PLAYER_DAMAGE_AT_100_PERCENT = 100
 
 # Boss mechanics. Random биш, deterministic байх нь live event дээр бүх
 # төхөөрөмжид ижил дүрэм хэрэгжих болон тестлэхэд найдвартай.
@@ -51,10 +53,10 @@ class BattleStore:
                 "team_name": "Үзэгчдийн баг",
                 "monster_name": "Сүүдрийн мангас",
                 "monster_key": "void",
-                "player_hp": 500,
-                "player_max_hp": 500,
-                "monster_hp": 1000,
-                "monster_max_hp": 1000,
+                "player_hp": DEFAULT_BATTLE_HP,
+                "player_max_hp": DEFAULT_BATTLE_HP,
+                "monster_hp": DEFAULT_BATTLE_HP,
+                "monster_max_hp": DEFAULT_BATTLE_HP,
                 "round_number": 0,
                 "battle_question_number": 0,
                 "colossus_armor_active": False,
@@ -138,10 +140,12 @@ class BattleStore:
                     correct_count,
                     total_answers,
                 )
-                requested_player_damage = percentage_amount(
-                    PLAYER_DAMAGE_AT_100_PERCENT,
-                    wrong_count,
-                    total_answers,
+                # Нэг answered round-ийн 100 damage-ийг хоёр талд яг
+                # хуваарилна. Ингэснээр .5 rounding тохиолдсон ч нийлбэр
+                # 101 болохгүй (жишээ: 64%/36% = 64/36 damage).
+                requested_player_damage = max(
+                    0,
+                    PLAYER_DAMAGE_AT_100_PERCENT - requested_monster_damage,
                 )
             else:
                 # Battle round-д хэн ч хариулаагүй бол хот/баг 100% буруу
@@ -248,8 +252,10 @@ class BattleStore:
 
     def start_battle(self, payload):
         with self.lock:
-            player_max_hp = clamp_int(payload.get("player_hp", 500), 1, 1_000_000)
-            monster_max_hp = clamp_int(payload.get("monster_hp", 1000), 1, 1_000_000)
+            # HP balance-ийг server authoritative байлгана. Хуучин client
+            # 200/250 зэрэг payload явуулсан ч шинэ battle үргэлж 1000/1000.
+            player_max_hp = DEFAULT_BATTLE_HP
+            monster_max_hp = DEFAULT_BATTLE_HP
             monster_key = clean_text(payload.get("monster_key"), "void", 20).lower()
             if monster_key not in SUPPORTED_MONSTERS:
                 monster_key = "void"

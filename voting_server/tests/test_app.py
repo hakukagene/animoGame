@@ -25,9 +25,14 @@ def test_full_battle_round(monkeypatch):
         started = client.post(
             "/api/battle/start",
             headers=host_headers(),
-            json={"player_hp": 100, "monster_hp": 100},
+            json={"player_hp": 1, "monster_hp": 2},
         )
         assert started.status_code == 200
+        battle = started.get_json()["battle"]
+        assert battle["player_hp"] == 1000
+        assert battle["player_max_hp"] == 1000
+        assert battle["monster_hp"] == 1000
+        assert battle["monster_max_hp"] == 1000
 
         round_started = client.post(
             "/api/round/start",
@@ -42,6 +47,9 @@ def test_full_battle_round(monkeypatch):
             },
         )
         assert round_started.status_code == 200
+        current_round = round_started.get_json()["battle"]["current_round"]
+        assert current_round["attack_power"] == 100
+        assert current_round["enemy_attack_power"] == 100
 
         for player_id, choice_index in (("player-0001", 1), ("player-0002", 1), ("player-0003", 0)):
             answer = client.post(
@@ -63,10 +71,10 @@ def test_full_battle_round(monkeypatch):
         assert result["wrong_count"] == 1
         assert result["correct_percentage"] == 66.7
         assert result["wrong_percentage"] == 33.3
-        assert result["monster_damage"] == 27
-        assert result["player_damage"] == 8
-        assert result["monster_hp"] == 73
-        assert result["player_hp"] == 92
+        assert result["monster_damage"] == 67
+        assert result["player_damage"] == 33
+        assert result["monster_hp"] == 933
+        assert result["player_hp"] == 967
 
 
 def test_host_token(monkeypatch):
@@ -93,7 +101,7 @@ def test_survey_round(monkeypatch):
         started = client.post(
             "/api/battle/start",
             headers=host_headers(),
-            json={"player_hp": 100, "monster_hp": 100},
+            json={},
         )
         assert started.status_code == 200
 
@@ -142,8 +150,8 @@ def test_survey_round(monkeypatch):
         assert result["top_choice_indices"] == [2]
         assert result["monster_damage"] == 0
         assert result["player_damage"] == 0
-        assert result["monster_hp"] == 100
-        assert result["player_hp"] == 100
+        assert result["monster_hp"] == 1000
+        assert result["player_hp"] == 1000
 
 
 
@@ -154,7 +162,7 @@ def test_round_finishes_after_every_active_player_answers(monkeypatch):
     with app.test_client() as client:
         client.get("/api/battle/status?player_id=player-0001")
         client.get("/api/battle/status?player_id=player-0002")
-        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post("/api/battle/start", json={})
 
         started = client.post(
             "/api/round/start",
@@ -192,7 +200,7 @@ def test_empty_battle_round_applies_max_player_damage_after_duration(monkeypatch
     store.reset()
 
     with app.test_client() as client:
-        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post("/api/battle/start", json={})
         client.post(
             "/api/round/start",
             json={
@@ -213,9 +221,9 @@ def test_empty_battle_round_applies_max_player_damage_after_duration(monkeypatch
         assert current["result"]["correct_percentage"] == 0.0
         assert current["result"]["wrong_percentage"] == 100.0
         assert current["result"]["monster_damage"] == 0
-        assert current["result"]["requested_player_damage"] == 25
-        assert current["result"]["player_damage"] == 25
-        assert current["result"]["player_hp"] == 75
+        assert current["result"]["requested_player_damage"] == 100
+        assert current["result"]["player_damage"] == 100
+        assert current["result"]["player_hp"] == 900
         assert current["result"]["no_answer_penalty"] is True
         assert current["result"]["completion_reason"] == "duration"
 
@@ -225,7 +233,7 @@ def test_empty_survey_round_does_not_damage_player(monkeypatch):
     store.reset()
 
     with app.test_client() as client:
-        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post("/api/battle/start", json={})
         client.post(
             "/api/round/start",
             json={
@@ -244,7 +252,7 @@ def test_empty_survey_round_does_not_damage_player(monkeypatch):
         assert result["total_answers"] == 0
         assert result["wrong_percentage"] == 0.0
         assert result["player_damage"] == 0
-        assert result["player_hp"] == 100
+        assert result["player_hp"] == 1000
         assert result["no_answer_penalty"] is False
 
 
@@ -253,7 +261,7 @@ def test_round_finishes_after_duration_once_an_answer_exists(monkeypatch):
     store.reset()
 
     with app.test_client() as client:
-        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post("/api/battle/start", json={})
         client.post(
             "/api/round/start",
             json={
@@ -285,7 +293,7 @@ def test_answer_from_unregistered_player_does_not_finish_early(monkeypatch):
     store.reset()
 
     with app.test_client() as client:
-        client.post("/api/battle/start", json={"player_hp": 100, "monster_hp": 100})
+        client.post("/api/battle/start", json={})
         client.post(
             "/api/round/start",
             json={
@@ -306,10 +314,86 @@ def test_answer_from_unregistered_player_does_not_finish_early(monkeypatch):
 
 
 def test_percentage_damage_is_player_count_independent():
-    assert percentage_amount(40, 7, 10) == 28
-    assert percentage_amount(40, 700, 1000) == 28
-    assert percentage_amount(25, 3, 10) == 8
-    assert percentage_amount(25, 300, 1000) == 8
+    assert percentage_amount(100, 7, 10) == 70
+    assert percentage_amount(100, 700, 1000) == 70
+    assert percentage_amount(100, 3, 10) == 30
+    assert percentage_amount(100, 300, 1000) == 30
+
+
+def test_64_percent_correct_deals_64_and_36_damage(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post("/api/battle/start", json={})
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "64/36 balance",
+                "choices": ["Correct", "Wrong"],
+                "correct_index": 0,
+                "duration": 15,
+            },
+        )
+
+        for player_number in range(25):
+            choice_index = 0 if player_number < 16 else 1
+            client.post(
+                "/api/round/answer",
+                json={
+                    "player_id": "player-balance-{:02d}".format(player_number),
+                    "choice_index": choice_index,
+                },
+            )
+
+        result = client.post(
+            "/api/round/finish",
+            json={"force": True},
+        ).get_json()["round"]["result"]
+
+        assert result["correct_percentage"] == 64.0
+        assert result["wrong_percentage"] == 36.0
+        assert result["monster_damage"] == 64
+        assert result["player_damage"] == 36
+        assert result["monster_hp"] == 936
+        assert result["player_hp"] == 964
+
+
+def test_answered_round_damage_split_totals_exactly_100(monkeypatch):
+    monkeypatch.delenv("BATTLE_HOST_TOKEN", raising=False)
+    store.reset()
+
+    with app.test_client() as client:
+        client.post("/api/battle/start", json={})
+        client.post(
+            "/api/round/start",
+            json={
+                "question": "Rounding balance",
+                "choices": ["Correct", "Wrong"],
+                "correct_index": 0,
+                "duration": 15,
+            },
+        )
+
+        for player_number in range(8):
+            client.post(
+                "/api/round/answer",
+                json={
+                    "player_id": "player-rounding-{:02d}".format(player_number),
+                    "choice_index": 0 if player_number == 0 else 1,
+                },
+            )
+
+        result = client.post(
+            "/api/round/finish",
+            json={"force": True},
+        ).get_json()["round"]["result"]
+
+        assert result["correct_percentage"] == 12.5
+        assert result["wrong_percentage"] == 87.5
+        assert result["monster_damage"] == 13
+        assert result["player_damage"] == 87
+        assert result["monster_damage"] + result["player_damage"] == 100
 
 
 def test_void_glitch_shortens_every_third_battle_round(monkeypatch):
@@ -319,7 +403,7 @@ def test_void_glitch_shortens_every_third_battle_round(monkeypatch):
     with app.test_client() as client:
         client.post(
             "/api/battle/start",
-            json={"player_hp": 200, "monster_hp": 250, "monster_key": "void"},
+            json={"player_hp": 1000, "monster_hp": 1000, "monster_key": "void"},
         )
 
         for _ in range(2):
@@ -358,7 +442,7 @@ def test_devourer_heals_by_wrong_answer_percentage(monkeypatch):
     with app.test_client() as client:
         client.post(
             "/api/battle/start",
-            json={"player_hp": 100, "monster_hp": 100, "monster_key": "devourer"},
+            json={"player_hp": 1000, "monster_hp": 1000, "monster_key": "devourer"},
         )
 
         client.post(
@@ -375,8 +459,8 @@ def test_devourer_heals_by_wrong_answer_percentage(monkeypatch):
             json={"player_id": "player-dev-01", "choice_index": 0},
         )
         first = client.post("/api/round/finish", json={"force": True}).get_json()["round"]["result"]
-        assert first["monster_damage"] == 40
-        assert first["monster_hp"] == 60
+        assert first["monster_damage"] == 100
+        assert first["monster_hp"] == 900
 
         client.post(
             "/api/round/start",
@@ -397,9 +481,11 @@ def test_devourer_heals_by_wrong_answer_percentage(monkeypatch):
         )
         second = client.post("/api/round/finish", json={"force": True}).get_json()["round"]["result"]
 
-        assert second["monster_damage"] == 20
+        assert second["monster_damage"] == 50
         assert second["monster_heal"] == 10
-        assert second["monster_hp"] == 50
+        assert second["monster_hp"] == 860
+        assert second["player_damage"] == 50
+        assert second["player_hp"] == 950
         assert second["mechanic_event"] == "devourer_heal"
 
 
@@ -410,7 +496,7 @@ def test_colossus_armor_breaks_after_two_qualifying_combo_rounds(monkeypatch):
     with app.test_client() as client:
         client.post(
             "/api/battle/start",
-            json={"player_hp": 100, "monster_hp": 100, "monster_key": "colossus"},
+            json={"player_hp": 1000, "monster_hp": 1000, "monster_key": "colossus"},
         )
 
         results = []
@@ -439,13 +525,13 @@ def test_colossus_armor_breaks_after_two_qualifying_combo_rounds(monkeypatch):
         first, second = results
         assert first["correct_percentage"] == 60.0
         assert first["monster_damage"] == 0
-        assert first["monster_damage_blocked"] == 24
+        assert first["monster_damage_blocked"] == 60
         assert first["armor_combo"] == 1
         assert first["armor_active"] is True
         assert first["mechanic_event"] == "colossus_armor_block"
 
-        assert second["monster_damage"] == 24
-        assert second["monster_hp"] == 76
+        assert second["monster_damage"] == 60
+        assert second["monster_hp"] == 940
         assert second["armor_combo"] == 2
         assert second["armor_active"] is False
         assert second["armor_broken_this_round"] is True

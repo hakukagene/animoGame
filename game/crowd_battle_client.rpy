@@ -1,6 +1,7 @@
 init -100 python:
     CROWD_BATTLE_SERVER_URL = "https://game-bnkw.onrender.com/"
     CROWD_BATTLE_HOST_TOKEN = ""
+    CROWD_BATTLE_START_HP = 1000
     CROWD_BATTLE_MONSTER_DAMAGE = 100
     CROWD_BATTLE_PLAYER_DAMAGE = 100
 
@@ -99,8 +100,8 @@ init python:
                 "team_name": "Үзэгчдийн баг",
                 "monster_name": getattr(store, "cb_enemy_name", "Сүүдрийн мангас"),
                 "monster_key": getattr(store, "cb_enemy_key", "void"),
-                "player_hp": 1000,
-                "monster_hp": 1000,
+                "player_hp": CROWD_BATTLE_START_HP,
+                "monster_hp": CROWD_BATTLE_START_HP,
             },
             host=True,
         )
