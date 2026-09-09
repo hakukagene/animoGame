@@ -282,39 +282,42 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     add cb_enemy_idle_image:
         at cb_monster_idle
         xcenter 1510
-        ycenter 525
+        ycenter 435
 
-    # Асуулт болон A-D хариултыг зүүн талын нэг panel-д байрлуулна.
-    # Хариултууд асуултын доор босоогоор дараалж харагдана.
+    # Зүүн дунд хэсгийг үзэгчдийн багийн зурагт зориулж хоосон үлдээнэ.
+    # Асуулт болон A-D хариултууд дэлгэцийн доод талын өргөн panel-д байна.
     frame:
         background Solid("#121B30EE")
-        xpos 70
-        ypos 300
-        xsize 1050
-        ysize 720
-        padding (38, 28)
+        xpos 60
+        ypos 610
+        xsize 1800
+        ysize 430
+        padding (30, 24)
 
         vbox:
             xfill True
-            spacing 14
+            spacing 10
 
-            if voting_active:
-                text "[cb_remaining_seconds] секунд":
-                    color "#FF899D"
-                    size 28
-                    bold True
-                    xalign 0.5
+            hbox:
+                xfill True
+                spacing 25
 
-            if shown_question:
-                text shown_question:
-                    color "#FFFFFF"
-                    size 33
-                    bold True
-                    text_align 0.5
-                    xalign 0.5
-                    xmaximum 950
+                if shown_question:
+                    text shown_question:
+                        color "#FFFFFF"
+                        size 31
+                        bold True
+                        xsize 1480
+                        xmaximum 1480
 
-            null height 4
+                if voting_active:
+                    text "[cb_remaining_seconds] секунд":
+                        color "#FF899D"
+                        size 28
+                        bold True
+                        xsize 225
+                        text_align 1.0
+                        xalign 1.0
 
             # Эдгээр нь host дэлгэцийн мэдээлэл; сонголтыг утсаар хийнэ.
             for choice_index, choice in enumerate(battle_choices):
@@ -324,30 +327,30 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 frame:
                     background Solid("#1A2540F5")
                     xfill True
-                    yminimum 88
-                    padding (16, 12)
+                    yminimum 57
+                    padding (13, 7)
 
                     hbox:
-                        spacing 18
+                        spacing 15
                         yalign 0.5
 
                         frame:
                             background Solid(choice_color)
-                            xysize (62, 62)
+                            xysize (43, 43)
                             padding (0, 0)
 
                             text choice_letter:
                                 color "#FFFFFF"
-                                size 29
+                                size 23
                                 bold True
                                 xalign 0.5
                                 yalign 0.5
 
                         text choice:
                             color "#F6F7FF"
-                            size 25
+                            size 23
                             bold True
-                            xmaximum 835
+                            xmaximum 1640
                             yalign 0.5
 
             if voting_active and cb_connection_message:
@@ -375,10 +378,7 @@ screen crowd_battle_round(expected_round_id=None):
     $ guarded_round_id = expected_round_id or cb_round_guard_id
 
     timer 0.25 repeat True action Function(cb_poll_round_action)
-    text "DEBUG STATUS: [current_round.get('status', 'NONE')]" xpos 20 ypos 20
-    text "DEBUG ROUND: [current_round.get('round_id', 'NONE')]" xpos 20 ypos 60
-    text "GUARD: [guarded_round_id]" xpos 20 ypos 100
-    text "RESULT: [bool(current_round.get('result'))]" xpos 20 ypos 140
+
     if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(current_round.get("result") or cb_round_result)
 
