@@ -229,6 +229,36 @@ init -35 python:
     }
 
 
+    # Creators-ийн 6-р асуултад дайсан бүрийн танилцуулга болон
+    # battle-д бодитоор хэрэгждэг онцгой чадварыг харуулна.
+    CB_ENEMY_CARD_DATA = {
+        "The Void — “Хоосрол”": {
+            "name": "THE VOID",
+            "subtitle": "ХООСРОЛ",
+            "intro": "Цаг хугацааг гажуудуулдаг орон зайн ангал.",
+            "skill_name": "TIME GLITCH",
+            "skill_description": "3 дахь battle асуулт бүрийн хугацааг 5 секундээр багасгана.",
+            "accent": "#B77BFF",
+        },
+        "THE DEVOURER — “Ертөнц залгигч”": {
+            "name": "THE DEVOURER",
+            "subtitle": "ЕРТӨНЦ ЗАЛГИГЧ",
+            "intro": "Буруу сонголтын энергийг сорж улам хүчирхэгжинэ.",
+            "skill_name": "DARK FEAST",
+            "skill_description": "Буруу хариултын хувиар round бүрт дээд тал нь 20 HP нөхнө.",
+            "accent": "#FF6F8F",
+        },
+        "THE COLOSSUS — “Аварга машин”": {
+            "name": "THE COLOSSUS",
+            "subtitle": "АВАРГА МАШИН",
+            "intro": "Тасралтгүй зөв хариултаар л эвдрэх хүнд хуягт аварга.",
+            "skill_name": "ARMORED CORE",
+            "skill_description": "60%+ зөв саналтай 2 дараалсан round-аар хуягийг эвдэнэ.",
+            "accent": "#F4C95D",
+        },
+    }
+
+
     def cb_city_attack_media():
         world_name = str(
             getattr(store, "cb_world_name", "FUTURISTIC") or "FUTURISTIC"
@@ -1238,7 +1268,79 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                             xalign 0.5
                                             text_align 0.5
 
-            # Бусад creators асуултын layout өөрчлөгдөхгүй.
+            # 6-р асуулт: дайсан бүрийн танилцуулга + skill-ийг
+            # зурагт үзүүлсэн шиг 3 зэрэгцээ босоо карт болгон харуулна.
+            elif question_number == 6:
+                hbox:
+                    spacing 22
+                    xalign 0.5
+
+                    for choice in current_round.get("choices", []):
+                        $ enemy_card = CB_ENEMY_CARD_DATA.get(choice) or {}
+                        $ enemy_accent = enemy_card.get("accent", "#8999FF")
+
+                        frame:
+                            background Solid(enemy_accent)
+                            xsize 410
+                            ysize 320
+                            padding (3, 3)
+
+                            frame:
+                                background Solid("#151F35FA")
+                                xfill True
+                                yfill True
+                                padding (24, 20)
+
+                                vbox:
+                                    spacing 8
+                                    xfill True
+
+                                    text enemy_card.get("name", choice):
+                                        color "#FFFFFF"
+                                        size 29
+                                        bold True
+                                        xalign 0.5
+                                        text_align 0.5
+
+                                    text enemy_card.get("subtitle", ""):
+                                        color enemy_accent
+                                        size 19
+                                        bold True
+                                        xalign 0.5
+                                        text_align 0.5
+
+                                    null height 4
+
+                                    text enemy_card.get("intro", ""):
+                                        color "#C9D0E4"
+                                        size 19
+                                        xsize 350
+                                        text_align 0.5
+                                        xalign 0.5
+
+                                    null height 4
+
+                                    text "ОНЦГОЙ ЧАДВАР":
+                                        color enemy_accent
+                                        size 16
+                                        bold True
+                                        xalign 0.5
+
+                                    text enemy_card.get("skill_name", ""):
+                                        color "#FFFFFF"
+                                        size 22
+                                        bold True
+                                        xalign 0.5
+                                        text_align 0.5
+
+                                    text enemy_card.get("skill_description", ""):
+                                        color "#D7DCEF"
+                                        size 18
+                                        xsize 350
+                                        text_align 0.5
+                                        xalign 0.5
+
+            # 5-р болон нэмэлт creators асуултуудын layout.
             else:
                 vbox:
                     spacing 12
