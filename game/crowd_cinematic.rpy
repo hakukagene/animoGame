@@ -438,7 +438,7 @@ label crowd_world_cinematic:
 
     scene expression Solid("#000000")
     with fade
-    show nova at nova_anim
+    $ cb_current_speaker = None
     $ cb_voice_line(N, "Баярлалаа.", "audio/hutlugch18.ogg")
     $ cb_voice_line(N, "Энэ бол...", "audio/hutlugch19.ogg")
     $ cb_voice_line(N, "...та нарын бүтээсэн ертөнц.", "audio/hutlugch20.ogg")
