@@ -4,7 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -64,14 +64,6 @@ label crowd_creators_questions:
 
 
 label crowd_monster_battle:
-    # Cinematic/dialogue portrait-ууд master layer дээр үлдвэл question
-    # screen солигдох агшинд нэг frame цухуйна. Battle бүрийн эхэнд
-    # stale portrait болон speaker state-ийг цэвэрлэнэ.
-    window hide
-    hide nova
-    hide crowd_enemy
-    $ cb_current_speaker = None
-
     $ cb_battle_end_reason = ""
     $ response = cb_start_battle()
     $ renpy.block_rollback()
@@ -93,10 +85,9 @@ label crowd_monster_battle:
         $ voice_played = cb_play_ogg_and_wait(question.get("voice"))
         if not voice_played:
             $ renpy.pause(2.5, hard=True, modal=False)
+        hide screen crowd_battle_voice_preview
         $ renpy.block_rollback()
 
-        # Server round үүсэх хүртэл opaque preview-г дэлгэц дээр үлдээнэ.
-        # Ингэснээр доорх master layer transition үед огт цухуйхгүй.
         $ response = cb_start_round(question)
         $ renpy.block_rollback()
 
@@ -106,10 +97,6 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
-
-        # Round амжилттай эхэлсний дараа preview-г voting screen-тэй
-        # шууд солино. Server-ийн 15 секунд энэ мөчөөс бүтнээрээ явна.
-        hide screen crowd_battle_voice_preview
         call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
@@ -128,19 +115,12 @@ label crowd_monster_battle:
 
     if victory:
         $ cb_battle_end_reason = "Мангасын HP 0 болсон."
+        call crowd_victory_ending
     else:
         if cb_player_hp <= 0:
             $ cb_battle_end_reason = "Үзэгчдийн багийн HP 0 болсон."
         else:
             $ cb_battle_end_reason = "20 асуулт дуусахад мангас амьд үлдсэн."
-
-    # Ending dialogue-оос өмнө ялагдсан талын сонгогдсон break WebM-г
-    # shared battle arena дотор нэг удаа бүрэн тоглуулна.
-    call screen crowd_battle_break(victory)
-
-    if victory:
-        call crowd_victory_ending
-    else:
         call crowd_defeat_ending
 
     call screen crowd_battle_ending(victory)
