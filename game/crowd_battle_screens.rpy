@@ -98,6 +98,11 @@ transform cb_void_glitch_strip(wait=0.0):
         repeat
 
 
+transform cb_battle_ui_overlay:
+    xysize (1920, 1080)
+    nearest True
+
+
 define CB_RESULT_DISPLAY_SECONDS = 4
 define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
 define CB_BREAK_START_DELAY = 0.30
@@ -105,6 +110,70 @@ define CB_BREAK_SCREEN_SECONDS = 5.80
 
 
 init -35 python:
+    # Creators-ийн 3-р асуултаар сонгогдсон байршил battle interface-ийн
+    # palette болон pixel-art хүрээг сонгоно. Gameplay asset-ууд тусдаа хэвээр.
+    CB_BATTLE_LOCATION_THEMES = {
+        "earth": {
+            "overlay": "images/cinematic/battle_ui/earth.webp",
+            "base": "#06130F",
+            "hud": "#0B2525",
+            "arena": "#000000",
+            "panel": "#0C2422F5",
+            "panel_border": "#2ABF9E",
+            "row": "#123531F5",
+            "bar_track": "#1D3A36",
+        },
+        "another_planet": {
+            "overlay": "images/cinematic/battle_ui/another_planet.webp",
+            "base": "#100812",
+            "hud": "#251026",
+            "arena": "#000000",
+            "panel": "#241025F5",
+            "panel_border": "#FF4E9C",
+            "row": "#351532F5",
+            "bar_track": "#40233A",
+        },
+        "floating_world": {
+            "overlay": "images/cinematic/battle_ui/floating_world.webp",
+            "base": "#0A1620",
+            "hud": "#132738",
+            "arena": "#000000",
+            "panel": "#152B3CF5",
+            "panel_border": "#72DAFF",
+            "row": "#1C3850F5",
+            "bar_track": "#2A4052",
+        },
+        "underground": {
+            "overlay": "images/cinematic/battle_ui/underground.webp",
+            "base": "#0B0A0C",
+            "hud": "#201710",
+            "arena": "#000000",
+            "panel": "#23180FF5",
+            "panel_border": "#F0A02C",
+            "row": "#342318F5",
+            "bar_track": "#413126",
+        },
+        "another_dimension": {
+            "overlay": "images/cinematic/battle_ui/another_dimension.webp",
+            "base": "#090717",
+            "hud": "#1B1034",
+            "arena": "#000000",
+            "panel": "#1A1033F5",
+            "panel_border": "#8D62FF",
+            "row": "#27194AF5",
+            "bar_track": "#32265A",
+        },
+    }
+
+
+    def cb_battle_location_theme():
+        location_key = getattr(store, "cb_location_key", "earth")
+        return CB_BATTLE_LOCATION_THEMES.get(
+            location_key,
+            CB_BATTLE_LOCATION_THEMES["earth"],
+        )
+
+
     # "ТА ХЭН БЭ?" creators question-ийн role portrait-ууд.
     CB_ROLE_PREVIEW_DATA = {
         "Student": "images/creator_roles/student.png",
@@ -535,9 +604,36 @@ style cb_button_text is button_text:
     bold True
     text_align 0.5
 
+
+screen crowd_battle_environment(ui_theme, with_arena=True):
+    $ battle_ui_overlay = ui_theme["overlay"]
+
+    add Solid(ui_theme["base"])
+    add Solid(ui_theme["hud"]) xysize (1920, 270)
+
+    # Full-screen generated overlay нь зөвхөн interface-ийн зах, булан,
+    # divider-үүдийг зурна. Хот, зэвсэг, monster, текстийг агуулахгүй.
+    add battle_ui_overlay:
+        at cb_battle_ui_overlay
+
+    if with_arena:
+        add Solid(ui_theme["arena"]):
+            xpos 50
+            ypos 270
+            xsize 1820
+            ysize 350
+
+        add Solid(ui_theme["panel_border"]):
+            xpos 50
+            ypos 266
+            xsize 1820
+            ysize 4
+
+
 screen crowd_battle_intro():
     modal True
-    add Solid("#070B14")
+    $ ui_theme = cb_battle_location_theme()
+    use crowd_battle_environment(ui_theme, False)
 
     vbox:
         xalign 0.5
@@ -568,6 +664,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     $ battle_choices = list(shown_choices or [])
     $ choice_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     $ choice_colors = ("#5677FF", "#A765FF", "#FF9E45", "#35C991")
+    $ ui_theme = cb_battle_location_theme()
     $ battle_state = cb_battle or {}
     $ current_round = battle_state.get("current_round") or {}
     $ monster_key = battle_state.get("monster_key", getattr(store, "cb_enemy_key", "void"))
@@ -590,8 +687,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         $ boss_mechanic_text = "ARMOR · COMBO {}/{}".format(armor_combo, armor_target) if armor_active else "ARMOR ЭВДЭРСЭН"
         $ boss_mechanic_color = "#FFD36D" if armor_active else "#59E6A8"
 
-    add Solid("#070B14")
-    add Solid("#101A31") xysize (1920, 270)
+    use crowd_battle_environment(ui_theme)
 
     vbox:
         xpos 90
@@ -608,7 +704,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             xsize 700
             ysize 28
             left_bar Solid("#38D99A")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
 
     vbox:
         xpos 1070
@@ -626,7 +722,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             xsize 700
             ysize 28
             left_bar Solid("#FF5F78")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
             xalign 1.0
 
         if boss_mechanic_text:
@@ -636,14 +732,6 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 bold True
                 xalign 1.0
                 text_align 1.0
-
-    # Хот, projectile-ийн зам, мангас гурав нэг тасралтгүй arena-д байна.
-    # Тусдаа frame/border ашиглахгүй тул хоёр тал нэг тулааны талбар мэт харагдана.
-    add Solid("#000000"):
-        xpos 50
-        ypos 270
-        xsize 1820
-        ysize 350
 
     add team_city_image:
         xysize (640, 358)
@@ -677,8 +765,14 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
 
     # Асуулт болон хариултуудыг хоёр талаасаа зайтай, доод төв panel-д
     # байрлуулна. Сонголтыг үзэгч утаснаасаа хийсээр байна.
+    add Solid(ui_theme["panel_border"]):
+        xpos 256
+        ypos 616
+        xsize 1408
+        ysize 428
+
     frame:
-        background Solid("#121B30EE")
+        background Solid(ui_theme["panel"])
         xpos 260
         ypos 620
         xsize 1400
@@ -717,7 +811,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 $ choice_color = choice_colors[choice_index % len(choice_colors)]
 
                 frame:
-                    background Solid("#1A2540F5")
+                    background Solid(ui_theme["row"])
                     xfill True
                     yminimum 56
                     padding (12, 6)
@@ -810,6 +904,7 @@ screen crowd_battle_round(expected_round_id=None):
 screen crowd_round_result(result, final_question=False):
     modal True
 
+    $ ui_theme = cb_battle_location_theme()
     $ correct_count = result.get("correct_count", 0)
     $ wrong_count = result.get("wrong_count", 0)
     $ correct_percentage = result.get("correct_percentage", 0.0)
@@ -835,8 +930,7 @@ screen crowd_round_result(result, final_question=False):
     $ result_display_seconds = CB_ATTACK_RESULT_DISPLAY_SECONDS if player_damage > 0 else CB_RESULT_DISPLAY_SECONDS
     $ result_display_label = int(round(result_display_seconds))
 
-    add Solid("#070B14")
-    add Solid("#101A31") xysize (1920, 270)
+    use crowd_battle_environment(ui_theme)
 
     # Баг damage авбал attack-ийг нэг удаа тоглуулаад idle video-г
     # дараалалд оруулна. Screen хаагдахад movie channel-ийг цэвэрлэнэ.
@@ -862,7 +956,7 @@ screen crowd_round_result(result, final_question=False):
             xsize 700
             ysize 28
             left_bar Solid("#38D99A")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
 
     vbox:
         xpos 1070
@@ -880,15 +974,8 @@ screen crowd_round_result(result, final_question=False):
             xsize 700
             ysize 28
             left_bar Solid("#FF5F78")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
             xalign 1.0
-
-    # Result дээр ч хоёр тал ижил нэг arena дотор үлдэнэ.
-    add Solid("#000000"):
-        xpos 50
-        ypos 270
-        xsize 1820
-        ysize 350
 
     if player_damage > 0:
         add team_city_image:
@@ -1001,9 +1088,15 @@ screen crowd_round_result(result, final_question=False):
             bold True
             outlines [(4, "#03251ADD", 0, 0)]
 
+    add Solid(ui_theme["panel_border"]):
+        xpos 256
+        ypos 646
+        xsize 1408
+        ysize 378
+
     frame:
         at cb_result_pop
-        background Solid("#121B30F7")
+        background Solid(ui_theme["panel"])
         xpos 260
         ypos 650
         xsize 1400
@@ -1445,13 +1538,13 @@ screen crowd_creators_result(question, result):
 screen crowd_battle_break(victory):
     modal True
 
+    $ ui_theme = cb_battle_location_theme()
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
     $ city_attack = cb_city_attack_media()
     $ city_weapon_image = city_attack["weapon"]
     $ city_weapon_label = city_attack["label"]
 
-    add Solid("#070B14")
-    add Solid("#101A31") xysize (1920, 270)
+    use crowd_battle_environment(ui_theme)
 
     on "show" action Function(cb_prepare_battle_break, victory)
     on "hide" action Function(cb_stop_battle_break)
@@ -1473,7 +1566,7 @@ screen crowd_battle_break(victory):
             xsize 700
             ysize 28
             left_bar Solid("#38D99A")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
 
     vbox:
         xpos 1070
@@ -1491,15 +1584,8 @@ screen crowd_battle_break(victory):
             xsize 700
             ysize 28
             left_bar Solid("#FF5F78")
-            right_bar Solid("#24304A")
+            right_bar Solid(ui_theme["bar_track"])
             xalign 1.0
-
-    # Нэг shared arena. Ялагдсан талын break movie зөвхөн өөрийн талд тоглоно.
-    add Solid("#000000"):
-        xpos 50
-        ypos 270
-        xsize 1820
-        ysize 350
 
     add team_city_image:
         xysize (640, 358)
@@ -1547,8 +1633,14 @@ screen crowd_battle_break(victory):
             xcenter 1490
             ycenter 445
 
+    add Solid(ui_theme["panel_border"]):
+        xpos 256
+        ypos 646
+        xsize 1408
+        ysize 188
+
     frame:
-        background Solid("#121B30EE")
+        background Solid(ui_theme["panel"])
         xcenter 960
         ypos 650
         xsize 1400
@@ -1579,7 +1671,8 @@ screen crowd_battle_break(victory):
 
 screen crowd_battle_ending(victory):
     modal True
-    add Solid("#070B14")
+    $ ui_theme = cb_battle_location_theme()
+    use crowd_battle_environment(ui_theme, False)
 
     vbox:
         xalign 0.5
