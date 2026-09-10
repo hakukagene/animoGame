@@ -23,10 +23,23 @@ transform cb_damage_float:
     easeout 1.35 yoffset -125 alpha 0.0 zoom 1.0
 
 
+transform cb_city_damage_float:
+    anchor (0.5, 0.5)
+    alpha 0.0
+    yoffset 35
+    zoom 0.75
+    pause 0.84
+    linear 0.14 alpha 1.0 zoom 1.15
+    pause 0.18
+    easeout 1.35 yoffset -125 alpha 0.0 zoom 1.0
+
+
 transform cb_monster_hit_flash:
     # Damage авсан мөчид мангасыг богино хугацаанд улаан болгоод
-    # үндсэн өнгөнд нь зөөлөн буцаана.
+    # үндсэн өнгөнд нь зөөлөн буцаана. Эхний pause нь city projectile
+    # мангасад хүрэх хугацаатай таарна.
     matrixcolor TintMatrix("#FFFFFF")
+    pause 0.84
     linear 0.08 matrixcolor TintMatrix("#FF3B4F")
     pause 0.18
     linear 0.28 matrixcolor TintMatrix("#FFFFFF")
@@ -37,6 +50,36 @@ transform cb_team_hit_flash:
     linear 0.08 matrixcolor TintMatrix("#FF334F")
     pause 0.18
     linear 0.32 matrixcolor TintMatrix("#FFFFFF")
+
+
+transform cb_city_weapon_idle:
+    anchor (0.5, 0.5)
+    yoffset 0
+    linear 1.15 yoffset -3
+    linear 1.15 yoffset 0
+    repeat
+
+
+transform cb_city_weapon_fire:
+    anchor (0.5, 0.5)
+    matrixcolor BrightnessMatrix(0.0)
+    pause 0.10
+    linear 0.07 xoffset -18 matrixcolor BrightnessMatrix(0.45)
+    linear 0.13 xoffset 5 matrixcolor BrightnessMatrix(0.10)
+    linear 0.16 xoffset 0 matrixcolor BrightnessMatrix(0.0)
+
+
+transform cb_city_projectile_flight:
+    anchor (0.5, 0.5)
+    subpixel True
+    xpos 690
+    ypos 470
+    zoom 0.34
+    alpha 0.0
+    pause 0.14
+    linear 0.04 alpha 1.0
+    easein 0.64 xpos 1410 ypos 440 zoom 0.46
+    linear 0.08 alpha 0.0 zoom 0.62
 
 
 transform cb_void_glitch_strip(wait=0.0):
@@ -136,11 +179,46 @@ init -35 python:
         },
     }
 
+    # Creators-ийн сонгосон дөрвөн world/city тус бүр өөр хамгаалалтын
+    # зэвсэг болон projectile ашиглана.
+    CB_CITY_ATTACK_MEDIA = {
+        "FUTURISTIC": {
+            "weapon": "images/cinematic/city_weapons/futuristic_cannon.webp",
+            "projectile": "images/cinematic/city_weapons/futuristic_plasma.webp",
+            "label": "RAIL CANNON",
+        },
+        "FANTASY": {
+            "weapon": "images/cinematic/city_weapons/fantasy_ballista.webp",
+            "projectile": "images/cinematic/city_weapons/fantasy_magic_spear.webp",
+            "label": "RUNE BALLISTA",
+        },
+        "MODERN": {
+            "weapon": "images/cinematic/city_weapons/modern_launcher.webp",
+            "projectile": "images/cinematic/city_weapons/modern_missile.webp",
+            "label": "MISSILE LAUNCHER",
+        },
+        "POST-APOCALYPTIC": {
+            "weapon": "images/cinematic/city_weapons/post_scrap_cannon.webp",
+            "projectile": "images/cinematic/city_weapons/post_flaming_shell.webp",
+            "label": "SCRAP CANNON",
+        },
+    }
+
     CB_BOSS_MECHANIC_LABELS = {
         "void": "VOID · 3 ДАХЬ АСУУЛТ БҮР ХУГАЦАА -5 СЕК",
         "devourer": "DEVOURER · БУРУУ ХУВИАР HP НӨХНӨ",
         "colossus": "COLOSSUS · 60%+ ЗӨВ ХОЁР COMBO ARMOR ЭВДЭЛНЭ",
     }
+
+
+    def cb_city_attack_media():
+        world_name = str(
+            getattr(store, "cb_world_name", "FUTURISTIC") or "FUTURISTIC"
+        ).upper()
+        return CB_CITY_ATTACK_MEDIA.get(
+            world_name,
+            CB_CITY_ATTACK_MEDIA["FUTURISTIC"],
+        )
 
     # Нэг дэлгэц дээр дөрвөн Movie зэрэг ажиллах тул тус бүр өөр channel-тэй.
     for _cb_movie_channel in (
@@ -379,6 +457,9 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     $ current_round = battle_state.get("current_round") or {}
     $ monster_key = battle_state.get("monster_key", getattr(store, "cb_enemy_key", "void"))
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
+    $ city_attack = cb_city_attack_media()
+    $ city_weapon_image = city_attack["weapon"]
+    $ city_weapon_label = city_attack["label"]
     $ duration_penalty = max(0, int(current_round.get("duration_penalty", 0)))
     $ void_glitch_active = voting_active and current_round.get("mechanic_event") == "void_glitch"
     $ armor_active = bool(battle_state.get("colossus_armor_active", monster_key == "colossus"))
@@ -454,6 +535,21 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             xysize (680, 379)
             xalign 0.5
             yalign 0.5
+
+    # Хотын төрлөөр сонгогдох хамгаалалтын зэвсэг city video дээр байна.
+    add city_weapon_image:
+        at cb_city_weapon_idle
+        xysize (310, 180)
+        xcenter 590
+        ycenter 520
+
+    text city_weapon_label:
+        color "#C7D4F5"
+        size 16
+        bold True
+        xcenter 590
+        ycenter 600
+        outlines [(2, "#07101FDD", 0, 0)]
 
     add cb_enemy_idle_image:
         at cb_monster_idle
@@ -614,6 +710,11 @@ screen crowd_round_result(result, final_question=False):
     $ armor_combo_target = result.get("armor_combo_target", 2)
     $ total_answers = result.get("total_answers", 0)
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
+    $ city_attack = cb_city_attack_media()
+    $ city_weapon_image = city_attack["weapon"]
+    $ city_projectile_image = city_attack["projectile"]
+    $ city_weapon_label = city_attack["label"]
+    $ city_attack_triggered = monster_damage > 0 or monster_damage_blocked > 0
     $ battle_finished = result.get("battle_status", "active") in ("victory", "defeat")
     $ next_part_text = "төгсгөлийн хэсэг" if battle_finished or final_question else "дараагийн асуулт"
     $ result_display_seconds = CB_ATTACK_RESULT_DISPLAY_SECONDS if player_damage > 0 else CB_RESULT_DISPLAY_SECONDS
@@ -628,6 +729,8 @@ screen crowd_round_result(result, final_question=False):
     on "hide" action Function(cb_stop_battle_feedback)
 
     timer result_display_seconds action Return(True)
+    if city_attack_triggered:
+        timer 0.84 action Play("sound", "audio/cinematic_impact.ogg")
 
     vbox:
         xpos 90
@@ -686,6 +789,27 @@ screen crowd_round_result(result, final_question=False):
                 xalign 0.5
                 yalign 0.5
 
+    if city_attack_triggered:
+        add city_weapon_image:
+            at cb_city_weapon_fire
+            xysize (310, 180)
+            xcenter 590
+            ycenter 520
+    else:
+        add city_weapon_image:
+            at cb_city_weapon_idle
+            xysize (310, 180)
+            xcenter 590
+            ycenter 520
+
+    text city_weapon_label:
+        color "#C7D4F5"
+        size 16
+        bold True
+        xcenter 590
+        ycenter 600
+        outlines [(2, "#07101FDD", 0, 0)]
+
     if player_damage > 0:
         text "-[player_damage] HP":
             at cb_damage_float
@@ -695,6 +819,12 @@ screen crowd_round_result(result, final_question=False):
             size 68
             bold True
             outlines [(5, "#2A0008DD", 0, 0)]
+
+    # Зөв хариултын damage эсвэл Colossus armor block үүсвэл хотын
+    # projectile зүүн талаас monster руу нэг удаа ниснэ.
+    if city_attack_triggered:
+        add city_projectile_image:
+            at cb_city_projectile_flight
 
     # Video decode эхлэхээс өмнө болон файл олдохгүй үед idle зураг харагдана.
     # Monster damage авсан бол зураг ба video хоёул ижил red-hit flash авна.
@@ -720,7 +850,7 @@ screen crowd_round_result(result, final_question=False):
 
     if monster_damage > 0:
         text "-[monster_damage] HP":
-            at cb_damage_float
+            at cb_city_damage_float
             xcenter 1510
             ycenter 440
             color "#FF3B5C"
