@@ -290,7 +290,7 @@ screen crowd_creator_summary(rows, participant_count):
                 action Return(True)
 
 
-screen crowd_cinematic_title(title, duration=2.8, warning=False):
+screen crowd_cinematic_title(title, subtitle="", duration=2.8, warning=False):
     modal True
     $ accent = "#FF6E86" if warning else "#8999FF"
     add Solid("#05070D")
@@ -310,6 +310,13 @@ screen crowd_cinematic_title(title, duration=2.8, warning=False):
             text_align 0.5
             xalign 0.5
             outlines [(2, "#000000A0", 0, 0)]
+
+        if subtitle:
+            text subtitle:
+                color "#D7DCEF"
+                size 27
+                text_align 0.5
+                xalign 0.5
 
 
 
@@ -423,7 +430,7 @@ label crowd_world_cinematic:
     
     call screen crowd_cinematic_title(
         "CREATED BY {} CREATORS".format(cb_creator_count),
-        3.2
+        duration=3.2
     )
 
     scene expression cb_world_image at cb_cinematic_world
@@ -542,7 +549,7 @@ label crowd_world_cinematic:
     call screen crowd_cinematic_title(
         "ANIME & ANIMATION QUIZ",
         "ДУНД / ХҮНД",
-        3.2
+        duration=3.2
     )
 
     jump crowd_monster_battle
@@ -614,7 +621,7 @@ label crowd_victory_ending:
     $ cb_voice_line(N, "Та нар өөрсдийн бүтээсэн ертөнцийг хамгаалж чадлаа.", "audio/win4.ogg")
 
     window hide
-    call screen crowd_cinematic_title("YOUR WORLD.", "", 1.5)
-    call screen crowd_cinematic_title("YOUR CHOICES.", "", 1.5)
-    call screen crowd_cinematic_title("YOUR ANIMO.", "", 2.5)
+    call screen crowd_cinematic_title("YOUR WORLD.", duration=1.5)
+    call screen crowd_cinematic_title("YOUR CHOICES.", duration=1.5)
+    call screen crowd_cinematic_title("YOUR ANIMO.", duration=2.5)
     return
