@@ -7,6 +7,7 @@ default cb_creator_count = 0
 default cb_world_name = "FUTURISTIC"
 default cb_world_image = "cb_cinematic_world_futuristic"
 default cb_team_city_image = "cb_team_city_futuristic"
+default cb_citizen_image = "citizen/Human.png"
 
 default cb_enemy_key = "void"
 default cb_enemy_name = "The Void"
@@ -129,13 +130,23 @@ init -20 python:
             3: ("POST-APOCALYPTIC", "cb_cinematic_world_post", "cb_team_city_post"),
         }
 
+        citizens = {
+            0: "citizen/Human.png",
+            1: "citizen/Robots.png",
+            2: "citizen/Magic Creatures.png",
+            3: "citizen/Alien.png",
+            4: "citizen/Anime.png",
+            5: "citizen/elf.png",
+            6: "citizen/Orc.png",
+        }
+
         enemies = {
             0: {
                 "key": "void",
                 "name": "The Void",
                 "title": "THE VOID — ХООСРОЛ",
-                "idle": "video/cinematic/Attack/Void_Idle.webm",
-                "attack": "video/cinematic/Attack/Void_Attack.webm",
+                "idle": "images/cinematic/boss_void.webp",
+                "attack": "images/cinematic/boss_void_attack.webp",
                 "movie": "video/cinematic/reveal/reveal_void.webm",
                 "voice": "audio/mangas6.ogg",
             },
@@ -143,8 +154,8 @@ init -20 python:
                 "key": "devourer",
                 "name": "THE DEVOURER",
                 "title": "THE DEVOURER — ЕРТӨНЦ ЗАЛГИГЧ",
-                "idle": "video/cinematic/Attack/Devourer_Idle.webm",
-                "attack": "video/cinematic/Attack/Devourer_Attack.webm",
+                "idle": "images/cinematic/boss_devourer.webp",
+                "attack": "images/cinematic/boss_devourer_attack.webp",
                 "movie": "video/cinematic/reveal/reveal_devourer.webm",
                 "voice": "audio/mangas7.ogg",
             },
@@ -152,8 +163,8 @@ init -20 python:
                 "key": "colossus",
                 "name": "THE COLOSSUS",
                 "title": "THE COLOSSUS — АВАРГА МАШИН",
-                "idle": "video/cinematic/Attack/Colossus_Idle.webm",
-                "attack": "video/cinematic/Attack/Colossus_Attack.webm",
+                "idle": "images/cinematic/boss_colossus.webp",
+                "attack": "images/cinematic/boss_colossus_attack.webp",
                 "movie": "video/cinematic/reveal/reveal_colossus.webm",
                 # mangas8.ogg is not present in the repository. The line below
                 # therefore uses a timed text fallback instead of wrong audio.
@@ -162,10 +173,15 @@ init -20 python:
         }
 
         world_snapshot = snapshots[1] if len(snapshots) > 1 else None
+        citizen_snapshot = snapshots[3] if len(snapshots) > 3 else None
         enemy_snapshot = snapshots[5] if len(snapshots) > 5 else None
         world_name, world_image, team_city_image = worlds.get(
             cb_creator_winner_index(world_snapshot),
             worlds[0],
+        )
+        citizen_image = citizens.get(
+            cb_creator_winner_index(citizen_snapshot),
+            citizens[0],
         )
         enemy = enemies.get(cb_creator_winner_index(enemy_snapshot), enemies[0])
 
@@ -174,6 +190,7 @@ init -20 python:
         store.cb_world_name = world_name
         store.cb_world_image = world_image
         store.cb_team_city_image = team_city_image
+        store.cb_citizen_image = citizen_image
         store.cb_enemy_key = enemy["key"]
         store.cb_enemy_name = enemy["name"]
         store.cb_enemy_title = enemy["title"]
@@ -184,6 +201,12 @@ init -20 python:
 
 
 transform cb_cinematic_world:
+    xysize (config.screen_width, config.screen_height)
+    xalign 0.5
+    yalign 0.5
+
+
+transform cb_cinematic_citizens:
     xysize (config.screen_width, config.screen_height)
     xalign 0.5
     yalign 0.5
@@ -434,6 +457,7 @@ label crowd_world_cinematic:
     )
 
     scene expression cb_world_image at cb_cinematic_world
+    show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     with fade
 
     $ cb_voice_line(N, "Эцэст нь шинэ ертөнц мэндэллээ.", "audio/hutlugch26.ogg")
@@ -489,6 +513,7 @@ label crowd_world_cinematic:
     stop sound fadeout 1.0
 
     scene expression cb_world_image at cb_cinematic_world
+    show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
     with dissolve
 
@@ -560,6 +585,7 @@ label crowd_defeat_ending:
     window hide
 
     scene expression cb_world_image at cb_cinematic_world
+    show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
     play sound "audio/cinematic_impact.ogg"
     with hpunch
@@ -595,6 +621,7 @@ label crowd_victory_ending:
     window hide
 
     scene expression cb_world_image at cb_cinematic_world
+    show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
     with dissolve
 
