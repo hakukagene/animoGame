@@ -4,7 +4,7 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
-    jump crowd_monster_battle
+    jump crowd_creators_questions
 
 
 label crowd_creators_questions:
@@ -84,10 +84,11 @@ label crowd_monster_battle:
         show screen crowd_battle_voice_preview(question)
         $ voice_played = cb_play_ogg_and_wait(question.get("voice"))
         if not voice_played:
-            $ renpy.pause(2.5, hard=True, modal=False)
+            $ renpy.pause(1.5, hard=True, modal=False)
         hide screen crowd_battle_voice_preview
         $ renpy.block_rollback()
-
+        
+        
         $ response = cb_start_round(question)
         $ renpy.block_rollback()
 
@@ -97,6 +98,7 @@ label crowd_monster_battle:
             $ renpy.block_rollback()
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
+        
         call screen crowd_battle_round(battle_round_id)
         $ result = _return or cb_round_result
 
