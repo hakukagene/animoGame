@@ -622,15 +622,10 @@ label crowd_victory_ending:
 
     scene expression cb_world_image at cb_cinematic_world
     show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
-    show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
     with dissolve
 
-    play sound "audio/cinematic_impact.ogg"
-    with hpunch
-    with fade
-    show expression cb_enemy_idle_image as crowd_enemy at cb_boss_death
-    $ renpy.pause(2.9, hard=True)
-    hide crowd_enemy
+    # Мангасын die WebM battle break screen дээр аль хэдийн нэг удаа
+    # тоглосон. Энд дахин үхүүлэхгүйгээр аврагдсан ертөнцөө үргэлжлүүлнэ.
 
     call screen crowd_system_panel(
         "SYSTEM",

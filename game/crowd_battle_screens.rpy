@@ -100,6 +100,8 @@ transform cb_void_glitch_strip(wait=0.0):
 
 define CB_RESULT_DISPLAY_SECONDS = 4
 define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
+define CB_BREAK_START_DELAY = 0.30
+define CB_BREAK_SCREEN_SECONDS = 5.80
 
 
 init -35 python:
@@ -204,6 +206,22 @@ init -35 python:
         },
     }
 
+    # Battle дуусахад ялагдсан талд тоглох нэг удаагийн break animation.
+    CB_MONSTER_BREAK_MOVIES = {
+        "void": "video/cinematic/break/Void_Die.webm",
+        "devourer": "video/cinematic/break/Devourer_die.webm",
+        "colossus": "video/cinematic/break/Colosus_Die.webm",
+    }
+
+    CB_CITY_BREAK_MOVIES = {
+        "FUTURISTIC": "video/cinematic/break/Futurist.webm",
+        "FANTASY": "video/cinematic/break/Fantasy.webm",
+        "MODERN": "video/cinematic/break/modern.webm",
+        "POST-APOCALYPTIC": "video/cinematic/break/Post.webm",
+    }
+
+    CB_BREAK_FALLBACK_MOVIE = "video/cinematic/break/Explosion pixel.webm"
+
     CB_BOSS_MECHANIC_LABELS = {
         "void": "VOID · 3 ДАХЬ АСУУЛТ БҮР ХУГАЦАА -5 СЕК",
         "devourer": "DEVOURER · БУРУУ ХУВИАР HP НӨХНӨ",
@@ -260,6 +278,17 @@ init -35 python:
     if not renpy.music.channel_defined("cb_monster_movie"):
         renpy.music.register_channel(
             "cb_monster_movie",
+            mixer="sfx",
+            loop=False,
+            stop_on_mute=False,
+            buffer_queue=False,
+            movie=True,
+            framedrop=True,
+        )
+
+    if not renpy.music.channel_defined("cb_break_movie"):
+        renpy.music.register_channel(
+            "cb_break_movie",
             mixer="sfx",
             loop=False,
             stop_on_mute=False,
@@ -331,6 +360,62 @@ init -35 python:
 
 
     def cb_stop_battle_feedback():
+        renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
+        return None
+
+
+    def cb_battle_break_movie(victory):
+        """Return the selected losing side's break movie."""
+
+        if victory:
+            enemy_key = str(
+                getattr(store, "cb_enemy_key", "void") or "void"
+            ).lower()
+            return CB_MONSTER_BREAK_MOVIES.get(
+                enemy_key,
+                CB_MONSTER_BREAK_MOVIES["void"],
+            )
+
+        world_name = str(
+            getattr(store, "cb_world_name", "FUTURISTIC") or "FUTURISTIC"
+        ).upper()
+        return CB_CITY_BREAK_MOVIES.get(
+            world_name,
+            CB_CITY_BREAK_MOVIES["FUTURISTIC"],
+        )
+
+
+    def cb_prepare_battle_break(victory):
+        """Clear old feedback before the final break animation."""
+
+        renpy.music.stop(channel="cb_break_movie", fadeout=0.0)
+        renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
+
+        # Хот ялагдсан үед амьд үлдсэн boss idle хэвээр байна.
+        if not victory:
+            cb_start_battle_idle()
+        return None
+
+
+    def cb_play_battle_break(victory):
+        """Play the losing monster/city animation exactly once."""
+
+        break_movie = cb_battle_break_movie(victory)
+        if not renpy.loadable(break_movie):
+            break_movie = CB_BREAK_FALLBACK_MOVIE
+
+        if renpy.loadable(break_movie):
+            renpy.music.play(
+                break_movie,
+                channel="cb_break_movie",
+                loop=False,
+                fadeout=0.0,
+            )
+        return None
+
+
+    def cb_stop_battle_break():
+        renpy.music.stop(channel="cb_break_movie", fadeout=0.0)
         renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
         return None
 
@@ -522,19 +607,18 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 xalign 1.0
                 text_align 1.0
 
-    # Creators-ийн сонгосон ертөнцийн city video нь үзэгчдийн багийн дүр.
-    frame:
-        background Solid("#17223AE8")
-        xcenter 410
-        ycenter 440
-        xsize 696
-        ysize 395
-        padding (8, 8)
+    # Хот, projectile-ийн зам, мангас гурав нэг тасралтгүй arena-д байна.
+    # Тусдаа frame/border ашиглахгүй тул хоёр тал нэг тулааны талбар мэт харагдана.
+    add Solid("#000000"):
+        xpos 50
+        ypos 270
+        xsize 1820
+        ysize 350
 
-        add team_city_image:
-            xysize (680, 379)
-            xalign 0.5
-            yalign 0.5
+    add team_city_image:
+        xysize (640, 358)
+        xcenter 430
+        ycenter 445
 
     # Хотын төрлөөр сонгогдох хамгаалалтын зэвсэг city video дээр байна.
     add city_weapon_image:
@@ -553,12 +637,13 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
 
     add cb_enemy_idle_image:
         at cb_monster_idle
-        xcenter 1510
-        ycenter 440
+        xysize (640, 358)
+        xcenter 1490
+        ycenter 445
 
-    add Movie(channel="cb_monster_movie", size=(820, 458)):
-        xcenter 1510
-        ycenter 440
+    add Movie(channel="cb_monster_movie", size=(640, 358)):
+        xcenter 1490
+        ycenter 445
 
     # Асуулт болон хариултуудыг хоёр талаасаа зайтай, доод төв panel-д
     # байрлуулна. Сонголтыг үзэгч утаснаасаа хийсээр байна.
@@ -768,26 +853,24 @@ screen crowd_round_result(result, final_question=False):
             right_bar Solid("#24304A")
             xalign 1.0
 
-    # Зүүн талд үзэгчдийн багийн сонгосон city video байна.
-    frame:
-        background Solid("#17223AE8")
-        xcenter 410
-        ycenter 440
-        xsize 696
-        ysize 395
-        padding (8, 8)
+    # Result дээр ч хоёр тал ижил нэг arena дотор үлдэнэ.
+    add Solid("#000000"):
+        xpos 50
+        ypos 270
+        xsize 1820
+        ysize 350
 
-        if player_damage > 0:
-            add team_city_image:
-                at cb_team_hit_flash
-                xysize (680, 379)
-                xalign 0.5
-                yalign 0.5
-        else:
-            add team_city_image:
-                xysize (680, 379)
-                xalign 0.5
-                yalign 0.5
+    if player_damage > 0:
+        add team_city_image:
+            at cb_team_hit_flash
+            xysize (640, 358)
+            xcenter 430
+            ycenter 445
+    else:
+        add team_city_image:
+            xysize (640, 358)
+            xcenter 430
+            ycenter 445
 
     if city_attack_triggered:
         add city_weapon_image:
@@ -813,8 +896,8 @@ screen crowd_round_result(result, final_question=False):
     if player_damage > 0:
         text "-[player_damage] HP":
             at cb_damage_float
-            xcenter 410
-            ycenter 440
+            xcenter 430
+            ycenter 445
             color "#FF334F"
             size 68
             bold True
@@ -831,28 +914,30 @@ screen crowd_round_result(result, final_question=False):
     if monster_damage > 0:
         add cb_enemy_idle_image:
             at cb_monster_idle, cb_monster_hit_flash
-            xcenter 1510
-            ycenter 440
+            xysize (640, 358)
+            xcenter 1490
+            ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(820, 458)):
+        add Movie(channel="cb_monster_movie", size=(640, 358)):
             at cb_monster_hit_flash
-            xcenter 1510
-            ycenter 440
+            xcenter 1490
+            ycenter 445
     else:
         add cb_enemy_idle_image:
             at cb_monster_idle
-            xcenter 1510
-            ycenter 440
+            xysize (640, 358)
+            xcenter 1490
+            ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(820, 458)):
-            xcenter 1510
-            ycenter 440
+        add Movie(channel="cb_monster_movie", size=(640, 358)):
+            xcenter 1490
+            ycenter 445
 
     if monster_damage > 0:
         text "-[monster_damage] HP":
             at cb_city_damage_float
-            xcenter 1510
-            ycenter 440
+            xcenter 1490
+            ycenter 445
             color "#FF3B5C"
             size 68
             bold True
@@ -861,7 +946,7 @@ screen crowd_round_result(result, final_question=False):
     if monster_heal > 0:
         text "+[monster_heal] HP":
             at cb_damage_float
-            xcenter 1625
+            xcenter 1585
             ycenter 520
             color "#66F2B4"
             size 56
@@ -870,7 +955,7 @@ screen crowd_round_result(result, final_question=False):
     elif mechanic_event == "colossus_armor_block":
         text "ARMOR BLOCK":
             at cb_result_pop
-            xcenter 1510
+            xcenter 1490
             ycenter 500
             color "#FFD36D"
             size 43
@@ -879,7 +964,7 @@ screen crowd_round_result(result, final_question=False):
     elif mechanic_event == "colossus_armor_break":
         text "ARMOR BREAK!":
             at cb_result_pop
-            xcenter 1510
+            xcenter 1490
             ycenter 520
             color "#59E6A8"
             size 45
@@ -1253,6 +1338,141 @@ screen crowd_creators_result(question, result):
                 size 23
                 xalign 0.5
                 text_align 0.5
+
+
+screen crowd_battle_break(victory):
+    modal True
+
+    $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
+    $ city_attack = cb_city_attack_media()
+    $ city_weapon_image = city_attack["weapon"]
+    $ city_weapon_label = city_attack["label"]
+
+    add Solid("#070B14")
+    add Solid("#101A31") xysize (1920, 270)
+
+    on "show" action Function(cb_prepare_battle_break, victory)
+    on "hide" action Function(cb_stop_battle_break)
+    timer CB_BREAK_START_DELAY action Function(cb_play_battle_break, victory)
+    timer CB_BREAK_SCREEN_SECONDS action Return(True)
+
+    vbox:
+        xpos 90
+        ypos 45
+        xsize 760
+        spacing 10
+        text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
+        text "[cb_player_hp] / [cb_player_max_hp] HP":
+            color "#7FF0BB"
+            size 29
+            bold True
+        bar:
+            value StaticValue(cb_player_hp, cb_player_max_hp)
+            xsize 700
+            ysize 28
+            left_bar Solid("#38D99A")
+            right_bar Solid("#24304A")
+
+    vbox:
+        xpos 1070
+        ypos 45
+        xsize 760
+        spacing 10
+        text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
+        text "[cb_monster_hp] / [cb_monster_max_hp] HP":
+            color "#FF8296"
+            size 29
+            bold True
+            xalign 1.0
+        bar:
+            value StaticValue(cb_monster_hp, cb_monster_max_hp)
+            xsize 700
+            ysize 28
+            left_bar Solid("#FF5F78")
+            right_bar Solid("#24304A")
+            xalign 1.0
+
+    # Нэг shared arena. Ялагдсан талын break movie зөвхөн өөрийн талд тоглоно.
+    add Solid("#000000"):
+        xpos 50
+        ypos 270
+        xsize 1820
+        ysize 350
+
+    add team_city_image:
+        xysize (640, 358)
+        xcenter 430
+        ycenter 445
+
+    if victory:
+        # Хот ялсан тул зэвсэг нь үлдэж, мангас өөрийн die video-г тоглуулна.
+        add city_weapon_image:
+            at cb_city_weapon_idle
+            xysize (310, 180)
+            xcenter 590
+            ycenter 520
+
+        text city_weapon_label:
+            color "#C7D4F5"
+            size 16
+            bold True
+            xcenter 590
+            ycenter 600
+            outlines [(2, "#07101FDD", 0, 0)]
+
+        add cb_enemy_idle_image:
+            xysize (640, 358)
+            xcenter 1490
+            ycenter 445
+
+        add Movie(channel="cb_break_movie", size=(640, 360)):
+            xcenter 1490
+            ycenter 445
+    else:
+        # Хот ялагдсан үед weapon-ийг огт зурахгүй. 0.30 секундын дараа
+        # city break video эхлэх тул зэвсэг сүйрлээс түрүүлж алга болно.
+        add Movie(channel="cb_break_movie", size=(640, 360)):
+            xcenter 430
+            ycenter 445
+
+        add cb_enemy_idle_image:
+            at cb_monster_idle
+            xysize (640, 358)
+            xcenter 1490
+            ycenter 445
+
+        add Movie(channel="cb_monster_movie", size=(640, 358)):
+            xcenter 1490
+            ycenter 445
+
+    frame:
+        background Solid("#121B30EE")
+        xcenter 960
+        ypos 650
+        xsize 1400
+        ysize 180
+        padding (30, 24)
+
+        vbox:
+            xfill True
+            spacing 10
+
+            if victory:
+                text "FINAL STRIKE · МАНГАС ЯЛАГДЛАА":
+                    color "#59E6A8"
+                    size 38
+                    bold True
+                    xalign 0.5
+            else:
+                text "WORLD FALLEN · ХОТ ЯЛАГДЛАА":
+                    color "#FF8296"
+                    size 38
+                    bold True
+                    xalign 0.5
+
+            text "[cb_battle_end_reason]":
+                style "cb_small_text"
+                xalign 0.5
 
 
 screen crowd_battle_ending(victory):
