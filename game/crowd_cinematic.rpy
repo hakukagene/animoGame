@@ -456,6 +456,9 @@ label crowd_world_cinematic:
         duration=3.2
     )
 
+    # Intro-оос үргэлжилсэн mystery BGM энэ title дуусахад зогсоно.
+    $ cb_stop_story_bgm()
+
     scene expression cb_world_image at cb_cinematic_world
     show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     with fade
