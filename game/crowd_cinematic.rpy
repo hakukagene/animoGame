@@ -5,7 +5,7 @@ default cb_creator_summary_rows = []
 default cb_creator_count = 0
 
 default cb_world_name = "FUTURISTIC"
-default cb_world_image = "images/cinematic/world_futuristic.webp"
+default cb_world_image = "cb_cinematic_world_futuristic"
 default cb_team_city_image = "cb_team_city_futuristic"
 
 default cb_enemy_key = "void"
@@ -16,6 +16,38 @@ default cb_enemy_attack_image = "images/cinematic/boss_void_attack.webp"
 default cb_enemy_reveal_movie = "video/cinematic/reveal/reveal_void.webm"
 default cb_enemy_name_voice = "audio/mangas6.ogg"
 default cb_battle_end_reason = ""
+
+
+# Cinematic background-ууд WebM болсон тул raw file path-ийг `scene`
+# рүү өгөхийн оронд Ren'Py Movie displayable болгон тодорхойлно.
+image cb_cinematic_world_futuristic = Movie(
+    play="video/cinematic/BG/BG_Futuristic.webm",
+    channel="cb_world_futuristic",
+    loop=True,
+    size=(config.screen_width, config.screen_height),
+    image="images/cinematic/world_futuristic.webp",
+)
+image cb_cinematic_world_fantasy = Movie(
+    play="video/cinematic/BG/BG_Fantasy.webm",
+    channel="cb_world_fantasy",
+    loop=True,
+    size=(config.screen_width, config.screen_height),
+    image="images/cinematic/world_fantasy.webp",
+)
+image cb_cinematic_world_modern = Movie(
+    play="video/cinematic/BG/BG_Modern.webm",
+    channel="cb_world_modern",
+    loop=True,
+    size=(config.screen_width, config.screen_height),
+    image="images/cinematic/world_modern.webp",
+)
+image cb_cinematic_world_post = Movie(
+    play="video/cinematic/BG/BG_Post.webm",
+    channel="cb_world_post",
+    loop=True,
+    size=(config.screen_width, config.screen_height),
+    image="images/cinematic/world_post.webp",
+)
 
 
 init -20 python:
@@ -91,10 +123,10 @@ init -20 python:
             participant_count = max(participant_count, total)
 
         worlds = {
-            0: ("FUTURISTIC", "video/cinematic/BG/BG_futuristic.webm", "cb_team_city_futuristic"),
-            1: ("FANTASY", "video/cinematic/BG/BG_fantasy.webm", "cb_team_city_fantasy"),
-            2: ("MODERN", "video/cinematic/BG/BG_modern.webm", "cb_team_city_modern"),
-            3: ("POST-APOCALYPTIC", "video/cinematic/BG/BG_post.webm", "cb_team_city_post"),
+            0: ("FUTURISTIC", "cb_cinematic_world_futuristic", "cb_team_city_futuristic"),
+            1: ("FANTASY", "cb_cinematic_world_fantasy", "cb_team_city_fantasy"),
+            2: ("MODERN", "cb_cinematic_world_modern", "cb_team_city_modern"),
+            3: ("POST-APOCALYPTIC", "cb_cinematic_world_post", "cb_team_city_post"),
         }
 
         enemies = {
@@ -155,10 +187,6 @@ transform cb_cinematic_world:
     xysize (config.screen_width, config.screen_height)
     xalign 0.5
     yalign 0.5
-    # Background эхний frame-ээс дэлгэцийг бүтэн дүүргэнэ.
-    # Cinematic-ийн удаан zoom үргэлжлэхдээ хоосон ирмэг гаргахгүй.
-    zoom 1.0
-    linear 14.0 zoom 1.08
 
 
 transform cb_cinematic_boss:
