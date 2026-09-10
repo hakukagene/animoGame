@@ -115,51 +115,71 @@ init -35 python:
     CB_BATTLE_LOCATION_THEMES = {
         "earth": {
             "overlay": "images/cinematic/battle_ui/earth.webp",
-            "base": "#06130F",
-            "hud": "#0B2525",
+            "base": "#02050A",
             "arena": "#000000",
             "panel": "#0C2422F5",
             "panel_border": "#2ABF9E",
+            "accent_alt": "#8BE56B",
+            "frame_shadow": "#03110FE8",
+            "frame_line": 4,
+            "frame_corner": 18,
+            "motif": "earth",
             "row": "#123531F5",
             "bar_track": "#1D3A36",
         },
         "another_planet": {
             "overlay": "images/cinematic/battle_ui/another_planet.webp",
             "base": "#100812",
-            "hud": "#251026",
             "arena": "#000000",
             "panel": "#241025F5",
             "panel_border": "#FF4E9C",
+            "accent_alt": "#FF8A3D",
+            "frame_shadow": "#170713E8",
+            "frame_line": 4,
+            "frame_corner": 24,
+            "motif": "planet",
             "row": "#351532F5",
             "bar_track": "#40233A",
         },
         "floating_world": {
             "overlay": "images/cinematic/battle_ui/floating_world.webp",
             "base": "#0A1620",
-            "hud": "#132738",
             "arena": "#000000",
             "panel": "#152B3CF5",
             "panel_border": "#72DAFF",
+            "accent_alt": "#F5C85A",
+            "frame_shadow": "#07131DE8",
+            "frame_line": 3,
+            "frame_corner": 14,
+            "motif": "floating",
             "row": "#1C3850F5",
             "bar_track": "#2A4052",
         },
         "underground": {
             "overlay": "images/cinematic/battle_ui/underground.webp",
             "base": "#0B0A0C",
-            "hud": "#201710",
             "arena": "#000000",
             "panel": "#23180FF5",
             "panel_border": "#F0A02C",
+            "accent_alt": "#697180",
+            "frame_shadow": "#0D0906E8",
+            "frame_line": 6,
+            "frame_corner": 30,
+            "motif": "underground",
             "row": "#342318F5",
             "bar_track": "#413126",
         },
         "another_dimension": {
             "overlay": "images/cinematic/battle_ui/another_dimension.webp",
             "base": "#090717",
-            "hud": "#1B1034",
             "arena": "#000000",
             "panel": "#1A1033F5",
             "panel_border": "#8D62FF",
+            "accent_alt": "#35E1FF",
+            "frame_shadow": "#100826E8",
+            "frame_line": 4,
+            "frame_corner": 20,
+            "motif": "dimension",
             "row": "#27194AF5",
             "bar_track": "#32265A",
         },
@@ -605,11 +625,135 @@ style cb_button_text is button_text:
     text_align 0.5
 
 
+screen crowd_battle_pixel_frame(ui_theme, frame_width, frame_height, fill_color):
+    $ frame_line = int(ui_theme["frame_line"])
+    $ frame_corner = int(ui_theme["frame_corner"])
+    $ frame_inner = frame_line * 2
+    $ frame_accent = ui_theme["panel_border"]
+    $ frame_accent_alt = ui_theme["accent_alt"]
+    $ frame_shadow = ui_theme["frame_shadow"]
+    $ frame_motif = ui_theme["motif"]
+
+    fixed:
+        xysize (frame_width, frame_height)
+
+        # Stepped, hard-edged pixel frame. Fill нь theme бүрийн panel/row color.
+        add Solid(frame_shadow):
+            xpos frame_line
+            ypos frame_line
+            xsize frame_width - frame_line
+            ysize frame_height - frame_line
+
+        add Solid(fill_color):
+            xpos frame_inner
+            ypos frame_inner
+            xsize frame_width - (frame_inner * 2)
+            ysize frame_height - (frame_inner * 2)
+
+        add Solid(frame_accent):
+            xpos frame_corner
+            ypos 0
+            xsize frame_width - (frame_corner * 2)
+            ysize frame_line
+        add Solid(frame_accent):
+            xpos frame_corner
+            ypos frame_height - frame_line
+            xsize frame_width - (frame_corner * 2)
+            ysize frame_line
+        add Solid(frame_accent):
+            xpos 0
+            ypos frame_corner
+            xsize frame_line
+            ysize frame_height - (frame_corner * 2)
+        add Solid(frame_accent):
+            xpos frame_width - frame_line
+            ypos frame_corner
+            xsize frame_line
+            ysize frame_height - (frame_corner * 2)
+
+        # Corner steps нь шулуун rectangle-ийг pixel-art container болгоно.
+        add Solid(frame_accent_alt):
+            xpos frame_line
+            ypos frame_line
+            xsize frame_corner - frame_line
+            ysize frame_line
+        add Solid(frame_accent_alt):
+            xpos frame_width - frame_corner
+            ypos frame_line
+            xsize frame_corner - frame_line
+            ysize frame_line
+        add Solid(frame_accent_alt):
+            xpos frame_line
+            ypos frame_height - frame_inner
+            xsize frame_corner - frame_line
+            ysize frame_line
+        add Solid(frame_accent_alt):
+            xpos frame_width - frame_corner
+            ypos frame_height - frame_inner
+            xsize frame_corner - frame_line
+            ysize frame_line
+
+        if frame_motif == "earth":
+            add Solid(frame_accent_alt):
+                xpos frame_corner + 12
+                ypos frame_line
+                xsize 8
+                ysize 8
+            add Solid(frame_accent_alt):
+                xpos frame_width - frame_corner - 20
+                ypos frame_height - frame_line - 8
+                xsize 8
+                ysize 8
+        elif frame_motif == "planet":
+            add Solid(frame_accent_alt):
+                xpos frame_corner + 8
+                ypos frame_line
+                xsize 42
+                ysize frame_line
+            add Solid(frame_accent_alt):
+                xpos frame_width - frame_corner - 50
+                ypos frame_height - frame_inner
+                xsize 42
+                ysize frame_line
+        elif frame_motif == "floating":
+            add Solid(frame_accent_alt):
+                xpos int(frame_width * 0.40)
+                ypos frame_line
+                xsize int(frame_width * 0.20)
+                ysize frame_line
+            add Solid(frame_accent_alt):
+                xpos int(frame_width * 0.46)
+                ypos frame_height - frame_inner
+                xsize int(frame_width * 0.08)
+                ysize frame_line
+        elif frame_motif == "underground":
+            add Solid(frame_accent_alt):
+                xpos frame_line
+                ypos frame_corner
+                xsize frame_line * 2
+                ysize 24
+            add Solid(frame_accent_alt):
+                xpos frame_width - (frame_line * 3)
+                ypos frame_height - frame_corner - 24
+                xsize frame_line * 2
+                ysize 24
+        elif frame_motif == "dimension":
+            add Solid(frame_accent_alt):
+                xpos int(frame_width * 0.22)
+                ypos frame_line
+                xsize 28
+                ysize frame_line
+            add Solid(frame_accent_alt):
+                xpos int(frame_width * 0.68)
+                ypos frame_height - frame_inner
+                xsize 46
+                ysize frame_line
+
+
 screen crowd_battle_environment(ui_theme, with_arena=True):
     $ battle_ui_overlay = ui_theme["overlay"]
 
     add Solid(ui_theme["base"])
-    add Solid(ui_theme["hud"]) xysize (1920, 270)
 
     # Full-screen generated overlay нь зөвхөн interface-ийн зах, булан,
     # divider-үүдийг зурна. Хот, зэвсэг, monster, текстийг агуулахгүй.
@@ -617,6 +761,20 @@ screen crowd_battle_environment(ui_theme, with_arena=True):
         at cb_battle_ui_overlay
 
     if with_arena:
+        # Нэг бүтэн өнгийн HUD box-ийн оронд HP тал бүр өөрийн жижиг
+        # theme-тэй pixel container дээр байрлана.
+        fixed:
+            xpos 60
+            ypos 24
+            xysize (820, 190)
+            use crowd_battle_pixel_frame(ui_theme, 820, 190, ui_theme["frame_shadow"])
+
+        fixed:
+            xpos 1040
+            ypos 24
+            xysize (820, 190)
+            use crowd_battle_pixel_frame(ui_theme, 820, 190, ui_theme["frame_shadow"])
+
         add Solid(ui_theme["arena"]):
             xpos 50
             ypos 270
@@ -763,91 +921,83 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         xcenter 1490
         ycenter 445
 
-    # Асуулт болон хариултуудыг хоёр талаасаа зайтай, доод төв panel-д
-    # байрлуулна. Сонголтыг үзэгч утаснаасаа хийсээр байна.
-    add Solid(ui_theme["panel_border"]):
-        xpos 256
-        ypos 616
-        xsize 1408
-        ysize 428
+    # Reference layout: timer нь arena-гийн доод төвд, асуулт бүтэн мөрөөр,
+    # дөрвөн хариулт 2 x 2 grid-д тусдаа pixel container дээр байрлана.
+    if voting_active:
+        fixed:
+            xpos 790
+            ypos 586
+            xysize (340, 68)
 
-    frame:
-        background Solid(ui_theme["panel"])
-        xpos 260
-        ypos 620
-        xsize 1400
-        ysize 420
-        padding (26, 20)
+            use crowd_battle_pixel_frame(ui_theme, 340, 68, ui_theme["panel"])
 
-        vbox:
-            xfill True
-            spacing 8
+            text "[cb_remaining_seconds] секунд":
+                color "#FF899D"
+                size 25
+                bold True
+                xalign 0.5
+                yalign 0.5
+                text_align 0.5
 
-            fixed:
-                xfill True
-                ysize 76
+    fixed:
+        xpos 170
+        ypos 650
+        xysize (1580, 96)
 
-                if shown_question:
-                    text shown_question:
-                        color "#FFFFFF"
-                        size 29
-                        bold True
-                        xalign 0.5
-                        yalign 0.5
-                        xmaximum 1080
-                        text_align 0.5
+        use crowd_battle_pixel_frame(ui_theme, 1580, 96, ui_theme["panel"])
 
-                if voting_active:
-                    text "[cb_remaining_seconds] секунд":
-                        color "#FF899D"
-                        size 25
-                        bold True
-                        xalign 1.0
-                        yalign 0.5
-                        text_align 1.0
+        if shown_question:
+            text shown_question:
+                color "#FFFFFF"
+                size 29
+                bold True
+                xalign 0.5
+                yalign 0.5
+                xmaximum 1080
+                text_align 0.5
 
-            for choice_index, choice in enumerate(battle_choices):
-                $ choice_letter = choice_letters[choice_index]
-                $ choice_color = choice_colors[choice_index % len(choice_colors)]
+    for choice_index, choice in enumerate(battle_choices):
+        $ choice_letter = choice_letters[choice_index]
+        $ choice_color = choice_colors[choice_index % len(choice_colors)]
+        $ choice_x = 170 + ((choice_index % 2) * 802)
+        $ choice_y = 766 + ((choice_index // 2) * 100)
 
-                frame:
-                    background Solid(ui_theme["row"])
-                    xfill True
-                    yminimum 56
-                    padding (12, 6)
+        fixed:
+            xpos choice_x
+            ypos choice_y
+            xysize (778, 82)
 
-                    fixed:
-                        xfill True
-                        ysize 44
+            use crowd_battle_pixel_frame(ui_theme, 778, 82, ui_theme["row"])
 
-                        frame:
-                            background Solid(choice_color)
-                            xysize (43, 43)
-                            xpos 0
-                            yalign 0.5
-                            padding (0, 0)
+            frame:
+                background Solid(choice_color)
+                xysize (43, 43)
+                xpos 22
+                yalign 0.5
+                padding (0, 0)
 
-                            text choice_letter:
-                                color "#FFFFFF"
-                                size 23
-                                bold True
-                                xalign 0.5
-                                yalign 0.5
-
-                        text choice:
-                            color "#F6F7FF"
-                            size 22
-                            bold True
-                            xalign 0.5
-                            yalign 0.5
-                            xmaximum 1120
-                            text_align 0.5
-
-            if voting_active and cb_connection_message:
-                text cb_connection_message:
-                    color "#FF899D"
-                    size 18
+                text choice_letter:
+                    color "#FFFFFF"
+                    size 23
+                    bold True
                     xalign 0.5
+                    yalign 0.5
+
+            text choice:
+                color "#F6F7FF"
+                size 22
+                bold True
+                xpos 92
+                yalign 0.5
+                xmaximum 650
+                text_align 0.0
+
+    if voting_active and cb_connection_message:
+        text cb_connection_message:
+            color "#FF899D"
+            size 18
+            xcenter 960
+            ypos 970
 
     # Void-ийн тусгай round дээр deterministic glitch strip-үүд харагдана.
     if void_glitch_active:
@@ -1088,15 +1238,16 @@ screen crowd_round_result(result, final_question=False):
             bold True
             outlines [(4, "#03251ADD", 0, 0)]
 
-    add Solid(ui_theme["panel_border"]):
+    fixed:
+        at cb_result_pop
         xpos 256
         ypos 646
-        xsize 1408
-        ysize 378
+        xysize (1408, 378)
+        use crowd_battle_pixel_frame(ui_theme, 1408, 378, ui_theme["panel"])
 
     frame:
         at cb_result_pop
-        background Solid(ui_theme["panel"])
+        background Solid("#00000000")
         xpos 260
         ypos 650
         xsize 1400
@@ -1633,14 +1784,14 @@ screen crowd_battle_break(victory):
             xcenter 1490
             ycenter 445
 
-    add Solid(ui_theme["panel_border"]):
+    fixed:
         xpos 256
         ypos 646
-        xsize 1408
-        ysize 188
+        xysize (1408, 188)
+        use crowd_battle_pixel_frame(ui_theme, 1408, 188, ui_theme["panel"])
 
     frame:
-        background Solid(ui_theme["panel"])
+        background Solid("#00000000")
         xcenter 960
         ypos 650
         xsize 1400
