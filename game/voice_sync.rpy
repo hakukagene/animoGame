@@ -16,19 +16,23 @@ default cb_current_speaker = None
 
 
 transform cb_speaker_nova:
-    xalign 0.5
-    yalign 0.5
-    zoom 0.68
+    anchor (0.5, 1.0)
+    xpos 335
+    ypos 875
+    zoom 0.50
     alpha 0.0
-    linear 0.20 alpha 1.0
+    xoffset -45
+    easeout 0.30 alpha 1.0 xoffset 0
 
 
 transform cb_speaker_monster:
-    xalign 0.82
-    yalign 0.5
-    zoom 0.88
+    anchor (0.5, 1.0)
+    xpos 390
+    ypos 850
+    zoom 1.18
     alpha 0.0
-    linear 0.20 alpha 1.0
+    xoffset -45
+    easeout 0.30 alpha 1.0 xoffset 0
 
 
 init -90 python:
@@ -111,8 +115,9 @@ init -90 python:
 
             if monster_showing:
                 renpy.hide("crowd_enemy")
-            if not nova_showing:
-                renpy.show("nova", at_list=[store.cb_speaker_nova])
+            # Re-apply the dialogue transform even if Nova was previously
+            # shown by a cinematic transform.
+            renpy.show("nova", at_list=[store.cb_speaker_nova])
 
             store.cb_current_speaker = "nova"
             return True
@@ -124,11 +129,12 @@ init -90 python:
 
             if nova_showing:
                 renpy.hide("nova")
-            if not monster_showing:
-                renpy.show(
-                    "crowd_enemy dialogue",
-                    at_list=[store.cb_speaker_monster],
-                )
+            # A reveal/attack can leave the same tag on the master layer with
+            # a centered transform. Replace it with the VN dialogue portrait.
+            renpy.show(
+                "crowd_enemy dialogue",
+                at_list=[store.cb_speaker_monster],
+            )
 
             store.cb_current_speaker = "monster"
             return True
