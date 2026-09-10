@@ -4,10 +4,13 @@ define guide = Character("Систем", color="#8999FF")
 label start:
     $ quick_menu = False
     $ cb_connection_message = ""
+    $ cb_start_story_bgm()
     jump crowd_creators_questions
 
 
 label crowd_creators_questions:
+    # Label-ийг developer menu-гээс шууд тестэлсэн ч үндсэн ая ажиллана.
+    $ cb_start_story_bgm()
     $ response = cb_start_battle()
     $ renpy.block_rollback()
 
@@ -40,6 +43,10 @@ label crowd_creators_questions:
         # Одоо эхэлсэн асуултын ID.
         $ creator_round_id = (cb_battle.get("current_round") or {}).get("round_id")
 
+        # Яг санал авах хугацаанд хүлээлгийн ая тоглоно.
+        # Screen дуусахад mystery ая pause хийсэн цэгээсээ үргэлжилнэ.
+        $ cb_start_creator_wait_bgm()
+
         # Энэ screen duration дуусаж, сервер finished болтол return хийхгүй.
         call screen crowd_creators_round(
             creator_question_index + 1,
@@ -47,6 +54,8 @@ label crowd_creators_questions:
             creator_round_id,
             question.get("duration", 15)
         )
+
+        $ cb_finish_creator_wait_bgm()
 
         # Duration дууссаны дараа серверээс эцсийн үр дүнг авна.
         $ result = cb_fetch_round_result(creator_round_id)
@@ -64,6 +73,8 @@ label crowd_creators_questions:
 
 
 label crowd_monster_battle:
+    # Battle-ийн бүх асуулт, result болон ending дэлгэцийн турш loop хийнэ.
+    $ cb_start_battle_bgm()
     $ cb_battle_end_reason = ""
     $ response = cb_start_battle()
     $ renpy.block_rollback()
@@ -130,6 +141,8 @@ label crowd_monster_battle:
     if _return == "restart":
         jump crowd_monster_battle
 
+    # Battle label бүрэн дуусаж гарах мөчид зодооны ая зогсоно.
+    $ cb_stop_battle_bgm()
     $ cb_reset_battle()
     $ renpy.block_rollback()
     return
