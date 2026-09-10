@@ -8,6 +8,8 @@ default cb_world_name = "FUTURISTIC"
 default cb_world_image = "cb_cinematic_world_futuristic"
 default cb_team_city_image = "cb_team_city_futuristic"
 default cb_citizen_image = "citizen/Human.png"
+default cb_location_key = "earth"
+default cb_location_name = "Earth"
 
 default cb_enemy_key = "void"
 default cb_enemy_name = "The Void"
@@ -96,7 +98,7 @@ init -20 python:
 
 
     def cb_prepare_cinematic():
-        """Resolve the voted world and enemy, then build the short summary."""
+        """Resolve the voted world, location, citizens, and enemy."""
 
         snapshots = list(store.cb_creator_results)
         rows = []
@@ -128,6 +130,14 @@ init -20 python:
             1: ("FANTASY", "cb_cinematic_world_fantasy", "cb_team_city_fantasy"),
             2: ("MODERN", "cb_cinematic_world_modern", "cb_team_city_modern"),
             3: ("POST-APOCALYPTIC", "cb_cinematic_world_post", "cb_team_city_post"),
+        }
+
+        locations = {
+            0: ("earth", "Earth"),
+            1: ("another_planet", "Another Planet"),
+            2: ("floating_world", "Floating World"),
+            3: ("underground", "Underground"),
+            4: ("another_dimension", "Another Dimension"),
         }
 
         citizens = {
@@ -173,11 +183,16 @@ init -20 python:
         }
 
         world_snapshot = snapshots[1] if len(snapshots) > 1 else None
+        location_snapshot = snapshots[2] if len(snapshots) > 2 else None
         citizen_snapshot = snapshots[3] if len(snapshots) > 3 else None
         enemy_snapshot = snapshots[5] if len(snapshots) > 5 else None
         world_name, world_image, team_city_image = worlds.get(
             cb_creator_winner_index(world_snapshot),
             worlds[0],
+        )
+        location_key, location_name = locations.get(
+            cb_creator_winner_index(location_snapshot),
+            locations[0],
         )
         citizen_image = citizens.get(
             cb_creator_winner_index(citizen_snapshot),
@@ -191,6 +206,8 @@ init -20 python:
         store.cb_world_image = world_image
         store.cb_team_city_image = team_city_image
         store.cb_citizen_image = citizen_image
+        store.cb_location_key = location_key
+        store.cb_location_name = location_name
         store.cb_enemy_key = enemy["key"]
         store.cb_enemy_name = enemy["name"]
         store.cb_enemy_title = enemy["title"]
