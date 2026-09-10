@@ -91,10 +91,10 @@ init -20 python:
             participant_count = max(participant_count, total)
 
         worlds = {
-            0: ("FUTURISTIC", "images/cinematic/world_futuristic.webp", "cb_team_city_futuristic"),
-            1: ("FANTASY", "images/cinematic/world_fantasy.webp", "cb_team_city_fantasy"),
-            2: ("MODERN", "images/cinematic/world_modern.webp", "cb_team_city_modern"),
-            3: ("POST-APOCALYPTIC", "images/cinematic/world_post.webp", "cb_team_city_post"),
+            0: ("FUTURISTIC", "video/cinematic/BG/BG_futuristic.webm", "cb_team_city_futuristic"),
+            1: ("FANTASY", "video/cinematic/BG/BG_fantasy.webm", "cb_team_city_fantasy"),
+            2: ("MODERN", "video/cinematic/BG/BG_modern.webm", "cb_team_city_modern"),
+            3: ("POST-APOCALYPTIC", "video/cinematic/BG/BG_post.webm", "cb_team_city_post"),
         }
 
         enemies = {
@@ -102,8 +102,8 @@ init -20 python:
                 "key": "void",
                 "name": "The Void",
                 "title": "THE VOID — ХООСРОЛ",
-                "idle": "images/cinematic/boss_void.webp",
-                "attack": "images/cinematic/boss_void_attack.webp",
+                "idle": "video/cinematic/Attack/Void_Idle.webm",
+                "attack": "video/cinematic/Attack/Void_Attack.webm",
                 "movie": "video/cinematic/reveal/reveal_void.webm",
                 "voice": "audio/mangas6.ogg",
             },
@@ -111,8 +111,8 @@ init -20 python:
                 "key": "devourer",
                 "name": "THE DEVOURER",
                 "title": "THE DEVOURER — ЕРТӨНЦ ЗАЛГИГЧ",
-                "idle": "images/cinematic/boss_devourer.webp",
-                "attack": "images/cinematic/boss_devourer_attack.webp",
+                "idle": "video/cinematic/Attack/Devourer_Idle.webm",
+                "attack": "video/cinematic/Attack/Devourer_Attack.webm",
                 "movie": "video/cinematic/reveal/reveal_devourer.webm",
                 "voice": "audio/mangas7.ogg",
             },
@@ -120,8 +120,8 @@ init -20 python:
                 "key": "colossus",
                 "name": "THE COLOSSUS",
                 "title": "THE COLOSSUS — АВАРГА МАШИН",
-                "idle": "images/cinematic/boss_colossus.webp",
-                "attack": "images/cinematic/boss_colossus_attack.webp",
+                "idle": "video/cinematic/Attack/Colossus_Idle.webm",
+                "attack": "video/cinematic/Attack/Colossus_Attack.webm",
                 "movie": "video/cinematic/reveal/reveal_colossus.webm",
                 # mangas8.ogg is not present in the repository. The line below
                 # therefore uses a timed text fallback instead of wrong audio.
@@ -262,7 +262,7 @@ screen crowd_creator_summary(rows, participant_count):
                 action Return(True)
 
 
-screen crowd_cinematic_title(title, subtitle="", duration=2.8, warning=False):
+screen crowd_cinematic_title(title, duration=2.8, warning=False):
     modal True
     $ accent = "#FF6E86" if warning else "#8999FF"
     add Solid("#05070D")
@@ -283,12 +283,6 @@ screen crowd_cinematic_title(title, subtitle="", duration=2.8, warning=False):
             xalign 0.5
             outlines [(2, "#000000A0", 0, 0)]
 
-        if subtitle:
-            text subtitle:
-                color "#D7DCEF"
-                size 27
-                text_align 0.5
-                xalign 0.5
 
 
 screen crowd_system_panel(title, lines, duration=3.2, warning=False):
@@ -398,10 +392,9 @@ label crowd_world_cinematic:
 
     call screen crowd_creator_summary(cb_creator_summary_rows, cb_creator_count)
 
-    $ creator_subtitle = "Бодит оролцогч: {}".format(cb_creator_count)
+    
     call screen crowd_cinematic_title(
-        "CREATED BY 1,000+ CREATORS",
-        creator_subtitle,
+        "CREATED BY {} CREATORS".format(cb_creator_count),
         3.2
     )
 
