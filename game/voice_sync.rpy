@@ -17,9 +17,9 @@ default cb_current_speaker = None
 
 transform cb_speaker_nova:
     anchor (0.5, 1.0)
-    xpos 335
-    ypos 875
-    zoom 0.50
+    xpos 960
+    ypos 950
+    zoom 0.6
     alpha 0.0
     xoffset -45
     easeout 0.30 alpha 1.0 xoffset 0

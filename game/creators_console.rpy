@@ -55,78 +55,163 @@ init -10 python:
 
 
 screen cb_console_card(question_number, index, choice, card_width, card_height):
+
     frame:
-        background Solid("#162B50")
+        background None
+        padding (0, 0)
+
         xsize card_width
         ysize card_height
-        padding (8, 8)
+
         fixed:
-            xfill True
-            yfill True
+            xsize card_width
+            ysize card_height
+
+            # ==================================================
+            # CARD BACKGROUND
+            # ==================================================
+
+            add Solid("#162B50"):
+                xysize (card_width, card_height)
+
             add cb_console_card_frame():
-                xsize card_width - 16
-                ysize card_height - 16
-                nearest True
-            add Solid("#0C1730"):
                 xpos 8
                 ypos 8
                 xsize card_width - 16
                 ysize card_height - 16
-        if question_number == 6:
-            $ enemy = CB_ENEMY_CARD_DATA.get(choice, {})
-            add cb_console_art(question_number, index, (card_width-32, 152)):
+                nearest True
+
+            add Solid("#0C1730"):
                 xpos 16
                 ypos 16
-                xsize card_width-32
-                ysize 152
-                fit "contain"
-                nearest True
-            vbox:
-                pos (24, 182)
-                xsize card_width-48
-                spacing 8
-                text enemy.get("name", choice):
+                xsize card_width - 32
+                ysize card_height - 32
+
+
+            # ==================================================
+            # ENEMY
+            # ==================================================
+
+            if question_number == 6:
+
+                $ enemy = CB_ENEMY_CARD_DATA.get(choice, {})
+
+                add cb_console_art(
+                    question_number,
+                    index,
+                    (card_width - 32, 152)
+                ):
+                    xpos 16
+                    ypos 16
+                    xsize card_width - 32
+                    ysize 152
+                    fit "contain"
+                    nearest True
+
+                vbox:
+                    xpos 24
+                    ypos 178
+                    xsize card_width - 48
+                    spacing 7
+
+                    text enemy.get("name", choice):
+                        font CB_CONSOLE_FONT
+                        size 13
+                        color "#FFFFFF"
+                        xalign 0.5
+                        text_align 0.5
+
+                    text enemy.get("subtitle", ""):
+                        size 17
+                        bold True
+                        color enemy.get("accent", "#8EACFF")
+                        xalign 0.5
+                        text_align 0.5
+
+                    text enemy.get("intro", ""):
+                        size 15
+                        color "#D7E4FA"
+                        xalign 0.5
+                        text_align 0.5
+
+
+            # ==================================================
+            # NORMAL CARDS
+            # ==================================================
+
+            else:
+
+                # ----------------------------------------------
+                # IMAGE
+                # ----------------------------------------------
+
+                add cb_console_art(
+                    question_number,
+                    index,
+                    (
+                        card_width - 32,
+                        card_height - 32
+                    )
+                ):
+                    xpos 16
+                    ypos 16
+
+                    xsize card_width - 32
+                    ysize card_height - 32
+
+                    fit "cover"
+                    nearest True
+
+
+                # ----------------------------------------------
+                # DARK TEXT AREA OVER IMAGE
+                # ----------------------------------------------
+
+                add Solid("#071326CC"):
+                    xpos 16
+                    ypos card_height - 72
+
+                    xsize card_width - 32
+                    ysize 56
+
+
+                # Cyan line
+                add Solid("#25D8FF"):
+                    xpos 16
+                    ypos card_height - 72
+
+                    xsize card_width - 32
+                    ysize 3
+
+
+                # ----------------------------------------------
+                # ANSWER TEXT
+                # ----------------------------------------------
+
+                text "[choice]":
                     font CB_CONSOLE_FONT
-                    size 16
-                    color "#EDF7FF"
-                    xalign 0.5
-                text enemy.get("subtitle", ""):
-                    size 19
-                    bold True
-                    color enemy.get("accent", "#8EACFF")
-                    xalign 0.5
-                text enemy.get("intro", ""):
-                    size 17
-                    color "#D7E4FA"
+
+                    size (
+                        11 if question_number == 3
+                        else 12 if question_number in (1, 4)
+                        else 14
+                    )
+
+                    color "#FFFFFF"
+
+                    xpos 21
+                    ypos card_height - 62
+
+                    xsize card_width - 42
+                    ysize 40
+
                     text_align 0.5
                     xalign 0.5
-                text enemy.get("skill_name", ""):
-                    font CB_CONSOLE_FONT
-                    size 14
-                    color "#8ECFFF"
-                    xalign 0.5
-                text enemy.get("skill_description", ""):
-                    size 17
-                    color "#D7E4FA"
-                    text_align 0.5
-                    xalign 0.5
-        else:
-            add cb_console_art(question_number, index, (card_width-32, card_height-74)):
-                xpos 16
-                ypos 16
-                xsize card_width-32
-                ysize card_height-74
-                fit "contain"
-                nearest True
-            text choice:
-                font CB_CONSOLE_FONT
-                size (12 if question_number == 3 else 14 if question_number in (1, 4) else 16)
-                color "#EDF7FF"
-                xcenter card_width//2
-                ycenter card_height-34
-                xsize card_width-30
-                text_align 0.5
-                layout "subtitle"
+
+                    outlines [
+                        (2, "#000000", 0, 1)
+                    ]
+                
 
 
 screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):
