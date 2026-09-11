@@ -1492,7 +1492,15 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                             text_align 0.5
                             layout "subtitle"
 
+init -10 python:
 
+    # answer bar detail.png доторх 3 дахь мөр нь progress bar.
+    # Зургийн хэмжээ: 2048x1152 орчим.
+    def cb_answer_bar_detail():
+        return Crop(
+            (180, 535, 1490, 170),
+            "images/creators_console/answer bar detail.png"
+        )
 
 screen crowd_creators_result(question, result):
     modal True

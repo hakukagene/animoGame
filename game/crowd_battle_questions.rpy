@@ -23,14 +23,14 @@ define Creators_Question = [
     {
         "question": "ANIMO Ертөнцөд ХЭН амьдардаг ВЭ?",
         "voice": "audio/hutlugch15.ogg",
-        "choices": ["Humans", "Robots", "Magic Creatures", "Aliens", "Anime Characters", "Elfs", "Orcs"],
+        "choices": ["Хүн", "Робот", "Шидийн амьтан", "Харь гарагийн хүн", "Аниме дүр", "Эльф", "Орк"],
         "duration": 15,
         "mode": "survey",
     },
     {
         "question": "Анимо Ертөнцийн оршин суугчид ямар зан, характертай вэ?",
         "voice": "audio/hutlugch16.ogg",
-        "choices": ["Peaceful", "Competitive", "Creative", "Adventurous"],
+        "choices": ["Тайван дөлгөөн", "Өрсөлдөөнч", "Бүтээлч", "Адал явдалч"],
         "duration": 15,
         "mode": "survey",
     },
@@ -59,19 +59,19 @@ define CROWD_BATTLE_QUESTIONS = [
     {
         "question": "Death Note-д Light Yagami анх Death Note-г хаана олдог вэ?",
         "voice": "audio/asuult3.ogg",
-        "choices": ["Сургууль дээр", "Гудамжинд", "Сургуулийн дээвэр дээр", "Сургуулийн талбайн ойролцоо"],
+        "choices": ["Сургууль дээр", "Гудамжинд", "Сургуулийн дээвэр дээр", "Сургуулийн талбайд"],
         "correct_index": 3, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
         "question": "Attack on Titan-д Levi ямар бүлгийн ахлагч вэ?",
         "voice": "audio/asuult4.ogg",
-        "choices": ["Garrison Regiment", "Military Police", "Survey Corps-ийн Special Operations Squad", "Training Corps"],
+        "choices": ["Garrison Regiment", "Military Police", "Special Operations Squad", "Training Corps"],
         "correct_index": 2, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
         "question": "Demon Slayer-д Tanjiro-ийн ээмэг ямар загвартай вэ?",
         "voice": "audio/asuult5.ogg",
-        "choices": ["Нарны зурагтай Hanafuda ээмэг", "Сарны зурагтай", "Галын зурагтай", "Лууны зурагтай"],
+        "choices": ["Нарны зурагтай", "Сарны зурагтай", "Галын зурагтай", "Лууны зурагтай"],
         "correct_index": 0, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
@@ -89,19 +89,19 @@ define CROWD_BATTLE_QUESTIONS = [
     {
         "question": "Studio Ghibli-ийн \"My Neighbor Totoro\"-д Totoro-г хүүхдүүд ямар амьтантай төстэй гэж харж болох вэ?",
         "voice": "audio/asuult8.ogg",
-        "choices": ["Муур", "Баавгай", "Том ой модны сүнс / амьтан маягийн сүнс", "Үнэг"],
+        "choices": ["Муур", "Баавгай", "Том ой модны сүнс", "Үнэг"],
         "correct_index": 2, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
         "question": "Toy Story-ийн эхний кинонд Buzz Lightyear өөрийгөө юу гэж боддог вэ?",
         "voice": "audio/asuult9.ogg",
-        "choices": ["Тоглоом", "Жинхэнэ сансрын хамгаалагч", "Робот", "Сансрын судлаач хүн"],
+        "choices": ["Тоглоом", "Сансрын хамгаалагч", "Робот", "Сансрын судлаач хүн"],
         "correct_index": 1, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
         "question": "The Lion King-д Simba-г өсөж том болоход нь хэн хамгийн их тусалдаг вэ?",
         "voice": "audio/asuult10.ogg",
-        "choices": ["Rafiki", "Zazu", "Timon & Pumbaa", "Scar"],
+        "choices": ["Rafiki", "Zazu", "Timon", "Scar"],
         "correct_index": 2, "duration": 15, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
