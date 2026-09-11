@@ -849,12 +849,12 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         color "#F4F7FF"
         size 24
         xcenter 960
-        ypos 104
+        ypos 130
         text_align 0.5
 
     vbox:
-        xpos 285
-        ypos 88
+        xpos 270
+        ypos 97
         xsize 470
         spacing 8
         text "ҮЗЭГЧДИЙН БАГ":
@@ -864,17 +864,17 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         text "[cb_player_hp] / [cb_player_max_hp] HP":
             font CB_BATTLE_FONT
             color "#7FF0BB"
-            size 25
+            size 15
         bar:
             value StaticValue(cb_player_hp, cb_player_max_hp)
-            xsize 470
-            ysize 22
+            xsize 450
+            ysize 20
             left_bar Solid("#38D99A")
             right_bar Solid(ui_theme["bar_track"])
 
     vbox:
-        xpos 1165
-        ypos 88
+        xpos 1170
+        ypos 97
         xsize 470
         spacing 8
         text "[cb_enemy_name]":
@@ -885,12 +885,12 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         text "[cb_monster_hp] / [cb_monster_max_hp] HP":
             font CB_BATTLE_FONT
             color "#FF8296"
-            size 25
+            size 15
             xalign 1.0
         bar:
             value StaticValue(cb_monster_hp, cb_monster_max_hp)
-            xsize 470
-            ysize 22
+            xsize 450
+            ysize 20
             left_bar Solid("#FF5F78")
             right_bar Solid(ui_theme["bar_track"])
             xalign 1.0
@@ -904,35 +904,35 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 text_align 1.0
 
     add team_city_image:
-        xysize (870, 490)
+        xysize (650, 370)
         xcenter 505
         ycenter 445
 
     add cb_enemy_idle_image:
         at cb_monster_idle
-        xysize (870, 490)
+        xysize (650, 370)
         xcenter 1415
         ycenter 445
 
-    add Movie(channel="cb_monster_movie", size=(870, 490), alpha=True):
+    add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
         xcenter 1415
         ycenter 445
 
     # Reference layout: timer нь arena-гийн доод төвд, асуулт бүтэн мөрөөр,
     # дөрвөн хариулт 2 x 2 grid-д тусдаа pixel container дээр байрлана.
-    if voting_active:
-        fixed:
-            xpos 790
-            ypos 586
-            xysize (340, 68)
+    
+    fixed:
+        xpos 790
+        ypos 586
+        xysize (340, 68)
 
-            text "[cb_remaining_seconds] секунд":
-                font CB_BATTLE_FONT
-                color "#FF899D"
-                size 24
-                xalign 0.5
-                yalign 0.5
-                text_align 0.5
+        text "[cb_remaining_seconds] секунд":
+            font CB_BATTLE_FONT
+            color "#FF899D"
+            size 24
+            xcenter  160
+            ycenter 55
+            text_align 0.5
 
     fixed:
         xpos 170
@@ -952,8 +952,8 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     for choice_index, choice in enumerate(battle_choices):
         $ choice_letter = choice_letters[choice_index]
         $ choice_color = choice_colors[choice_index % len(choice_colors)]
-        $ choice_x = 170 + ((choice_index % 2) * 802)
-        $ choice_y = 826 + ((choice_index // 2) * 94)
+        $ choice_x = 220 + ((choice_index % 2) * 820)
+        $ choice_y = 817 + ((choice_index // 2) * 94)
 
         fixed:
             xpos choice_x
@@ -1084,49 +1084,67 @@ screen crowd_round_result(result, final_question=False):
     if city_attack_triggered:
         timer 0.84 action Play("sound", "audio/cinematic_impact.ogg")
 
+    text "QUIZ BATTLE":
+        font CB_BATTLE_FONT
+        color "#F4F7FF"
+        size 24
+        xcenter 960
+        ypos 130
+        text_align 0.5
+
     vbox:
-        xpos 285
-        ypos 88
+        xpos 270
+        ypos 97
         xsize 470
         spacing 8
-        text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
+        text "ҮЗЭГЧДИЙН БАГ":
+            font CB_BATTLE_FONT
+            color "#9CD9FF"
+            size 18
         text "[cb_player_hp] / [cb_player_max_hp] HP":
+            font CB_BATTLE_FONT
             color "#7FF0BB"
-            size 25
+            size 15
         bar:
             value StaticValue(cb_player_hp, cb_player_max_hp)
-            xsize 470
-            ysize 22
+            xsize 450
+            ysize 20
             left_bar Solid("#38D99A")
             right_bar Solid(ui_theme["bar_track"])
 
     vbox:
-        xpos 1165
-        ypos 88
+        xpos 1170
+        ypos 97
         xsize 470
         spacing 8
-        text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
+        text "[cb_enemy_name]":
+            font CB_BATTLE_FONT
+            color "#F4D5FF"
+            size 18
+            xalign 1.0
         text "[cb_monster_hp] / [cb_monster_max_hp] HP":
+            font CB_BATTLE_FONT
             color "#FF8296"
-            size 25
+            size 15
             xalign 1.0
         bar:
             value StaticValue(cb_monster_hp, cb_monster_max_hp)
-            xsize 470
-            ysize 22
+            xsize 450
+            ysize 20
             left_bar Solid("#FF5F78")
             right_bar Solid(ui_theme["bar_track"])
             xalign 1.0
 
+
     if player_damage > 0:
         add team_city_image:
             at cb_team_hit_flash
-            xysize (870, 490)
+            xysize (650, 370)
             xcenter 505
             ycenter 445
     else:
         add team_city_image:
-            xysize (870, 490)
+            xysize (650, 370)
             xcenter 505
             ycenter 445
 
@@ -1136,12 +1154,7 @@ screen crowd_round_result(result, final_question=False):
             xysize (310, 180)
             xcenter 650
             ycenter 520
-    else:
-        add city_weapon_image:
-            at cb_city_weapon_idle
-            xysize (310, 180)
-            xcenter 650
-            ycenter 520
+    
 
     text city_weapon_label:
         color "#C7D4F5"
@@ -1171,22 +1184,22 @@ screen crowd_round_result(result, final_question=False):
     if monster_damage > 0:
         add cb_enemy_idle_image:
             at cb_monster_idle, cb_monster_hit_flash
-            xysize (870, 490)
+            xysize (650, 370)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(870, 490)):
+        add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
             at cb_monster_hit_flash
             xcenter 1415
             ycenter 445
     else:
         add cb_enemy_idle_image:
             at cb_monster_idle
-            xysize (870, 490)
+            xysize (650, 370)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(870, 490)):
+        add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
             xcenter 1415
             ycenter 445
 
@@ -1255,7 +1268,7 @@ screen crowd_round_result(result, final_question=False):
                 xalign 0.5
 
             hbox:
-                xalign 0.5
+                xalign 1.0
                 spacing 150
 
                 vbox:

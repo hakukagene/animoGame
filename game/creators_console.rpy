@@ -80,20 +80,20 @@ init -10 python:
     def cb_console_layout(question_number):
         """Card positions matching the selected 4+3 reference composition."""
         if question_number in (1, 4):
-            top = [(235 + index * 302, 275, 288, 250) for index in range(4)]
-            bottom = [(386 + index * 303, 535, 288, 250) for index in range(3)]
+            top = [(235 + index * 302, 380, 240, 200) for index in range(4)]
+            bottom = [(386 + index * 303, 570, 240, 200) for index in range(3)]
             return top + bottom
 
         if question_number == 3:
-            top = [(386 + index * 306, 280, 288, 240) for index in range(3)]
-            bottom = [(539 + index * 306, 535, 288, 240) for index in range(2)]
+            top = [(240 + index * 480, 400, 240, 210) for index in range(3)]
+            bottom = [(480 + index * 480, 535, 240, 210) for index in range(2)]
             return top + bottom
 
         if question_number == 6:
-            return [(386 + index * 306, 330, 288, 350) for index in range(3)]
+            return [(386 + index * 306, 400, 288, 350) for index in range(3)]
 
         # Questions 2 and 5 each have four choices.
-        return [(235 + index * 302, 330, 288, 350) for index in range(4)]
+        return [(235 + index * 302, 380, 288, 350) for index in range(4)]
 
 
     def cb_console_question_size(question_number):
@@ -194,7 +194,7 @@ screen cb_creators_console_content(question_number, question_total, current_roun
             size 22
             color "#8ECFFF"
             xcenter 836
-            ypos 78
+            ypos 200
             text_align 0.5
 
         text "[remaining] секунд":
@@ -202,7 +202,7 @@ screen cb_creators_console_content(question_number, question_total, current_roun
             size 26
             color "#FF7FA4"
             xcenter 836
-            ypos 124
+            ypos 240
             text_align 0.5
 
         # Supplied timer frame and ten live segments are separate layers.
@@ -222,7 +222,7 @@ screen cb_creators_console_content(question_number, question_total, current_roun
 
         hbox:
             xpos 625
-            ypos 168
+            ypos 280
             spacing 3
 
             for segment in range(10):
@@ -240,7 +240,7 @@ screen cb_creators_console_content(question_number, question_total, current_roun
             size cb_console_question_size(question_number)
             color "#F7FAFF"
             xcenter 836
-            ypos 207
+            ypos 320
             xsize 1420
             ysize 60
 
