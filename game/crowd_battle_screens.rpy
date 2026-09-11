@@ -1,4 +1,4 @@
-transform cb_monster_idle:
+u�Z�ov��4}��}�����_}q����xw�|�f�sƜu�}ͽ�M^y��k]�q���_���transform cb_monster_idle:
     anchor (0.5, 0.5)
     zoom 1.0
     linear 0.8 zoom 1.035
@@ -185,9 +185,27 @@ init -35 python:
         },
     }
 
+    CB_BATTLE_LOCATION_ALIASES = {
+        "earth": "earth",
+        "another planet": "another_planet",
+        "another_planet": "another_planet",
+        "floating world": "floating_world",
+        "floating_world": "floating_world",
+        "underground": "underground",
+        "another dimension": "another_dimension",
+        "another_dimension": "another_dimension",
+    }
+
 
     def cb_battle_location_theme():
-        location_key = getattr(store, "cb_location_key", "earth")
+        # The winning creator answer can arrive as either its saved key or the
+        # visible English label. Normalizing both keeps the selected battle UI
+        # deterministic after reloads and older save files.
+        raw_location = getattr(store, "cb_location_key", None)
+        if not raw_location:
+            raw_location = getattr(store, "cb_location_name", "Earth")
+        normalized = str(raw_location).strip().lower()
+        location_key = CB_BATTLE_LOCATION_ALIASES.get(normalized, "earth")
         return CB_BATTLE_LOCATION_THEMES.get(
             location_key,
             CB_BATTLE_LOCATION_THEMES["earth"],
@@ -755,37 +773,52 @@ screen crowd_battle_environment(ui_theme, with_arena=True):
 
     add Solid(ui_theme["base"])
 
-    # Full-screen generated overlay нь зөвхөн interface-ийн зах, булан,
-    # divider-үүдийг зурна. Хот, зэвсэг, monster, текстийг агуулахгүй.
-    add battle_ui_overlay:
-        at cb_battle_ui_overlay
-
     if with_arena:
-        # Нэг бүтэн өнгийн HUD box-ийн оронд HP тал бүр өөрийн жижиг
-        # theme-тэй pixel container дээр байрлана.
+        add Solid(ui_theme["arena"]):
+            xpos 52
+            ypos 202
+            xsize 1816
+            ysize 420
+
         fixed:
             xpos 60
             ypos 24
-            xysize (820, 190)
-            use crowd_battle_pixel_frame(ui_theme, 820, 190, ui_theme["frame_shadow"])
+            xysize (690, 174)
+            use crowd_battle_pixel_frame(ui_theme, 690, 174, ui_theme["frame_shadow"])
 
         fixed:
-            xpos 1040
+            xpos 1170
             ypos 24
-            xysize (820, 190)
-            use crowd_battle_pixel_frame(ui_theme, 820, 190, ui_theme["frame_shadow"])
+            xysize (690, 174)
+            use crowd_battle_pixel_frame(ui_theme, 690, 174, ui_theme["frame_shadow"])
 
-        add Solid(ui_theme["arena"]):
-            xpos 50
-            ypos 270
-            xsize 1820
-            ysize 350
+        fixed:
+            xpos 760
+            ypos 28
+            xysize (400, 118)
+            use crowd_battle_pixel_frame(ui_theme, 400, 118, ui_theme["panel"])
 
-        add Solid(ui_theme["panel_border"]):
-            xpos 50
-            ypos 266
-            xsize 1820
-            ysize 4
+            vbox:
+                xalign 0.5
+                yalign 0.5
+                spacing 8
+
+                text "QUIZ BATTLE":
+                    font "fonts/PressStart2P-Regular.ttf"
+                    color "#8ECFFF"
+                    size 24
+                    xalign 0.5
+
+                text "[cb_location_name]":
+                    color ui_theme["accent_alt"]
+                    size 16
+                    bold True
+                    xalign 0.5
+
+    # Theme artwork is the final background layer, so its transparent pixel
+    # border stays visible above the arena fill without covering live content.
+    add battle_ui_overlay:
+        at cb_battle_ui_overlay
 
 
 screen crowd_battle_intro():
@@ -850,7 +883,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
     vbox:
         xpos 90
         ypos 45
-        xsize 760
+        xsize 620
         spacing 10
         text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
         text "[cb_player_hp] / [cb_player_max_hp] HP":
@@ -859,15 +892,15 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             bold True
         bar:
             value StaticValue(cb_player_hp, cb_player_max_hp)
-            xsize 700
+            xsize 570
             ysize 28
             left_bar Solid("#38D99A")
             right_bar Solid(ui_theme["bar_track"])
 
     vbox:
-        xpos 1070
+        xpos 1210
         ypos 45
-        xsize 760
+        xsize 620
         spacing 10
         text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
         text "[cb_monster_hp] / [cb_monster_max_hp] HP":
@@ -877,7 +910,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             xalign 1.0
         bar:
             value StaticValue(cb_monster_hp, cb_monster_max_hp)
-            xsize 700
+            xsize 570
             ysize 28
             left_bar Solid("#FF5F78")
             right_bar Solid(ui_theme["bar_track"])
