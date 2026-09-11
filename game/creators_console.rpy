@@ -264,3 +264,189 @@ screen cb_creators_console_content(question_number, question_total, current_roun
                         card_width,
                         card_height,
                     )
+
+
+init -10 python:
+    def cb_console_result_row_frame(index):
+        """Alternating cyan and purple answer rows from the supplied sheet."""
+        frame_y = 160 if index % 2 == 0 else 350
+        return Frame(
+            Crop(
+                (44, frame_y, 1584, 160),
+                CB_CONSOLE_ROOT + "answer bar detail.png",
+            ),
+            72,
+            22,
+        )
+
+
+    def cb_console_result_progress_frame():
+        return Frame(
+            Crop(
+                (180, 535, 1490, 170),
+                CB_CONSOLE_ROOT + "answer bar detail.png",
+            ),
+            70,
+            16,
+        )
+
+
+    def cb_console_result_decoration(side):
+        if side == "left":
+            return Crop(
+                (88, 710, 478, 165),
+                CB_CONSOLE_ROOT + "answer bar detail.png",
+            )
+        return Crop(
+            (558, 710, 505, 165),
+            CB_CONSOLE_ROOT + "answer bar detail.png",
+        )
+
+
+    def cb_console_result_layout(choice_count):
+        """Keep 3-7 result rows readable inside the console's safe area."""
+        if choice_count >= 6:
+            return (278, 47, 7, 13, 672, 704, 736)
+        if choice_count == 5:
+            return (300, 58, 10, 15, 652, 688, 720)
+        if choice_count == 4:
+            return (310, 66, 11, 16, 645, 682, 718)
+        return (325, 78, 14, 17, 635, 675, 715)
+
+
+    def cb_console_result_question_size(question_text):
+        text_length = len(question_text or "")
+        if text_length > 55:
+            return 20
+        if text_length > 38:
+            return 23
+        return 27
+
+
+screen crowd_creators_result(question, result):
+    modal True
+    default auto_seconds = 3
+
+    $ latest_round = cb_battle.get("current_round") or {}
+    $ latest_result = result or latest_round.get("result") or {}
+    $ choices = list(question.get("choices", []))
+    $ counts = list(latest_result.get("choice_counts", latest_round.get("choice_counts", [])))
+    $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
+    $ row_y, row_height, row_gap, row_font_size, total_y, countdown_y, progress_y = cb_console_result_layout(len(choices))
+    $ active_segments = max(0, min(10, int(round(10.0 * auto_seconds / 3.0))))
+
+    timer 1.0 repeat True action If(
+        auto_seconds > 1,
+        SetScreenVariable("auto_seconds", auto_seconds - 1),
+        Return(True),
+    )
+
+    fixed:
+        xysize (1672, 941)
+        at Transform(zoom=config.screen_width / 1672.0)
+
+        add CB_CONSOLE_ROOT + "background.png":
+            xysize (1672, 941)
+            nearest True
+
+        text "САНАЛ АСУУЛГЫН ҮР ДҮН":
+            font CB_CONSOLE_FONT
+            size 36
+            color "#F7FAFF"
+            xcenter 836
+            ypos 178
+            text_align 0.5
+            outlines [(2, "#071126", 0, 2)]
+
+        add cb_console_result_decoration("left"):
+            xpos 236
+            ypos 211
+            xysize (330, 72)
+            nearest True
+
+        add cb_console_result_decoration("right"):
+            xpos 1106
+            ypos 211
+            xysize (330, 72)
+            nearest True
+
+        text question.get("question", ""):
+            font CB_CONSOLE_FONT
+            size cb_console_result_question_size(question.get("question", ""))
+            color "#F7FAFF"
+            xcenter 836
+            ypos 232
+            xmaximum 760
+            text_align 0.5
+            layout "subtitle"
+            outlines [(2, "#071126", 0, 2)]
+
+        for index, choice in enumerate(choices):
+            $ count = max(0, int(counts[index])) if index < len(counts) else 0
+            $ percentage = int(round(100.0 * count / total_answers)) if total_answers else 0
+            $ current_row_y = row_y + index * (row_height + row_gap)
+
+            fixed:
+                xpos 278
+                ypos current_row_y
+                xysize (1116, row_height)
+
+                add cb_console_result_row_frame(index):
+                    xysize (1116, row_height)
+                    nearest True
+
+                text choice:
+                    font CB_CONSOLE_FONT
+                    size row_font_size
+                    color "#F7FAFF"
+                    xpos 52
+                    ycenter row_height / 2
+                    xmaximum 760
+                    layout "subtitle"
+                    outlines [(2, "#061020", 0, 1)]
+
+                text "[count] · [percentage]%":
+                    font CB_CONSOLE_FONT
+                    size row_font_size
+                    color "#91A8FF"
+                    xpos 1064
+                    xanchor 1.0
+                    ycenter row_height / 2
+                    text_align 1.0
+                    outlines [(2, "#061020", 0, 1)]
+
+        text "Нийт оролцогч: [total_answers] · Нийт санал: [total_answers]":
+            font CB_CONSOLE_FONT
+            size 14
+            color "#AAB8D5"
+            xcenter 836
+            ypos total_y
+            text_align 0.5
+
+        text "[auto_seconds] секундын дараа автоматаар үргэлжилнэ.":
+            font CB_CONSOLE_FONT
+            size 14
+            color "#91A8FF"
+            xcenter 836
+            ypos countdown_y
+            text_align 0.5
+
+        add cb_console_result_progress_frame():
+            xpos 556
+            ypos progress_y
+            xysize (560, 42)
+            nearest True
+
+        add Solid("#101C37"):
+            xpos 582
+            ypos progress_y + 14
+            xysize (508, 14)
+
+        hbox:
+            xpos 582
+            ypos progress_y + 14
+            spacing 4
+
+            for segment in range(10):
+                add Solid("#FF7F98" if segment < active_segments else "#31476F"):
+                    xysize (47, 14)
