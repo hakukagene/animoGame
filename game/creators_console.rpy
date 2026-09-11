@@ -338,6 +338,8 @@ screen crowd_creators_result(question, result):
     $ counts = list(latest_result.get("choice_counts", latest_round.get("choice_counts", [])))
     $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
     $ row_y, row_height, row_gap, row_font_size, total_y, countdown_y, progress_y = cb_console_result_layout(len(choices))
+    $ row_width = 1200
+    $ row_x = (1672 - row_width) // 2
     $ active_segments = max(0, min(10, int(round(10.0 * auto_seconds / 3.0))))
 
     timer 1.0 repeat True action If(
@@ -392,32 +394,36 @@ screen crowd_creators_result(question, result):
             $ current_row_y = row_y + index * (row_height + row_gap)
 
             fixed:
-                xpos 278
+                xpos row_x
                 ypos current_row_y
-                xysize (1116, row_height)
+                xysize (row_width, row_height)
 
                 add cb_console_result_row_frame(index):
-                    xysize (1116, row_height)
+                    xysize (row_width, row_height)
                     nearest True
 
                 text choice:
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#F7FAFF"
-                    xpos 52
-                    ycenter row_height / 2
-                    xmaximum 760
+                    xpos 58
+                    ycenter row_height // 2
+                    xsize 840
+                    text_align 0.0
                     layout "subtitle"
+                    line_spacing 2
+                    slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
 
                 text "[count] · [percentage]%":
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#91A8FF"
-                    xpos 1064
+                    xpos row_width - 58
                     xanchor 1.0
-                    ycenter row_height / 2
+                    ycenter row_height // 2
                     text_align 1.0
+                    slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
 
         text "Нийт оролцогч: [total_answers] · Нийт санал: [total_answers]":
