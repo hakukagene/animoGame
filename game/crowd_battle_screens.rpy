@@ -114,7 +114,7 @@ init -35 python:
     # palette болон pixel-art хүрээг сонгоно. Gameplay asset-ууд тусдаа хэвээр.
     CB_BATTLE_LOCATION_THEMES = {
         "earth": {
-            "overlay": "images/cinematic/battle_ui/earth.webp",
+            "overlay": "images/battleBackground/Earth.png",
             "base": "#02050A",
             "arena": "#000000",
             "panel": "#0C2422F5",
@@ -128,7 +128,7 @@ init -35 python:
             "bar_track": "#1D3A36",
         },
         "another_planet": {
-            "overlay": "images/cinematic/battle_ui/another_planet.webp",
+            "overlay": "images/battleBackground/Another Planet.png",
             "base": "#100812",
             "arena": "#000000",
             "panel": "#241025F5",
@@ -142,7 +142,7 @@ init -35 python:
             "bar_track": "#40233A",
         },
         "floating_world": {
-            "overlay": "images/cinematic/battle_ui/floating_world.webp",
+            "overlay": "images/battleBackground/Floating World.png",
             "base": "#0A1620",
             "arena": "#000000",
             "panel": "#152B3CF5",
@@ -156,7 +156,7 @@ init -35 python:
             "bar_track": "#2A4052",
         },
         "underground": {
-            "overlay": "images/cinematic/battle_ui/underground.webp",
+            "overlay": "images/battleBackground/Underground.png",
             "base": "#0B0A0C",
             "arena": "#000000",
             "panel": "#23180FF5",
@@ -170,7 +170,7 @@ init -35 python:
             "bar_track": "#413126",
         },
         "another_dimension": {
-            "overlay": "images/cinematic/battle_ui/another_dimension.webp",
+            "overlay": "images/battleBackground/Another Dimension.png",
             "base": "#090717",
             "arena": "#000000",
             "panel": "#1A1033F5",
