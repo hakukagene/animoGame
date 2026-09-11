@@ -110,8 +110,8 @@ define CB_BREAK_SCREEN_SECONDS = 5.80
 
 
 init -35 python:
-    # Creators-ийн 3-р асуултаар сонгогдсон байршил battle interface-ийн
-    # palette болон pixel-art хүрээг сонгоно. Gameplay asset-ууд тусдаа хэвээр.
+    # Creators-ийн location асуултаар сонгогдсон ертөнц battle interface-ийн
+    # бүтэн pixel-art background болон palette-ийг сонгоно.
     CB_BATTLE_LOCATION_THEMES = {
         "earth": {
             "overlay": "images/battleBackground/Earth.png",
@@ -773,50 +773,8 @@ screen crowd_battle_environment(ui_theme, with_arena=True):
 
     add Solid(ui_theme["base"])
 
-    if with_arena:
-        add Solid(ui_theme["arena"]):
-            xpos 52
-            ypos 202
-            xsize 1816
-            ysize 420
-
-        fixed:
-            xpos 60
-            ypos 24
-            xysize (690, 174)
-            use crowd_battle_pixel_frame(ui_theme, 690, 174, ui_theme["frame_shadow"])
-
-        fixed:
-            xpos 1170
-            ypos 24
-            xysize (690, 174)
-            use crowd_battle_pixel_frame(ui_theme, 690, 174, ui_theme["frame_shadow"])
-
-        fixed:
-            xpos 760
-            ypos 28
-            xysize (400, 118)
-            use crowd_battle_pixel_frame(ui_theme, 400, 118, ui_theme["panel"])
-
-            vbox:
-                xalign 0.5
-                yalign 0.5
-                spacing 8
-
-                text "QUIZ BATTLE":
-                    font "fonts/PressStart2P-Regular.ttf"
-                    color "#8ECFFF"
-                    size 24
-                    xalign 0.5
-
-                text "[cb_location_name]":
-                    color ui_theme["accent_alt"]
-                    size 16
-                    bold True
-                    xalign 0.5
-
-    # Theme artwork is the final background layer, so its transparent pixel
-    # border stays visible above the arena fill without covering live content.
+    # battleBackground PNG өөрөө HP, arena, question болон answer-ийн бүх
+    # хүрээг агуулдаг. Screen-ийн амьд текст, дүрүүд үүний дээр нэмэгдэнэ.
     add battle_ui_overlay:
         at cb_battle_ui_overlay
 
@@ -880,10 +838,29 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
 
     use crowd_battle_environment(ui_theme)
 
+    # Сонгогдсон PNG-ийн дээд төв HUD хэсэг.
     vbox:
-        xpos 90
+        xpos 780
+        ypos 72
+        xsize 360
+        spacing 6
+
+        text "QUIZ BATTLE":
+            font "fonts/PressStart2P-Regular.ttf"
+            color "#F4F7FF"
+            size 22
+            xalign 0.5
+
+        text "[cb_location_name]":
+            color ui_theme["accent_alt"]
+            size 15
+            bold True
+            xalign 0.5
+
+    vbox:
+        xpos 190
         ypos 45
-        xsize 620
+        xsize 570
         spacing 10
         text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
         text "[cb_player_hp] / [cb_player_max_hp] HP":
@@ -898,9 +875,9 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             right_bar Solid(ui_theme["bar_track"])
 
     vbox:
-        xpos 1210
+        xpos 1160
         ypos 45
-        xsize 620
+        xsize 570
         spacing 10
         text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
         text "[cb_monster_hp] / [cb_monster_max_hp] HP":
@@ -962,8 +939,6 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
             ypos 586
             xysize (340, 68)
 
-            use crowd_battle_pixel_frame(ui_theme, 340, 68, ui_theme["panel"])
-
             text "[cb_remaining_seconds] секунд":
                 color "#FF899D"
                 size 25
@@ -974,10 +949,8 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
 
     fixed:
         xpos 170
-        ypos 650
+        ypos 708
         xysize (1580, 96)
-
-        use crowd_battle_pixel_frame(ui_theme, 1580, 96, ui_theme["panel"])
 
         if shown_question:
             text shown_question:
@@ -993,14 +966,12 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         $ choice_letter = choice_letters[choice_index]
         $ choice_color = choice_colors[choice_index % len(choice_colors)]
         $ choice_x = 170 + ((choice_index % 2) * 802)
-        $ choice_y = 766 + ((choice_index // 2) * 100)
+        $ choice_y = 826 + ((choice_index // 2) * 94)
 
         fixed:
             xpos choice_x
             ypos choice_y
             xysize (778, 82)
-
-            use crowd_battle_pixel_frame(ui_theme, 778, 82, ui_theme["row"])
 
             frame:
                 background Solid(choice_color)
