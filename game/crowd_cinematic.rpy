@@ -555,6 +555,7 @@ label crowd_world_cinematic:
 
     scene expression Solid("#000000")
     with fade
+    show nova at nova_intro_reveal
     $ cb_current_speaker = None
     $ cb_voice_line(N, "Баярлалаа.", "audio/hutlugch18.ogg")
     $ cb_voice_line(N, "Энэ бол...", "audio/hutlugch19.ogg")
@@ -565,6 +566,8 @@ label crowd_world_cinematic:
     $ cb_voice_line(N, "Тэд юунд итгэхийг...", "audio/hutlugch24.ogg")
     $ cb_voice_line(N, "Юунаас айхыг та нар шийдсэн.", "audio/hutlugch25.ogg")
 
+    hide nova
+    
     call screen crowd_creator_summary(cb_creator_summary_rows, cb_creator_count)
 
     
@@ -579,7 +582,7 @@ label crowd_world_cinematic:
     scene expression cb_world_image at cb_cinematic_world
     show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     with fade
-
+    
     $ cb_voice_line(N, "Эцэст нь шинэ ертөнц мэндэллээ.", "audio/hutlugch26.ogg")
     $ cb_voice_line(N, "Эхний өдөр.", "audio/hutlugch27.ogg")
     $ cb_voice_line(N, "Бүх зүйл тайван байлаа.", "audio/hutlugch28.ogg")

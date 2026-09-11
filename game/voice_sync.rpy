@@ -91,78 +91,6 @@ init -90 python:
         return renpy.easy_displayable(image_path), 0.25
 
 
-    def cb_speaker_portrait_key(who):
-        nova_character = getattr(store, "N", None)
-        monster_character = getattr(store, "Monster", None)
-
-        if nova_character is not None and who is nova_character:
-            return "nova"
-        if monster_character is not None and who is monster_character:
-            return "monster"
-        return None
-
-
-    def cb_show_speaker_portrait(who):
-        """Changes the portrait only when the speaking character changes."""
-
-        speaker_key = cb_speaker_portrait_key(who)
-        current_key = getattr(store, "cb_current_speaker", None)
-        nova_showing = renpy.showing("nova")
-        monster_showing = renpy.showing("crowd_enemy")
-
-        if speaker_key == "nova":
-            # Same consecutive speaker: keep the existing image and ATL time.
-            if current_key == "nova" and nova_showing and not monster_showing:
-                return False
-
-            if monster_showing:
-                renpy.hide("crowd_enemy")
-            # Re-apply the dialogue transform even if Nova was previously
-            # shown by a cinematic transform.
-            renpy.show("nova", at_list=[store.cb_speaker_nova])
-
-            store.cb_current_speaker = "nova"
-            return True
-
-        if speaker_key == "monster":
-            # Keep the current monster frame/transform across consecutive lines.
-            if current_key == "monster" and monster_showing and not nova_showing:
-                return False
-
-            if nova_showing:
-                renpy.hide("nova")
-            # A reveal/attack can leave the same tag on the master layer with
-            # a centered transform. Replace it with the VN dialogue portrait.
-            renpy.show(
-                "crowd_enemy dialogue",
-                at_list=[store.cb_speaker_monster],
-            )
-
-            store.cb_current_speaker = "monster"
-            return True
-
-        # Narration/System/Creators clear the previous character once.
-        changed = current_key is not None or nova_showing or monster_showing
-        if nova_showing:
-            renpy.hide("nova")
-        if monster_showing:
-            renpy.hide("crowd_enemy")
-        store.cb_current_speaker = None
-        return changed
-
-
-    def cb_nova_portrait_callback(event, interact=True, **kwargs):
-        # Direct `N "..."` lines also receive the same portrait behavior.
-        if event == "begin":
-            cb_show_speaker_portrait(getattr(store, "N", None))
-
-
-    def cb_monster_portrait_callback(event, interact=True, **kwargs):
-        # Direct `Monster "..."` lines use the creators' selected monster.
-        if event == "begin":
-            cb_show_speaker_portrait(getattr(store, "Monster", None))
-
-
     def cb_voice_line(who, what, voice_id):
         """
         Shows one dialogue line, then waits briefly after its OGG finishes.
@@ -181,7 +109,7 @@ init -90 python:
 
         global _cb_voice_lock_dismiss
 
-        cb_show_speaker_portrait(who)
+
         voice_file = cb_voice_path(voice_id)
 
         if not voice_file or not renpy.loadable(voice_file):
