@@ -152,11 +152,16 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             font CB_CONSOLE_FONT
             size cb_console_choice_size(question_number)
             color "#FFFFFF"
-            xcenter card_width / 2
-            ycenter card_height - (label_height / 2) - 8
-            xmaximum card_width - 48
+            # Ren'Py treats float positions as proportions. Integer division
+            # keeps these centers in card-local pixels instead of placing the
+            # answer text far outside the small label box.
+            xcenter card_width // 2
+            ycenter card_height - (label_height // 2) - 8
+            xsize card_width - 48
             text_align 0.5
             layout "subtitle"
+            line_spacing 2
+            slow_cps 0
             outlines [(2, "#000814", 0, 1)]
 
 
