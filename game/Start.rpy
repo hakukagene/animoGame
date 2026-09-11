@@ -18,8 +18,9 @@ init -50 python:
                 stop_on_mute=True,
             )
 
+    
 
-    def _cb_play_looped_bgm(path, channel, fadein=0.5):
+    def _cb_play_looped_bgm(path, channel, fadein=0.5, volume=0):
         if not renpy.loadable(path):
             renpy.notify("BGM файл олдсонгүй: {}".format(path))
             return False
