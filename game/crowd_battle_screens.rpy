@@ -1,4 +1,4 @@
-ußZïovÛß4}·İ}íßí§ß_}q·ôßÎxw|×fœsÆœuçŸ}Í½ãM^y­ök]úqı¸ç§_ñ÷transform cb_monster_idle:
+transform cb_monster_idle:
     anchor (0.5, 0.5)
     zoom 1.0
     linear 0.8 zoom 1.035
