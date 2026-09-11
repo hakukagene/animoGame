@@ -389,7 +389,12 @@ screen crowd_creator_summary(rows, participant_count):
             $ winner_size = 11 if len(winner_text) > 30 else 14
             $ winner_width = 500 if len(winner_text) > 25 else 270
             $ winner_x = 925 - winner_width
-            $ row_accent = "#25D8FF" if index % 2 == 0 else "#A657FF"
+            $ row_accent = cb_console_result_row_accent(index)
+            $ stats_anchor_x = row_width - (55 if len(winner_text) > 25 else 85)
+            $ underline_y = row_height - 17
+            $ stats_text = "{}% · {} санал".format(row_percentage, row_votes)
+            $ winner_line_width = cb_console_text_line_width(winner_text, winner_size, winner_width, 90)
+            $ stats_line_width = cb_console_text_line_width(stats_text, 14, 190, 120)
 
             fixed:
                 xpos row_x
@@ -433,16 +438,26 @@ screen crowd_creator_summary(rows, participant_count):
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
 
-                text "[row_percentage]% · [row_votes] санал":
+                text stats_text:
                     font CB_CONSOLE_FONT
                     size 14
                     color "#91A8FF"
-                    xpos row_width - 55
+                    xpos stats_anchor_x
                     xanchor 1.0
                     ycenter row_height // 2
                     text_align 1.0
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
+
+                add Solid(row_accent):
+                    xpos winner_x
+                    ypos underline_y
+                    xysize (winner_line_width, 2)
+
+                add Solid(row_accent):
+                    xpos stats_anchor_x - stats_line_width
+                    ypos underline_y
+                    xysize (stats_line_width, 2)
 
         text "Нийт оролцогч: [participant_count]":
             font CB_CONSOLE_FONT
