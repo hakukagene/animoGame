@@ -36,6 +36,8 @@ transform cb_speaker_monster:
 
 
 init -90 python:
+
+    _CB_VOICE_POST_DELAY = 1.5
     if not renpy.music.channel_defined("voice_wait"):
         renpy.music.register_channel(
             "voice_wait",
@@ -163,7 +165,7 @@ init -90 python:
 
     def cb_voice_line(who, what, voice_id):
         """
-        Shows one dialogue line and advances immediately after its OGG finishes.
+        Shows one dialogue line, then waits briefly after its OGG finishes.
 
         who:
             Character object, or None for narration.
@@ -173,7 +175,8 @@ init -90 python:
             "001", "nova_001.ogg", or a full game-relative audio path.                                                                                                          
 
         If the audio file is missing, the line falls back to normal
-        click-to-continue dialogue instead of crashing the game.
+        click-to-continue dialogue instead of crashing the game. Both paths
+        keep the same post-dialogue pause so scene timing stays consistent.
         """
 
         global _cb_voice_lock_dismiss
@@ -185,6 +188,7 @@ init -90 python:
             if voice_file:
                 renpy.notify("Voice файл олдсонгүй: {}".format(voice_file))
             renpy.say(who, what)
+            renpy.pause(_CB_VOICE_POST_DELAY, hard=True, modal=False)
             return False
 
         old_afm_enable = preferences.afm_enable
@@ -205,7 +209,6 @@ init -90 python:
             _cb_voice_lock_dismiss = True
             voice(voice_file)
             renpy.say(who, what)
-            return True
         finally:
             _cb_voice_lock_dismiss = False
             preferences.afm_enable = old_afm_enable
@@ -213,6 +216,9 @@ init -90 python:
             preferences.afm_time = old_afm_time
             preferences.wait_voice = old_wait_voice
             preferences.text_cps = old_text_cps
+
+        renpy.pause(_CB_VOICE_POST_DELAY, hard=True, modal=False)
+        return True
 
 
 
