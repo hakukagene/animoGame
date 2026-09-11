@@ -217,6 +217,71 @@ init -20 python:
         store.cb_enemy_name_voice = enemy["voice"]
 
 
+    # Warning UI uses its own SFX channel so it does not interrupt the
+    # cinematic rumble, narration, or background music channels.
+    _CB_WARNING_CHANNEL = "cb_system_warning"
+    _CB_WARNING_SOUND = "audio/ay/warning.ogg"
+    _CB_SYSTEM_RGB_IMAGES = frozenset((
+        "images/stat/redsystem2.png",
+        "images/stat/redsystem3.png",
+    ))
+
+    if not renpy.music.channel_defined(_CB_WARNING_CHANNEL):
+        renpy.music.register_channel(
+            _CB_WARNING_CHANNEL,
+            mixer="sfx",
+            loop=True,
+            stop_on_mute=True,
+        )
+
+
+    def cb_system_panel_art(path):
+        """Return supplied HUD art, adding alpha to RGB-only red assets."""
+
+        if path in _CB_SYSTEM_RGB_IMAGES:
+            # These two PNGs have a black RGB canvas instead of transparency.
+            # Their red channel is a clean alpha mask for the luminous HUD.
+            return im.AlphaMask(path, path)
+        return path
+
+
+    def cb_system_warning_start(enabled):
+        renpy.music.stop(channel=_CB_WARNING_CHANNEL, fadeout=0.0)
+        if enabled and renpy.loadable(_CB_WARNING_SOUND):
+            renpy.music.play(
+                _CB_WARNING_SOUND,
+                channel=_CB_WARNING_CHANNEL,
+                loop=True,
+                fadein=0.05,
+            )
+
+
+    def cb_system_warning_stop():
+        renpy.music.stop(channel=_CB_WARNING_CHANNEL, fadeout=0.0)
+
+
+transform cb_system_panel_fade:
+    alpha 0.0
+    linear 0.16 alpha 1.0
+
+
+transform cb_warning_panel_blink:
+    alpha 0.0
+    linear 0.12 alpha 1.0
+    block:
+        linear 0.22 alpha 0.42
+        linear 0.22 alpha 1.0
+        pause 0.12
+        repeat
+
+
+transform cb_warning_tint_pulse:
+    alpha 0.12
+    linear 0.28 alpha 0.26
+    linear 0.28 alpha 0.12
+    repeat
+
+
 transform cb_cinematic_world:
     xysize (config.screen_width, config.screen_height)
     xalign 0.5
@@ -360,38 +425,85 @@ screen crowd_cinematic_title(title, subtitle="", duration=2.8, warning=False):
 
 
 
-screen crowd_system_panel(title, lines, duration=3.2, warning=False):
+screen crowd_system_panel(
+    title,
+    lines,
+    duration=3.2,
+    warning=False,
+    panel_image=None
+):
     modal True
     $ accent = "#FF6E86" if warning else "#59E6A8"
-    add Solid("#05070DCC")
 
-    timer duration action Return(True)
+    on "show" action Function(cb_system_warning_start, warning)
+    on "hide" action Function(cb_system_warning_stop)
+
+    if warning:
+        timer duration action [
+            Function(cb_system_warning_stop),
+            Return(True),
+        ]
+    else:
+        timer duration action Return(True)
+
     key "dismiss" action NullAction()
 
-    frame:
-        background Solid("#10192DF2")
-        xalign 0.5
-        yalign 0.5
-        xsize 1180
-        padding (70, 52)
+    # Keep the cinematic visible behind the replacement HUD artwork.
+    add Solid("#05070D88")
 
-        vbox:
-            spacing 18
-            xfill True
+    if warning:
+        # This overlay belongs to the screen, so the red tint disappears at
+        # exactly the same time as the warning panel.
+        add Solid("#FF0000") at cb_warning_tint_pulse
 
-            text title:
-                color accent
-                size 35
-                bold True
-                xalign 0.5
+    if panel_image:
+        fixed:
+            xysize (1672, 941)
+            at Transform(zoom=config.screen_width / 1672.0)
 
-            for line in lines:
-                text line:
-                    color "#F6F7FF"
-                    size 29
+            if warning:
+                add cb_system_panel_art(panel_image):
+                    xcenter 836
+                    ycenter 470
+                    xysize (1672, 941)
+                    fit "contain"
+                    nearest True
+                    at cb_warning_panel_blink
+            else:
+                add cb_system_panel_art(panel_image):
+                    xcenter 836
+                    ycenter 470
+                    xysize (1672, 941)
+                    fit "contain"
+                    nearest True
+                    at cb_system_panel_fade
+
+    else:
+        # Fallback retained for any future text-only system notice.
+        frame:
+            background Solid("#10192DF2")
+            xalign 0.5
+            yalign 0.5
+            xsize 1180
+            padding (70, 52)
+
+            vbox:
+                spacing 18
+                xfill True
+
+                text title:
+                    color accent
+                    size 35
                     bold True
                     xalign 0.5
-                    text_align 0.5
+
+                for line in lines:
+                    text line:
+                        color "#F6F7FF"
+                        size 29
+                        bold True
+                        xalign 0.5
+                        text_align 0.5
 
 
 screen crowd_cinematic_movie(movie_path, duration=9.12):
@@ -487,7 +599,8 @@ label crowd_world_cinematic:
             "POPULATION — NORMAL.",
             "WORLD STABILITY — 100%.",
         ],
-        3.8
+        3.8,
+        panel_image="images/stat/bluesystem1.png"
     )
 
     $ cb_voice_line(N, "Магадгүй...", "audio/hutlugch33.ogg")
@@ -504,7 +617,8 @@ label crowd_world_cinematic:
         "SYSTEM",
         ["UNKNOWN PHENOMENON DETECTED."],
         2.4,
-        True
+        True,
+        panel_image="images/stat/redsystem1.png"
     )
 
     $ cb_voice_line(N, "Тэр юу вэ?", "audio/hutlugch35.ogg")
@@ -513,7 +627,8 @@ label crowd_world_cinematic:
         "SYSTEM",
         ["UNKNOWN.", "UNKNOWN.", "UNKNOWN.", "SIZE: UNMEASURABLE."],
         3.3,
-        True
+        True,
+        panel_image="images/stat/redsystem2.png"
     )
 
     call screen crowd_cinematic_movie(cb_enemy_reveal_movie, 9.12)
@@ -534,7 +649,8 @@ label crowd_world_cinematic:
             "UNKNOWN ENTITY",
         ],
         3.8,
-        True
+        True,
+        panel_image="images/stat/redsystem3.png"
     )
 
     $ cb_voice_line(Monster, "Энэ ертөнц...", "audio/mangas1.ogg")
@@ -643,7 +759,8 @@ label crowd_victory_ending:
             "CITY — STABLE.",
             "CORE — STABLE.",
         ],
-        4.0
+        4.0,
+        panel_image="images/stat/bluesystem2.png"
     )
 
     $ cb_voice_line(N, "ANIMO World...", "audio/win2.ogg")
