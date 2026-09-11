@@ -406,18 +406,6 @@ screen crowd_cinematic_movie(movie_path, duration=9.12):
     timer duration action Return(True)
     key "dismiss" action NullAction()
 
-    text "UNKNOWN ENTITY":
-        color "#FF6E86"
-        size 29
-        bold True
-        xpos 60
-        ypos 48
-
-    textbutton "АЛГАСАХ":
-        style "cb_button"
-        xalign 0.97
-        yalign 0.95
-        action Return("skip")
 
 
 screen crowd_stability_tick(stability):

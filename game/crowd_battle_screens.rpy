@@ -914,7 +914,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         xcenter 1415
         ycenter 445
 
-    add Movie(channel="cb_monster_movie", size=(870, 490)):
+    add Movie(channel="cb_monster_movie", size=(870, 490), alpha=True):
         xcenter 1415
         ycenter 445
 
