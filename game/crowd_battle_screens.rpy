@@ -1318,11 +1318,7 @@ screen crowd_round_result(result, final_question=False):
 
             text "Нийт хариулт: [total_answers]" style "cb_small_text" xalign 0.5
 
-            text "[result_display_label] секундын дараа [next_part_text] руу автоматаар шилжинэ.":
-                color "#8999FF"
-                size 20
-                xalign 0.5
-                text_align 0.5
+            
 
 
 # Code-native sci-fi pixel console: scalable borders, no baked-in UI text.
@@ -1330,7 +1326,7 @@ init -10 python:
     def cb_console_preview(path, crop=None):
         # Render a small texture, then let the card enlarge it with hard pixels.
         return Transform(Flatten(Transform(path, crop=crop, xysize=(120, 80))),
-                         nearest=True)
+                        nearest=True)
 
     def cb_console_panel(accent="#7375EF"):
         return Frame(Composite(
@@ -1401,283 +1397,100 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
     if cb_round_can_finish(guarded_round_id):
         timer 0.10 action Return(True)
     
-    frame:
-        background cb_console_panel("#38D9FF")
-        xalign 0.5
-        yalign 0.5
-        xsize 1560
-        padding (60, 32)
+    fixed:
+        xysize (1672, 941)
+        at Transform(zoom=config.screen_width / 1672.0)
 
-        vbox:
-            spacing 18
-            xfill True
+        add "images/creators_console/background.png":
+            xysize (1672, 941)
+            nearest True
 
-            text "CREATORS' QUESTION · [question_number]/[question_total]":
-                color "#8999FF"
-                size 24
-                bold True
-                xalign 0.5
+        text "CREATORS' QUESTION · [question_number]/[question_total]":
+            font "fonts/PressStart2P-Regular.ttf"
+            size 20
+            color "#8CB7F9"
+            xcenter 836
+            ypos 167
 
-            text "[cb_remaining_seconds] секунд":
-                color "#FF899D"
-                size 30
-                bold True
-                xalign 0.5
+        text "[cb_remaining_seconds] секунд":
+            font "fonts/PressStart2P-Regular.ttf"
+            size 28
+            color "#FF899D"
+            xcenter 836
+            ypos 207
 
-            # Fifteen segments follow the real server countdown, not a new timer.
-            hbox:
-                xalign 0.5
-                spacing 5
-                for segment in range(15):
-                    add Solid("#FF899D" if segment < int(15 * max(0, min(cb_remaining_seconds, question_duration)) / max(1, question_duration)) else "#213657"):
-                        xysize (30, 12)
+        text current_round.get("question", ""):
+            size 36
+            bold True
+            color "#F6FAFF"
+            xcenter 836
+            ypos 306
+            xsize 1420
+            text_align 0.5
+            layout "subtitle"
 
-            text current_round.get("question", ""):
-                color "#FFFFFF"
-                size 38
-                bold True
-                text_align 0.5
-                xalign 0.5
+        add Solid("#101C37"):
+            xpos 578
+            ypos 258
+            xysize (513, 18)
 
-            # 1-р асуулт: role бүрийг 4 + 3 зурагтай карт болгоно.
-            if question_number == 1:
-                vbox:
-                    spacing 12
-                    xalign 0.5
+        hbox:
+            xpos 578
+            ypos 259
+            spacing 5
 
-                    for row_start in range(0, len(current_round.get("choices", [])), 4):
-                        hbox:
-                            spacing 16
-                            xalign 0.5
+            for segment in range(10):
+                add Solid(
+                    "#FF899D"
+                    if segment < int(
+                        10 * max(
+                            0,
+                            min(
+                                cb_remaining_seconds,
+                                question_duration
+                            )
+                        ) / max(1, question_duration)
+                    )
+                    else "#263F65"
+                ):
+                    xysize (46, 17)
 
-                            for choice in current_round.get("choices", [])[row_start:row_start + 4]:
-                                $ role_image = CB_ROLE_PREVIEW_DATA.get(choice)
+        $ card_layout = cb_console_layout(question_number)
 
-                                frame:
-                                    background cb_console_panel("#7375EF")
-                                    xsize 300
-                                    ysize 230
-                                    padding (10, 8)
+        for index, choice in enumerate(
+            current_round.get("choices", [])
+        ):
+            if index < len(card_layout):
 
-                                    vbox:
-                                        spacing 4
-                                        xalign 0.5
+                $ cx, cy, cw, ch = card_layout[index]
 
-                                        if role_image:
-                                            add cb_console_preview(role_image):
-                                                xysize (180, 180)
-                                                xalign 0.5
+                fixed:
+                    xpos cx
+                    ypos cy
+                    xysize (cw, ch)
 
-                                        text choice:
-                                            color "#F6F7FF"
-                                            size 22
-                                            bold True
-                                            xalign 0.5
-                                            text_align 0.5
+                    frame:
+                        background Solid("#162B50")
+                        xfill True
+                        yfill True
+                        padding (8, 8)
 
-            # 2-р асуулт: BG хавтасны cinematic бүрийг жижиг preview болгоно.
-            elif question_number == 2:
-                hbox:
-                    spacing 18
-                    xalign 0.5
+                        add cb_console_art(
+                            question_number,
+                            index
+                        ):
+                            xysize (cw - 16, ch - 64)
+                            nearest True
 
-                    for choice in current_round.get("choices", []):
-                        $ preview_image = CB_WORLD_PREVIEW_DATA.get(choice)
-
-                        frame:
-                            background cb_console_panel("#7375EF")
-                            xsize 330
-                            ysize 235
-                            padding (14, 14)
-
-                            vbox:
-                                spacing 10
-                                xalign 0.5
-
-                                if preview_image:
-                                    add cb_console_preview(preview_image):
-                                        xysize (300, 169)
-                                        xalign 0.5
-
-                                text choice:
-                                    color "#F6F7FF"
-                                    size 23
-                                    bold True
-                                    xalign 0.5
-                                    text_align 0.5
-
-            # 3-р асуулт: location бүрийг 3 + 2 зурагтай карт болгоно.
-            elif question_number == 3:
-                vbox:
-                    spacing 12
-                    xalign 0.5
-
-                    for row_start in range(0, len(current_round.get("choices", [])), 3):
-                        hbox:
-                            spacing 16
-                            xalign 0.5
-
-                            for choice in current_round.get("choices", [])[row_start:row_start + 3]:
-                                $ location_image = CB_LOCATION_PREVIEW_DATA.get(choice)
-
-                                frame:
-                                    background cb_console_panel("#7375EF")
-                                    xsize 400
-                                    ysize 255
-                                    padding (8, 8)
-
-                                    vbox:
-                                        spacing 6
-                                        xalign 0.5
-
-                                        if location_image:
-                                            add cb_console_preview(location_image):
-                                                xysize (200, 200)
-                                                xalign 0.5
-
-                                        text choice:
-                                            color "#F6F7FF"
-                                            size 22
-                                            bold True
-                                            xalign 0.5
-                                            text_align 0.5
-
-            # 4-р асуулт: 7 Citizen зургийг 4 + 3 сонголтын карт болгоно.
-            elif question_number == 4:
-                vbox:
-                    spacing 12
-                    xalign 0.5
-
-                    for row_start in range(0, len(current_round.get("choices", [])), 4):
-                        hbox:
-                            spacing 16
-                            xalign 0.5
-
-                            for choice in current_round.get("choices", [])[row_start:row_start + 4]:
-                                $ citizen_preview = CB_CITIZEN_PREVIEW_DATA.get(choice) or {}
-                                $ citizen_image = citizen_preview.get("image")
-                                $ citizen_crop = citizen_preview.get("crop")
-
-                                frame:
-                                    background cb_console_panel("#7375EF")
-                                    xsize 330
-                                    ysize 205
-                                    padding (12, 10)
-
-                                    vbox:
-                                        spacing 7
-                                        xalign 0.5
-
-                                        if citizen_image:
-                                            add cb_console_preview(citizen_image, citizen_crop):
-                                                xysize (230, 135)
-                                                xalign 0.5
-
-                                        text choice:
-                                            color "#F6F7FF"
-                                            size 21
-                                            bold True
-                                            xalign 0.5
-                                            text_align 0.5
-
-            # 6-р асуулт: дайсан бүрийн танилцуулга + skill-ийг
-            # зурагт үзүүлсэн шиг 3 зэрэгцээ босоо карт болгон харуулна.
-            elif question_number == 6:
-                hbox:
-                    spacing 22
-                    xalign 0.5
-
-                    for choice in current_round.get("choices", []):
-                        $ enemy_card = CB_ENEMY_CARD_DATA.get(choice) or {}
-                        $ enemy_accent = enemy_card.get("accent", "#8999FF")
-
-                        frame:
-                            background cb_console_panel(enemy_accent)
-                            xsize 410
-                            ysize 390
-                            padding (10, 10)
-
-                            frame:
-                                background Solid("#151F35FA")
-                                xfill True
-                                yfill True
-                                padding (16, 14)
-
-                                vbox:
-                                    spacing 8
-                                    xfill True
-
-                                    text enemy_card.get("name", choice):
-                                        color "#FFFFFF"
-                                        size 29
-                                        bold True
-                                        xalign 0.5
-                                        text_align 0.5
-
-                                    text enemy_card.get("subtitle", ""):
-                                        color enemy_accent
-                                        size 19
-                                        bold True
-                                        xalign 0.5
-                                        text_align 0.5
-
-                                    null height 4
-
-                                    text enemy_card.get("intro", ""):
-                                        color "#C9D0E4"
-                                        size 19
-                                        xsize 350
-                                        text_align 0.5
-                                        xalign 0.5
-
-                                    null height 4
-
-                                    text "ОНЦГОЙ ЧАДВАР":
-                                        color enemy_accent
-                                        size 16
-                                        bold True
-                                        xalign 0.5
-
-                                    text enemy_card.get("skill_name", ""):
-                                        color "#FFFFFF"
-                                        size 22
-                                        bold True
-                                        xalign 0.5
-                                        text_align 0.5
-
-                                    text enemy_card.get("skill_description", ""):
-                                        color "#D7DCEF"
-                                        size 18
-                                        xsize 350
-                                        text_align 0.5
-                                        xalign 0.5
-
-            # 5-р болон нэмэлт creators асуултуудын layout.
-            else:
-                hbox:
-                    spacing 18
-                    xalign 0.5
-                    for choice in current_round.get("choices", []):
-                        frame:
-                            background cb_console_panel("#7375EF")
-                            xsize 330
-                            ysize 220
-                            padding (22, 26)
-                            vbox:
-                                xalign 0.5
-                                yalign 0.5
-                                spacing 24
-                                text CB_CREATOR_TRAIT_SYMBOLS.get(choice, "+"):
-                                    size 60
-                                    color "#38D9FF"
-                                    xalign 0.5
-                                    font "DejaVuSans.ttf"
-                                text choice:
-                                    color "#F6F7FF"
-                                    size 26
-                                    bold True
-                                    xalign 0.5
-                                    text_align 0.5
+                        text choice:
+                            font "fonts/PressStart2P-Regular.ttf"
+                            size 16
+                            color "#EDF7FF"
+                            xcenter cw / 2
+                            ycenter ch - 27
+                            xsize cw - 22
+                            text_align 0.5
+                            layout "subtitle"
 
 
 
@@ -1762,11 +1575,6 @@ screen crowd_creators_result(question, result):
                     bold True
                     xalign 0.5
 
-            text "[auto_seconds] секундын дараа автоматаар үргэлжилнэ.":
-                color "#8999FF"
-                size 23
-                xalign 0.5
-                text_align 0.5
 
 
 screen crowd_battle_break(victory):
