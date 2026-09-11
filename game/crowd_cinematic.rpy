@@ -337,62 +337,140 @@ transform cb_destroyed_world:
 
 screen crowd_creator_summary(rows, participant_count):
     modal True
-    add Solid("#070B14")
-    add Solid("#6F7CFF18")
+    $ summary_rows = list(rows or [])
+    $ row_width = 1210
+    $ row_height = 68
+    $ row_gap = 4
+    $ row_x = (1672 - row_width) // 2
+    $ row_y = 270
 
     timer 5.0 action Return(True)
     key "dismiss" action NullAction()
 
-    frame:
-        at cb_result_pop
-        background Solid("#121B30F7")
-        xalign 0.5
-        yalign 0.5
-        xsize 1480
-        padding (64, 40)
+    add Solid("#05070D")
 
-        vbox:
-            spacing 14
-            xfill True
+    fixed:
+        xysize (1672, 941)
+        at Transform(zoom=config.screen_width / 1672.0)
 
-            text "БҮТЭЭГЧДИЙН СОНГОЛТ":
-                style "cb_title_text"
+        add CB_CONSOLE_ROOT + "background.png":
+            xysize (1672, 941)
+            nearest True
+
+        text "БҮТЭЭГЧДИЙН СОНГОЛТ":
+            font CB_CONSOLE_FONT
+            size 36
+            color "#F7FAFF"
+            xcenter 836
+            ypos 178
+            text_align 0.5
+            slow_cps 0
+            outlines [(2, "#071126", 0, 2)]
+
+        add cb_console_result_decoration("left"):
+            xpos 236
+            ypos 211
+            xysize (330, 72)
+            nearest True
+
+        add cb_console_result_decoration("right"):
+            xpos 1106
+            ypos 211
+            xysize (330, 72)
+            nearest True
+
+        for index, row in enumerate(summary_rows):
+            $ question_text = str(row.get("question", ""))
+            $ winner_text = str(row.get("winner", "—"))
+            $ row_percentage = max(0, int(row.get("percentage", 0)))
+            $ row_votes = max(0, int(row.get("votes", 0)))
+            $ current_row_y = row_y + index * (row_height + row_gap)
+            $ question_size = 9 if len(question_text) > 52 else 10
+            $ winner_size = 11 if len(winner_text) > 30 else 14
+            $ winner_width = 500 if len(winner_text) > 25 else 270
+            $ winner_x = 925 - winner_width
+            $ row_accent = "#25D8FF" if index % 2 == 0 else "#A657FF"
+
+            fixed:
+                xpos row_x
+                ypos current_row_y
+                xysize (row_width, row_height)
+
+                add cb_console_result_row_frame(index):
+                    xysize (row_width, row_height)
+                    nearest True
+
+                text question_text:
+                    font CB_CONSOLE_FONT
+                    size question_size
+                    color "#9CB1D6"
+                    xpos 56
+                    ycenter row_height // 2
+                    xsize winner_x - 86
+                    layout "subtitle"
+                    line_spacing 1
+                    slow_cps 0
+                    outlines [(1, "#061020", 0, 1)]
+
+                text ">>":
+                    font CB_CONSOLE_FONT
+                    size 10
+                    color row_accent
+                    xpos winner_x - 24
+                    ycenter row_height // 2
+                    slow_cps 0
+                    outlines [(1, "#061020", 0, 1)]
+
+                text winner_text:
+                    font CB_CONSOLE_FONT
+                    size winner_size
+                    color "#F7FAFF"
+                    xpos winner_x
+                    ycenter row_height // 2
+                    xsize winner_width
+                    layout "subtitle"
+                    line_spacing 1
+                    slow_cps 0
+                    outlines [(2, "#061020", 0, 1)]
+
+                text "[row_percentage]% · [row_votes] санал":
+                    font CB_CONSOLE_FONT
+                    size 14
+                    color "#91A8FF"
+                    xpos row_width - 55
+                    xanchor 1.0
+                    ycenter row_height // 2
+                    text_align 1.0
+                    slow_cps 0
+                    outlines [(2, "#061020", 0, 1)]
+
+        text "Нийт оролцогч: [participant_count]":
+            font CB_CONSOLE_FONT
+            size 14
+            color "#AAB8D5"
+            xcenter 836
+            ypos 710
+            text_align 0.5
+            slow_cps 0
+
+        button:
+            xpos 626
+            ypos 744
+            xysize (420, 56)
+            padding (0, 0)
+            background cb_console_result_row_frame(0)
+            hover_background cb_console_result_row_frame(1)
+            action Return(True)
+
+            text "ҮРГЭЛЖЛҮҮЛЭХ":
+                font CB_CONSOLE_FONT
+                size 16
+                color "#F7FAFF"
                 xalign 0.5
-
-            for row in rows:
-                $ row_percentage = row.get("percentage", 0)
-                $ row_votes = row.get("votes", 0)
-                hbox:
-                    spacing 30
-                    xfill True
-
-                    vbox:
-                        spacing 2
-                        xsize 1040
-                        text row.get("question", ""):
-                            color "#9DA7C2"
-                            size 18
-                        text row.get("winner", "—"):
-                            color "#FFFFFF"
-                            size 25
-                            bold True
-
-                    text "[row_percentage]%  ·  [row_votes] санал":
-                        color "#8999FF"
-                        size 23
-                        bold True
-                        xalign 1.0
-                        text_align 1.0
-                        xsize 280
-
-            text "Нийт оролцогч: [participant_count]":
-                style "cb_small_text"
-                xalign 0.5
-
-            textbutton "ҮРГЭЛЖЛҮҮЛЭХ":
-                style "cb_button"
-                xalign 0.5
-                action Return(True)
+                yalign 0.5
+                text_align 0.5
+                slow_cps 0
+                outlines [(2, "#061020", 0, 1)]
 
 
 screen crowd_cinematic_title(title, subtitle="", duration=2.8, warning=False):
