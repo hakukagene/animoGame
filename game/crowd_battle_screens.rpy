@@ -1372,7 +1372,7 @@ screen cb_creators_console_backdrop():
         color "#6EAAE8"
 
 
-screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):
+screen crowd_creators_round_legacy_unused(question_number, question_total, expected_round_id=None, question_duration=15):
     modal True
 
     $ current_round = cb_battle.get("current_round") or {}
