@@ -243,7 +243,7 @@ screen cb_creators_console_content(question_number, question_total, current_roun
             ypos 207
             xsize 1420
             ysize 60
-            xalign 0.5
+
             text_align 0.5
             layout "subtitle"
             outlines [(2, "#071126", 0, 2)]
