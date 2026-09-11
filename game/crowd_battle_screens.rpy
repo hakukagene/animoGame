@@ -1492,7 +1492,7 @@ init -10 python:
             "images/creators_console/answer bar detail.png"
         )
 
-screen crowd_creators_result(question, result):
+screen crowd_creators_result_legacy_unused(question, result):
     modal True
     default auto_seconds = CB_RESULT_DISPLAY_SECONDS
 
