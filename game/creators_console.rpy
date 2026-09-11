@@ -330,7 +330,7 @@ init -10 python:
 
 screen crowd_creators_result(question, result):
     modal True
-    default auto_seconds = 3
+    default auto_seconds = 20
 
     $ latest_round = cb_battle.get("current_round") or {}
     $ latest_result = result or latest_round.get("result") or {}
