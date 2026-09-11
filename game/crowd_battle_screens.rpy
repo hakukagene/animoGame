@@ -1325,13 +1325,74 @@ screen crowd_round_result(result, final_question=False):
                 text_align 0.5
 
 
+# Code-native sci-fi pixel console: scalable borders, no baked-in UI text.
+init -10 python:
+    def cb_console_preview(path, crop=None):
+        # Render a small texture, then let the card enlarge it with hard pixels.
+        return Transform(Flatten(Transform(path, crop=crop, xysize=(120, 80))),
+                         nearest=True)
+
+    def cb_console_panel(accent="#7375EF"):
+        return Frame(Composite(
+            (40, 40),
+            (4, 0), Solid(accent, xysize=(32, 40)),
+            (0, 4), Solid(accent, xysize=(40, 32)),
+            (4, 4), Solid("#192F52", xysize=(32, 32)),
+            (8, 8), Solid("#0C172B", xysize=(24, 24)),
+            (8, 4), Solid("#98CBFF", xysize=(16, 2)),
+            (4, 8), Solid("#98CBFF", xysize=(2, 16)),
+        ), 12, 12, tile=False)
+
+    CB_CREATOR_TRAIT_SYMBOLS = {
+        "Peaceful": "+", "Competitive": ">>",
+        "Creative": "*", "Adventurous": "^",
+    }
+
+
+screen cb_creators_console_backdrop():
+    add Solid("#050A18")
+    # Quiet circuitry; all coordinates are in the game's virtual resolution.
+    for line_x in range(0, config.screen_width, 80):
+        add Solid("#11203A"):
+            xpos line_x
+            xysize (1, config.screen_height)
+    for line_y in range(0, config.screen_height, 80):
+        add Solid("#11203A"):
+            ypos line_y
+            xysize (config.screen_width, 1)
+    for side in (0.02, 0.98):
+        frame:
+            background cb_console_panel("#345D99")
+            xalign side
+            yalign 0.5
+            xsize 28
+            ysize 800
+            padding (8, 16)
+            vbox:
+                spacing 80
+                for light in range(8):
+                    add Solid("#38D9FF" if light % 2 == 0 else "#9D56FF"):
+                        xysize (10, 12)
+    text "ANIMO  /  WORLD CONSOLE":
+        xpos 100
+        ypos 42
+        size 22
+        bold True
+        color "#6EAAE8"
+    text "CREATORS  /  INPUT ONLINE":
+        xalign 0.5
+        yalign 0.96
+        size 18
+        color "#6EAAE8"
+
+
 screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):
     modal True
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
 
-    add Solid("#070B14")
+    use cb_creators_console_backdrop
 
     # Серверийн хугацаа, хариултын төлөвийг шинэчилнэ.
     timer 0.25 repeat True action Function(cb_poll_round_action)
@@ -1341,11 +1402,11 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
         timer 0.10 action Return(True)
     
     frame:
-        background Solid("#121B30F7")
+        background cb_console_panel("#38D9FF")
         xalign 0.5
         yalign 0.5
-        xsize 1500
-        padding (60, 42)
+        xsize 1560
+        padding (60, 32)
 
         vbox:
             spacing 18
@@ -1362,6 +1423,14 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                 size 30
                 bold True
                 xalign 0.5
+
+            # Fifteen segments follow the real server countdown, not a new timer.
+            hbox:
+                xalign 0.5
+                spacing 5
+                for segment in range(15):
+                    add Solid("#FF899D" if segment < int(15 * max(0, min(cb_remaining_seconds, question_duration)) / max(1, question_duration)) else "#213657"):
+                        xysize (30, 12)
 
             text current_round.get("question", ""):
                 color "#FFFFFF"
@@ -1385,7 +1454,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                 $ role_image = CB_ROLE_PREVIEW_DATA.get(choice)
 
                                 frame:
-                                    background Solid("#18233BF5")
+                                    background cb_console_panel("#7375EF")
                                     xsize 300
                                     ysize 230
                                     padding (10, 8)
@@ -1395,7 +1464,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                         xalign 0.5
 
                                         if role_image:
-                                            add role_image:
+                                            add cb_console_preview(role_image):
                                                 xysize (180, 180)
                                                 xalign 0.5
 
@@ -1416,7 +1485,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                         $ preview_image = CB_WORLD_PREVIEW_DATA.get(choice)
 
                         frame:
-                            background Solid("#18233BF5")
+                            background cb_console_panel("#7375EF")
                             xsize 330
                             ysize 235
                             padding (14, 14)
@@ -1426,7 +1495,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                 xalign 0.5
 
                                 if preview_image:
-                                    add preview_image:
+                                    add cb_console_preview(preview_image):
                                         xysize (300, 169)
                                         xalign 0.5
 
@@ -1452,7 +1521,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                 $ location_image = CB_LOCATION_PREVIEW_DATA.get(choice)
 
                                 frame:
-                                    background Solid("#18233BF5")
+                                    background cb_console_panel("#7375EF")
                                     xsize 400
                                     ysize 255
                                     padding (8, 8)
@@ -1462,7 +1531,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                         xalign 0.5
 
                                         if location_image:
-                                            add location_image:
+                                            add cb_console_preview(location_image):
                                                 xysize (200, 200)
                                                 xalign 0.5
 
@@ -1490,7 +1559,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                 $ citizen_crop = citizen_preview.get("crop")
 
                                 frame:
-                                    background Solid("#18233BF5")
+                                    background cb_console_panel("#7375EF")
                                     xsize 330
                                     ysize 205
                                     padding (12, 10)
@@ -1500,8 +1569,7 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                                         xalign 0.5
 
                                         if citizen_image:
-                                            add citizen_image:
-                                                crop citizen_crop
+                                            add cb_console_preview(citizen_image, citizen_crop):
                                                 xysize (230, 135)
                                                 xalign 0.5
 
@@ -1524,16 +1592,16 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
                         $ enemy_accent = enemy_card.get("accent", "#8999FF")
 
                         frame:
-                            background Solid(enemy_accent)
+                            background cb_console_panel(enemy_accent)
                             xsize 410
-                            ysize 320
-                            padding (3, 3)
+                            ysize 390
+                            padding (10, 10)
 
                             frame:
                                 background Solid("#151F35FA")
                                 xfill True
                                 yfill True
-                                padding (24, 20)
+                                padding (16, 14)
 
                                 vbox:
                                     spacing 8
@@ -1586,15 +1654,30 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
 
             # 5-р болон нэмэлт creators асуултуудын layout.
             else:
-                vbox:
-                    spacing 12
+                hbox:
+                    spacing 18
                     xalign 0.5
-
                     for choice in current_round.get("choices", []):
-                        text choice:
-                            color "#D7DCEF"
-                            size 28
-                            xalign 0.5
+                        frame:
+                            background cb_console_panel("#7375EF")
+                            xsize 330
+                            ysize 220
+                            padding (22, 26)
+                            vbox:
+                                xalign 0.5
+                                yalign 0.5
+                                spacing 24
+                                text CB_CREATOR_TRAIT_SYMBOLS.get(choice, "+"):
+                                    size 60
+                                    color "#38D9FF"
+                                    xalign 0.5
+                                    font "DejaVuSans.ttf"
+                                text choice:
+                                    color "#F6F7FF"
+                                    size 26
+                                    bold True
+                                    xalign 0.5
+                                    text_align 0.5
 
 
 
