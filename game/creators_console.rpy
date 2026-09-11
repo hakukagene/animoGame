@@ -118,11 +118,24 @@ init -10 python:
         }.get(question_number, 13)
 
 
+    def cb_console_text_line_width(text, font_size, maximum, minimum=72):
+        """Approximate Press Start 2P text width for a fitted underline."""
+        estimated = len(str(text or "")) * (int(font_size) + 1)
+        return max(int(minimum), min(int(maximum), estimated))
+
+
 screen cb_console_card(question_number, index, choice, card_width, card_height):
     $ accent = CB_CONSOLE_CARD_ACCENTS[index % len(CB_CONSOLE_CARD_ACCENTS)]
     $ label_height = 58
     $ image_width = card_width - 30
     $ image_height = card_height - label_height - 24
+    $ choice_font_size = cb_console_choice_size(question_number)
+    $ choice_line_width = cb_console_text_line_width(
+        choice,
+        choice_font_size,
+        card_width - 50,
+        80,
+    )
 
     fixed:
         xysize (card_width, card_height)
@@ -144,13 +157,13 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             xysize (card_width - 30, label_height)
 
         add Solid(accent):
-            xpos 15
-            ypos card_height - label_height - 11
-            xysize (card_width - 30, 3)
+            xpos (card_width - choice_line_width) // 2
+            ypos card_height - 18
+            xysize (choice_line_width, 3)
 
         text choice:
             font CB_CONSOLE_FONT
-            size cb_console_choice_size(question_number)
+            size choice_font_size
             color "#FFFFFF"
             # Ren'Py treats float positions as proportions. Integer division
             # keeps these centers in card-local pixels instead of placing the
@@ -272,6 +285,10 @@ screen cb_creators_console_content(question_number, question_total, current_roun
 
 
 init -10 python:
+    def cb_console_result_row_accent(index):
+        return "#25D8FF" if index % 2 == 0 else "#A657FF"
+
+
     def cb_console_result_row_frame(index):
         """Alternating cyan and purple answer rows from the supplied sheet."""
         frame_y = 160 if index % 2 == 0 else 350
@@ -392,6 +409,12 @@ screen crowd_creators_result(question, result):
             $ count = max(0, int(counts[index])) if index < len(counts) else 0
             $ percentage = int(round(100.0 * count / total_answers)) if total_answers else 0
             $ current_row_y = row_y + index * (row_height + row_gap)
+            $ row_accent = cb_console_result_row_accent(index)
+            $ stats_anchor_x = row_width - 100
+            $ underline_y = row_height - 9
+            $ stats_text = "{} · {}%".format(count, percentage)
+            $ choice_line_width = cb_console_text_line_width(choice, row_font_size, 700, 90)
+            $ stats_line_width = cb_console_text_line_width(stats_text, row_font_size, 220, 100)
 
             fixed:
                 xpos row_x
@@ -408,23 +431,33 @@ screen crowd_creators_result(question, result):
                     color "#F7FAFF"
                     xpos 58
                     ycenter row_height // 2
-                    xsize 840
+                    xsize 700
                     text_align 0.0
                     layout "subtitle"
                     line_spacing 2
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
 
-                text "[count] · [percentage]%":
+                text stats_text:
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#91A8FF"
-                    xpos row_width - 58
+                    xpos stats_anchor_x
                     xanchor 1.0
                     ycenter row_height // 2
                     text_align 1.0
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
+
+                add Solid(row_accent):
+                    xpos 58
+                    ypos underline_y
+                    xysize (choice_line_width, 2)
+
+                add Solid(row_accent):
+                    xpos stats_anchor_x - stats_line_width
+                    ypos underline_y
+                    xysize (stats_line_width, 2)
 
         text "Нийт оролцогч: [total_answers] · Нийт санал: [total_answers]":
             font CB_CONSOLE_FONT
