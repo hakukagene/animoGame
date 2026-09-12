@@ -135,8 +135,7 @@ label crowd_monster_battle:
 
     # Сүүлийн цохилтын result WebM бүрэн дууссаны дараа ялагдсан талыг
     # хар тайзан дээр төвд томруулж, тохирох break animation-ийг тоглуулна.
-    $ city_destroyed = (not victory) and cb_player_hp <= 0
-    call screen crowd_battle_break(victory, city_destroyed)
+    call screen crowd_battle_break(victory)
 
     if victory:
         call crowd_victory_ending
