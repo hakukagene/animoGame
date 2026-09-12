@@ -105,9 +105,19 @@ transform cb_battle_ui_overlay:
 
 define CB_RESULT_DISPLAY_SECONDS = 4
 define CB_ATTACK_RESULT_DISPLAY_SECONDS = 7
-define CB_BREAK_START_DELAY = 0.30
-define CB_BREAK_SCREEN_SECONDS = 5.80
+define CB_BREAK_FOCUS_SECONDS = 0.80
+define CB_BREAK_CLIP_SECONDS = 5.40
+define CB_BREAK_TAIL_SECONDS = 0.25
 define CB_BATTLE_FONT = "fonts/PressStart2P-Regular.ttf"
+
+
+transform cb_break_loser_focus:
+    anchor (0.5, 0.5)
+    xalign 0.5
+    yalign 0.5
+    alpha 0.0
+    zoom 0.72
+    easeout CB_BREAK_FOCUS_SECONDS alpha 1.0 zoom 1.0
 
 
 init -35 python:
@@ -523,31 +533,64 @@ init -35 python:
         )
 
 
+    def cb_battle_break_sequence(victory, city_destroyed=False):
+        """Return the ordered final animation clips for the losing side."""
+
+        clips = []
+
+        # Хотын HP 0 болсон ялагдалд pixel explosion заавал түрүүлнэ.
+        if not victory and city_destroyed:
+            if renpy.loadable(CB_BREAK_FALLBACK_MOVIE):
+                clips.append(CB_BREAK_FALLBACK_MOVIE)
+
+        break_movie = cb_battle_break_movie(victory)
+        if renpy.loadable(break_movie) and break_movie not in clips:
+            clips.append(break_movie)
+
+        # Сонгосон тусгай clip байхгүй үед дэлгэц хоосон үлдэхгүй.
+        if not clips and renpy.loadable(CB_BREAK_FALLBACK_MOVIE):
+            clips.append(CB_BREAK_FALLBACK_MOVIE)
+
+        return clips
+
+
+    def cb_battle_break_duration(victory, city_destroyed=False):
+        clip_count = len(cb_battle_break_sequence(victory, city_destroyed))
+        return (
+            CB_BREAK_FOCUS_SECONDS
+            + (CB_BREAK_CLIP_SECONDS * clip_count)
+            + CB_BREAK_TAIL_SECONDS
+        )
+
+
     def cb_prepare_battle_break(victory):
-        """Clear old feedback before the final break animation."""
+        """Clear the final-hit media and prepare the centered loser shot."""
 
         renpy.music.stop(channel="cb_break_movie", fadeout=0.0)
         renpy.music.stop(channel="cb_monster_movie", fadeout=0.0)
-
-        # Хот ялагдсан үед амьд үлдсэн boss idle хэвээр байна.
-        if not victory:
-            cb_start_battle_idle()
         return None
 
 
-    def cb_play_battle_break(victory):
-        """Play the losing monster/city animation exactly once."""
+    def cb_play_battle_break(victory, city_destroyed=False):
+        """Play explosion (when needed), then the selected loser clip."""
 
-        break_movie = cb_battle_break_movie(victory)
-        if not renpy.loadable(break_movie):
-            break_movie = CB_BREAK_FALLBACK_MOVIE
+        clips = cb_battle_break_sequence(victory, city_destroyed)
+        if not clips:
+            return None
 
-        if renpy.loadable(break_movie):
-            renpy.music.play(
-                break_movie,
+        renpy.music.play(
+            clips[0],
+            channel="cb_break_movie",
+            loop=False,
+            fadeout=0.0,
+        )
+
+        for clip in clips[1:]:
+            renpy.music.queue(
+                clip,
                 channel="cb_break_movie",
                 loop=False,
-                fadeout=0.0,
+                clear_queue=False,
             )
         return None
 
@@ -1588,136 +1631,46 @@ screen crowd_creators_result_legacy_unused(question, result):
 
 
 
-screen crowd_battle_break(victory):
+screen crowd_battle_break(victory, city_destroyed=False):
     modal True
-    style_prefix "cb_battle"
+    default break_started = False
 
-    $ ui_theme = cb_battle_location_theme()
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
-    $ city_attack = cb_city_attack_media()
-    $ city_weapon_image = city_attack["weapon"]
-    $ city_weapon_label = city_attack["label"]
-
-    use crowd_battle_environment(ui_theme)
+    $ break_screen_seconds = cb_battle_break_duration(victory, city_destroyed)
 
     on "show" action Function(cb_prepare_battle_break, victory)
     on "hide" action Function(cb_stop_battle_break)
-    timer CB_BREAK_START_DELAY action Function(cb_play_battle_break, victory)
-    timer CB_BREAK_SCREEN_SECONDS action Return(True)
+    timer CB_BREAK_FOCUS_SECONDS action [
+        SetScreenVariable("break_started", True),
+        Function(cb_play_battle_break, victory, city_destroyed),
+    ]
+    timer break_screen_seconds action Return(True)
 
-    vbox:
-        xpos 285
-        ypos 88
-        xsize 470
-        spacing 8
-        text "ҮЗЭГЧДИЙН БАГ" style "cb_small_text"
-        text "[cb_player_hp] / [cb_player_max_hp] HP":
-            color "#7FF0BB"
-            size 25
-        bar:
-            value StaticValue(cb_player_hp, cb_player_max_hp)
-            xsize 470
-            ysize 22
-            left_bar Solid("#38D99A")
-            right_bar Solid(ui_theme["bar_track"])
-
-    vbox:
-        xpos 1165
-        ypos 88
-        xsize 470
-        spacing 8
-        text "[cb_enemy_name]" style "cb_small_text" xalign 1.0
-        text "[cb_monster_hp] / [cb_monster_max_hp] HP":
-            color "#FF8296"
-            size 25
-            xalign 1.0
-        bar:
-            value StaticValue(cb_monster_hp, cb_monster_max_hp)
-            xsize 470
-            ysize 22
-            left_bar Solid("#FF5F78")
-            right_bar Solid(ui_theme["bar_track"])
-            xalign 1.0
-
-    add team_city_image:
-        xysize (870, 490)
-        xcenter 505
-        ycenter 445
+    # Final-hit screen бүрэн дууссаны дараах тусдаа cinematic тайз.
+    # Бүх break WebM хар background дээр төвдөө, том хэмжээгээр тоглоно.
+    add Solid("#000000")
 
     if victory:
-        # Хот ялсан тул зэвсэг нь үлдэж, мангас өөрийн die video-г тоглуулна.
-        add city_weapon_image:
-            at cb_city_weapon_idle
-            xysize (310, 180)
-            xcenter 650
-            ycenter 520
-
-        text city_weapon_label:
-            color "#C7D4F5"
-            size 16
-            xcenter 650
-            ycenter 600
-            outlines [(2, "#07101FDD", 0, 0)]
-
+        # Ялагдсан мангас эхлээд төвд томорч, дараа нь die WebM тоглоно.
         add cb_enemy_idle_image:
-            xysize (870, 490)
-            xcenter 1415
-            ycenter 445
-
-        add Movie(channel="cb_break_movie", size=(870, 490)):
-            xcenter 1415
-            ycenter 445
+            at cb_break_loser_focus
+            xysize (1600, 900)
     else:
-        # Хот ялагдсан үед weapon-ийг огт зурахгүй. 0.30 секундын дараа
-        # city break video эхлэх тул зэвсэг сүйрлээс түрүүлж алга болно.
-        add Movie(channel="cb_break_movie", size=(870, 490)):
-            xcenter 505
-            ycenter 445
+        # Ялагдсан хот эхлээд төвд томорно. HP 0 бол explosion clip
+        # түрүүлээд, дараа нь сонгогдсон хотын сүйрлийн WebM тоглоно.
+        add team_city_image:
+            at cb_break_loser_focus
+            xysize (1600, 900)
 
-        add cb_enemy_idle_image:
-            at cb_monster_idle
-            xysize (870, 490)
-            xcenter 1415
-            ycenter 445
-
-        add Movie(channel="cb_monster_movie", size=(870, 490)):
-            xcenter 1415
-            ycenter 445
-
-    fixed:
-        xpos 256
-        ypos 646
-        xysize (1408, 188)
-        use crowd_battle_pixel_frame(ui_theme, 1408, 188, ui_theme["panel"])
-
-    frame:
-        background Solid("#00000000")
-        xcenter 960
-        ypos 650
-        xsize 1400
-        ysize 180
-        padding (30, 24)
-
-        vbox:
-            xfill True
-            spacing 10
-
-            if victory:
-                text "FINAL STRIKE · МАНГАС ЯЛАГДЛАА":
-                    color "#59E6A8"
-                    size 38
-                    bold True
-                    xalign 0.5
-            else:
-                text "WORLD FALLEN · ХОТ ЯЛАГДЛАА":
-                    color "#FF8296"
-                    size 38
-                    bold True
-                    xalign 0.5
-
-            text "[cb_battle_end_reason]":
-                style "cb_small_text"
-                xalign 0.5
+    if break_started:
+        add Movie(
+            channel="cb_break_movie",
+            size=(1600, 900),
+            alpha=True,
+            keep_last_frame=True,
+        ):
+            xalign 0.5
+            yalign 0.5
 
 
 screen crowd_battle_ending(victory):
