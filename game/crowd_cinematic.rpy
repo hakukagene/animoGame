@@ -178,7 +178,7 @@ init -20 python:
                 "movie": "video/cinematic/reveal/reveal_colossus.webm",
                 # mangas8.ogg is not present in the repository. The line below
                 # therefore uses a timed text fallback instead of wrong audio.
-                "voice": None,
+                "voice": "audio/mangas8.ogg",
             },
         }
 
@@ -337,12 +337,21 @@ transform cb_destroyed_world:
 
 screen crowd_creator_summary(rows, participant_count):
     modal True
+
     $ summary_rows = list(rows or [])
-    $ row_width = 1210
-    $ row_height = 68
-    $ row_gap = 4
+    $ row_width = 1080
+    $ row_height = 54
+    $ row_gap = 7
     $ row_x = (1672 - row_width) // 2
     $ row_y = 270
+
+    $ question_width = 430
+    $ winner_width = 390
+    $ stats_width = 190
+
+    $ total_y = row_y + len(summary_rows) * (row_height + row_gap) + 8
+    $ countdown_y = total_y + 34
+    $ button_y = countdown_y + 34
 
     timer 5.0 action Return(True)
     key "dismiss" action NullAction()
@@ -367,18 +376,6 @@ screen crowd_creator_summary(rows, participant_count):
             slow_cps 0
             outlines [(2, "#071126", 0, 2)]
 
-        add cb_console_result_decoration("left"):
-            xpos 236
-            ypos 211
-            xysize (330, 72)
-            nearest True
-
-        add cb_console_result_decoration("right"):
-            xpos 1106
-            ypos 211
-            xysize (330, 72)
-            nearest True
-
         for index, row in enumerate(summary_rows):
             $ question_text = str(row.get("question", ""))
             $ winner_text = str(row.get("winner", "—"))
@@ -387,42 +384,32 @@ screen crowd_creator_summary(rows, participant_count):
             $ current_row_y = row_y + index * (row_height + row_gap)
             $ question_size = 9 if len(question_text) > 52 else 10
             $ winner_size = 11 if len(winner_text) > 30 else 14
-            $ winner_width = 500 if len(winner_text) > 25 else 270
-            $ winner_x = 925 - winner_width
-            $ row_accent = cb_console_result_row_accent(index)
-            $ stats_anchor_x = row_width - (55 if len(winner_text) > 25 else 85)
-            $ underline_y = row_height - 17
-            $ stats_text = "{}% · {} санал".format(row_percentage, row_votes)
-            $ winner_line_width = cb_console_text_line_width(winner_text, winner_size, winner_width, 90)
-            $ stats_line_width = cb_console_text_line_width(stats_text, 14, 190, 120)
+            $ stats_text = "{}% · {} санал".format(
+                row_percentage,
+                row_votes
+            )
+            $ row_accent = (
+                "#25D8FF"
+                if index % 2 == 0
+                else "#A657FF"
+            )
 
-            fixed:
+            hbox:
                 xpos row_x
                 ypos current_row_y
-                xysize (row_width, row_height)
-
-                add cb_console_result_row_frame(index):
-                    xysize (row_width, row_height)
-                    nearest True
+                xsize row_width
+                ysize row_height
+                spacing 20
 
                 text question_text:
                     font CB_CONSOLE_FONT
                     size question_size
                     color "#9CB1D6"
-                    xpos 56
-                    ycenter row_height // 2
-                    xsize winner_x - 86
+                    xsize question_width
+                    yalign 0.5
+                    text_align 1.0
                     layout "subtitle"
                     line_spacing 1
-                    slow_cps 0
-                    outlines [(1, "#061020", 0, 1)]
-
-                text ">>":
-                    font CB_CONSOLE_FONT
-                    size 10
-                    color row_accent
-                    xpos winner_x - 24
-                    ycenter row_height // 2
                     slow_cps 0
                     outlines [(1, "#061020", 0, 1)]
 
@@ -430,9 +417,9 @@ screen crowd_creator_summary(rows, participant_count):
                     font CB_CONSOLE_FONT
                     size winner_size
                     color "#F7FAFF"
-                    xpos winner_x
-                    ycenter row_height // 2
                     xsize winner_width
+                    yalign 0.5
+                    text_align 0.5
                     layout "subtitle"
                     line_spacing 1
                     slow_cps 0
@@ -441,40 +428,38 @@ screen crowd_creator_summary(rows, participant_count):
                 text stats_text:
                     font CB_CONSOLE_FONT
                     size 14
-                    color "#91A8FF"
-                    xpos stats_anchor_x
-                    xanchor 1.0
-                    ycenter row_height // 2
+                    color row_accent
+                    xsize stats_width
+                    yalign 0.5
                     text_align 1.0
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
-
-                add Solid(row_accent):
-                    xpos winner_x
-                    ypos underline_y
-                    xysize (winner_line_width, 2)
-
-                add Solid(row_accent):
-                    xpos stats_anchor_x - stats_line_width
-                    ypos underline_y
-                    xysize (stats_line_width, 2)
 
         text "Нийт оролцогч: [participant_count]":
             font CB_CONSOLE_FONT
             size 14
             color "#AAB8D5"
             xcenter 836
-            ypos 710
+            ypos total_y
+            text_align 0.5
+            slow_cps 0
+
+        text "[5] секундын дараа автоматаар үргэлжилнэ.":
+            font CB_CONSOLE_FONT
+            size 14
+            color "#91A8FF"
+            xcenter 836
+            ypos countdown_y
             text_align 0.5
             slow_cps 0
 
         button:
-            xpos 626
-            ypos 744
-            xysize (420, 56)
+            xpos 656
+            ypos button_y
+            xysize (360, 52)
             padding (0, 0)
-            background cb_console_result_row_frame(0)
-            hover_background cb_console_result_row_frame(1)
+            background Solid("#13294C")
+            hover_background Solid("#244D78")
             action Return(True)
 
             text "ҮРГЭЛЖЛҮҮЛЭХ":
@@ -675,7 +660,13 @@ label crowd_world_cinematic:
     scene expression cb_world_image at cb_cinematic_world
     show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
     with fade
-    
+    $ renpy.music.set_volume(
+        0.05,
+        delay=0.0,
+        channel="music"
+    )
+
+    play music "audio/ay/happy hot ay1.ogg" fadein 1.0
     $ cb_voice_line(N, "Эцэст нь шинэ ертөнц мэндэллээ.", "audio/hutlugch26.ogg")
     $ cb_voice_line(N, "Эхний өдөр.", "audio/hutlugch27.ogg")
     $ cb_voice_line(N, "Бүх зүйл тайван байлаа.", "audio/hutlugch28.ogg")
@@ -701,8 +692,11 @@ label crowd_world_cinematic:
 
     $ cb_voice_line(N, "Магадгүй...", "audio/hutlugch33.ogg")
     $ cb_voice_line(N, "...бид үнэхээр төгс ертөнц бүтээчихсэн бололтой.", "audio/hutlugch34.ogg")
+    stop music fadeout 1.0
+    $ renpy.music.set_volume(1.0, channel="music")
 
     window hide
+    
     play sound "audio/cinematic_rumble.ogg" fadein 1.0
     $ renpy.pause(0.8, hard=True)
     with hpunch
@@ -733,7 +727,6 @@ label crowd_world_cinematic:
 
     scene expression cb_world_image at cb_cinematic_world
     show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
-    show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
     with dissolve
 
     call screen crowd_system_panel(
@@ -751,58 +744,107 @@ label crowd_world_cinematic:
     window hide
     scene expression Solid("#000000")
     with fade
-    show monster at nova_intro_reveal
+
+    # Сонгогдсон monster-ийг хар background дээр төвд харуулна.
+    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+
     $ cb_voice_line(Monster, "Энэ ертөнц...", "audio/mangas1.ogg")
     $ renpy.pause(0.8, hard=True)
     $ cb_voice_line(Monster, "...та нарынх биш.", "audio/mangas2.ogg")
+
     hide monster
     show nova at nova_intro_reveal
+
     N "Чи хэн бэ?{w=1.5}{nw}"
+
     hide nova
-    show monster at nova_intro_reveal
-    $ cb_voice_line(Monster, "Намайг мэдэх хүн та нарын дунд байхгүй.", "audio/mangas3.ogg")
+    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+
+    $ cb_voice_line(
+        Monster,
+        "Намайг мэдэх хүн та нарын дунд байхгүй.",
+        "audio/mangas3.ogg"
+    )
     $ cb_voice_line(Monster, "Учир нь...", "audio/mangas4.ogg")
-    $ cb_voice_line(Monster, "...би та нараас ч өмнө байсан.", "audio/mangas5.ogg")
+    $ cb_voice_line(
+        Monster,
+        "...би та нараас ч өмнө байсан.",
+        "audio/mangas5.ogg"
+    )
 
     if cb_enemy_name_voice:
         $ enemy_name_line = "Намайг “{}” гэдэг.".format(cb_enemy_name)
         $ cb_voice_line(Monster, enemy_name_line, cb_enemy_name_voice)
     else:
-        Monster "Намайг “THE COLOSSUS” гэдэг.{w=2.8}{nw}"
+        Monster "Намайг “[cb_enemy_name]” гэдэг.{w=2.8}{nw}"
+
     hide monster
     show nova at nova_intro_reveal
-    $ cb_voice_line(N, "Яагаад бидэн рүү дайрч байна вэ?", "audio/hutlugch36.ogg")
+
+    $ cb_voice_line(
+        N,
+        "Яагаад бидэн рүү дайрч байна вэ?",
+        "audio/hutlugch36.ogg"
+    )
+
     hide nova
-    show monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+
     $ cb_voice_line(Monster, "Дайрах гэж үү?", "audio/mangas9.ogg")
     $ cb_voice_line(Monster, "ХА-ХА-ХА!", "audio/mangas10.ogg")
-    $ cb_voice_line(Monster, "Би буцаан авч байна.", "audio/mangas11.ogg")
+    $ cb_voice_line(
+        Monster,
+        "Би буцаан авч байна.",
+        "audio/mangas11.ogg"
+    )
+
     hide monster
     show nova at nova_intro_reveal
+
     $ cb_voice_line(N, "Юуг?", "audio/hutlugch37.ogg")
+
     hide nova
-    show monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+
     $ cb_voice_line(Monster, "Ертөнцийг.", "audio/mangas12.ogg")
 
+    hide monster
     window hide
-    hide crowd_enemy
+
     show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
     play sound "audio/cinematic_impact.ogg"
     with hpunch
     with fade
+
     $ renpy.pause(0.7, hard=True)
+
     hide crowd_enemy
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
     show nova at nova_intro_reveal
+
     $ cb_voice_line(N, "Бүтээгчдээ!", "audio/hutlugch38.ogg")
-    $ cb_voice_line(N, "Та нар энэ ертөнцийг бүтээсэн!", "audio/hutlugch39.ogg")
+    $ cb_voice_line(
+        N,
+        "Та нар энэ ертөнцийг бүтээсэн!",
+        "audio/hutlugch39.ogg"
+    )
     $ cb_voice_line(N, "Одоо...", "audio/hutlugch40.ogg")
     $ cb_voice_line(N, "...ХАМГААЛ!", "audio/hutlugch41.ogg")
     $ cb_voice_line(N, "Тулалд!", "audio/hutlugch42.ogg")
-    $ cb_voice_line(N, "Гэхдээ бид бяр чадлаар тулалдахгүй.", "audio/hutlugch43.ogg")
-    $ cb_voice_line(N, "Мэдлэгээрээ тулалдах болно.", "audio/hutlugch44.ogg")
+    $ cb_voice_line(
+        N,
+        "Гэхдээ бид бяр чадлаар тулалдахгүй.",
+        "audio/hutlugch43.ogg"
+    )
+    $ cb_voice_line(
+        N,
+        "Мэдлэгээрээ тулалдах болно.",
+        "audio/hutlugch44.ogg"
+    )
 
+    hide nova
     window hide
+
     call screen crowd_cinematic_title(
         "ANIME & ANIMATION QUIZ",
         "ДУНД / ХҮНД",

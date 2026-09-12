@@ -84,6 +84,7 @@ init -50 python:
             CB_BATTLE_BGM_PATH,
             "cb_battle_bgm",
             fadein=0.7,
+            volume=0.15,
         )
 
 

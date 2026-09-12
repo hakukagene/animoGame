@@ -5,7 +5,7 @@ label start:
     $ quick_menu = False
     $ cb_connection_message = ""
     $ cb_start_story_bgm()
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -116,16 +116,30 @@ label crowd_monster_battle:
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
         
         call screen crowd_battle_round(battle_round_id)
-        $ result = _return or cb_round_result
 
+        $ result = _return or {}
+        $ latest_round = cb_battle.get("current_round") or {}
+        $ result = result or latest_round.get("result") or cb_round_result or {}
+
+        # Зөвхөн хамгаалалтын fallback.
+        # Ердийн үед энэ хэсэг ажиллахгүй.
         if not result:
-            $ response = cb_force_finish_round()
-            $ result = cb_round_result
-            $ renpy.block_rollback()
+            $ cb_force_finish_round()
+            $ latest_round = cb_battle.get("current_round") or {}
+            $ result = latest_round.get("result") or cb_round_result or {}
 
-        $ is_final_question = question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
-        call screen crowd_round_result(result, is_final_question)
-        $ question_index += 1
+        $ renpy.block_rollback()
+
+        $ is_final_question = (
+            question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
+        )
+
+        call screen crowd_round_result(
+            result,
+            is_final_question
+        )
+
+        $ question_index += 1 
 
     # Хожих нөхцөл: мангасын HP 0. Хоёр тал зэрэг 0 болсон бол серверийн
     # одоогийн дүрмээр final strike хийсэн тоглогчдын баг ялна.

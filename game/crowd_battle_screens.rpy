@@ -1055,19 +1055,40 @@ screen crowd_battle_voice_preview(question):
     use crowd_battle_stage(shown_question, shown_choices, False)
 
 
-screen crowd_battle_round(expected_round_id=None):
+screen crowd_battle_round(
+    expected_round_id=None,
+    final_question=False
+):
     modal True
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
+    $ final_result = (
+        current_round.get("result")
+        or cb_round_result
+        or {}
+    )
 
     on "show" action Function(cb_start_battle_idle)
+
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
-    if cb_round_can_finish(guarded_round_id):
-        timer 0.10 action Return(current_round.get("result") or cb_round_result)
+    # Ижил interaction дотор result screen рүү шууд солино.
+    if cb_round_can_finish(guarded_round_id) and final_result:
+        timer 0.01 action [
+            Show(
+                "crowd_round_result",
+                result=final_result,
+                final_question=final_question
+            ),
+            Hide("crowd_battle_round")
+        ]
 
-    use crowd_battle_stage(current_round.get("question", ""), current_round.get("choices", []), True)
+    use crowd_battle_stage(
+        current_round.get("question", ""),
+        current_round.get("choices", []),
+        True
+    )
 
 
 screen crowd_round_result(result, final_question=False):
@@ -1107,7 +1128,10 @@ screen crowd_round_result(result, final_question=False):
     on "show" action Function(cb_start_battle_feedback, result)
     on "hide" action Function(cb_stop_battle_feedback)
 
-    timer result_display_seconds action Return(True)
+    timer result_display_seconds action [
+        Hide("crowd_round_result"),
+        Return(True)
+    ]
     if city_attack_triggered:
         timer 0.84 action Play("sound", "audio/cinematic_impact.ogg")
 

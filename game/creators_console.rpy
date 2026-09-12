@@ -27,21 +27,39 @@ init -10 python:
 
 
     def cb_console_art(question_number, index, target_size=None):
-        """Return one undistorted, center-cropped answer illustration."""
+        """
+        Зөвхөн 4-р асуултын зургуудыг нүүр, толгой руу нь
+        чиглүүлж crop хийнэ. Бусад асуулт хэвээр байна.
+        """
+
         if question_number == 2:
-            safe_index = max(0, min(int(index), len(CB_CONSOLE_WORLD_ART) - 1))
+            safe_index = max(
+                0,
+                min(int(index), len(CB_CONSOLE_WORLD_ART) - 1)
+            )
             source = CB_CONSOLE_WORLD_ART[safe_index]
             x0, y0, width, height = 0, 0, 1280, 720
+
         else:
-            filename, sheet_width, sheet_height, columns, rows = CB_CONSOLE_SHEETS[question_number]
-            safe_index = max(0, min(int(index), columns * rows - 1))
+            filename, sheet_width, sheet_height, columns, rows = (
+                CB_CONSOLE_SHEETS[question_number]
+            )
+
+            safe_index = max(
+                0,
+                min(int(index), columns * rows - 1)
+            )
+
             column = safe_index % columns
             row = safe_index // columns
+
             x0 = sheet_width * column // columns
             x1 = sheet_width * (column + 1) // columns
             y0 = sheet_height * row // rows
             y1 = sheet_height * (row + 1) // rows
-            width, height = x1 - x0, y1 - y0
+
+            width = x1 - x0
+            height = y1 - y0
             source = CB_CONSOLE_ROOT + filename
 
         if target_size is None:
@@ -55,12 +73,36 @@ init -10 python:
             crop_width = max(1, int(height * target_ratio))
             x0 += (width - crop_width) // 2
             width = crop_width
+
         elif source_ratio < target_ratio:
             crop_height = max(1, int(width / target_ratio))
-            y0 += (height - crop_height) // 2
+
+            if question_number == 4:
+                # Хүн, Робот, Шидийн амьтан, Харь гарагийн хүн,
+                # Аниме дүр, Эльф, Орк гэсэн дараалалтай.
+                face_focus_y = (
+                    0.10,
+                    0.16,
+                    0.28,
+                    0.10,
+                    0.06,
+                    0.08,
+                    0.10,
+                )
+
+                focus_y = face_focus_y[safe_index]
+                y0 += int((height - crop_height) * focus_y)
+
+            else:
+                # Бусад асуултын crop өөрчлөгдөхгүй.
+                y0 += (height - crop_height) // 2
+
             height = crop_height
 
-        return Crop((x0, y0, width, height), source)
+        return Crop(
+            (x0, y0, width, height),
+            source
+        )
 
 
     def cb_console_card_frame(index):
@@ -191,7 +233,7 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             # Monster-ийн ерөнхий тайлбар
             text enemy_intro:
                 font CB_CONSOLE_FONT
-                size 6
+                size 10
                 color "#BFD6F5"
                 xpos 24
                 ypos card_height - enemy_info_height + 27
@@ -205,7 +247,7 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             # Skill-ийн нэр
             text "SKILL · [enemy_skill]":
                 font CB_CONSOLE_FONT
-                size 7
+                size 11
                 color accent
                 xpos 24
                 ypos card_height - enemy_info_height + 57
@@ -218,7 +260,7 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             # Skill-ийн тайлбар
             text enemy_description:
                 font CB_CONSOLE_FONT
-                size 6
+                size 10
                 color "#F7FAFF"
                 xpos 24
                 ypos card_height - enemy_info_height + 76
