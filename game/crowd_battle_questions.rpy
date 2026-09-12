@@ -2,14 +2,14 @@ define Creators_Question = [
     {
         "question": "ТА ХЭН БЭ?",
         "voice": "audio/hutlugch12.ogg",
-        "choices": ["Student", "Worker", "Creators", "Gamer", "Судлаач", "Fan", "Just Here"],
+        "choices": ["Сурагч", "Ажилтан", "Бүтээгч", "Тоглогч", "Судлаач", "Фэн", "Зүгээр л энд байна"],
         "duration": 25,
         "mode": "survey",
     },
     {
         "question": "ANIMO WORLD ЯМАР ТӨРЛИЙН ЕРТӨНЦ БАЙХ ВЭ?",
         "voice": "audio/hutlugch13.ogg",
-        "choices": ["Futuristic", "Fantasy", "Modern", "Post-apocalyptic"],
+        "choices": ["Ирээдүйн", "Уран зөгнөлт", "Орчин үе", "Сүйрлийн дараах"],
         "duration": 25,
         "mode": "survey",
     },

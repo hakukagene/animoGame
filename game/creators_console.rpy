@@ -125,17 +125,28 @@ init -10 python:
 
 
 screen cb_console_card(question_number, index, choice, card_width, card_height):
+    $ is_enemy_card = question_number == 6
+    $ enemy_data = CB_ENEMY_CARD_DATA.get(choice, {}) if is_enemy_card else {}
+
     $ accent = CB_CONSOLE_CARD_ACCENTS[index % len(CB_CONSOLE_CARD_ACCENTS)]
     $ label_height = 58
+    $ enemy_info_height = 137 if is_enemy_card else label_height
+
     $ image_width = card_width - 30
-    $ image_height = card_height - label_height - 24
-    $ choice_font_size = cb_console_choice_size(question_number)
+    $ image_height = card_height - enemy_info_height - 24
+
+    $ choice_font_size = 10 if is_enemy_card else cb_console_choice_size(question_number)
+
     $ choice_line_width = cb_console_text_line_width(
         choice,
         choice_font_size,
         card_width - 50,
         80,
     )
+
+    $ enemy_intro = enemy_data.get("intro", "")
+    $ enemy_skill = enemy_data.get("skill_name", "")
+    $ enemy_description = enemy_data.get("skill_description", "")
 
     fixed:
         xysize (card_width, card_height)
@@ -144,38 +155,100 @@ screen cb_console_card(question_number, index, choice, card_width, card_height):
             xysize (card_width, card_height)
             nearest True
 
-        add cb_console_art(question_number, index, (image_width, image_height)):
+        add cb_console_art(
+            question_number,
+            index,
+            (image_width, image_height)
+        ):
             xpos 15
             ypos 13
             xysize (image_width, image_height)
             nearest True
 
-        # An opaque label panel guarantees readable answers on bright artwork.
+        # Доод мэдээллийн хэсэг
         add Solid("#06142BF2"):
             xpos 15
-            ypos card_height - label_height - 11
-            xysize (card_width - 30, label_height)
+            ypos card_height - enemy_info_height - 11
+            xsize card_width - 30
+            ysize enemy_info_height
+
+        if is_enemy_card:
+            # Monster-ийн нэр
+            text choice:
+                font CB_CONSOLE_FONT
+                size choice_font_size
+                color "#FFFFFF"
+                xpos 24
+                ypos card_height - enemy_info_height - 6
+                xsize card_width - 48
+                ysize 30
+                text_align 0.5
+                layout "subtitle"
+                line_spacing 1
+                slow_cps 0
+                outlines [(2, "#000814", 0, 1)]
+
+            # Monster-ийн ерөнхий тайлбар
+            text enemy_intro:
+                font CB_CONSOLE_FONT
+                size 6
+                color "#BFD6F5"
+                xpos 24
+                ypos card_height - enemy_info_height + 27
+                xsize card_width - 48
+                ysize 28
+                text_align 0.5
+                layout "subtitle"
+                line_spacing 1
+                slow_cps 0
+
+            # Skill-ийн нэр
+            text "SKILL · [enemy_skill]":
+                font CB_CONSOLE_FONT
+                size 7
+                color accent
+                xpos 24
+                ypos card_height - enemy_info_height + 57
+                xsize card_width - 48
+                ysize 18
+                text_align 0.5
+                slow_cps 0
+                outlines [(1, "#000814", 0, 1)]
+
+            # Skill-ийн тайлбар
+            text enemy_description:
+                font CB_CONSOLE_FONT
+                size 6
+                color "#F7FAFF"
+                xpos 24
+                ypos card_height - enemy_info_height + 76
+                xsize card_width - 48
+                ysize 42
+                text_align 0.5
+                layout "subtitle"
+                line_spacing 1
+                slow_cps 0
+                outlines [(1, "#000814", 0, 1)]
+
+        else:
+            text choice:
+                font CB_CONSOLE_FONT
+                size choice_font_size
+                color "#FFFFFF"
+                xcenter card_width // 2
+                ycenter card_height - (label_height // 2) - 8
+                xsize card_width - 48
+                text_align 0.5
+                layout "subtitle"
+                line_spacing 2
+                slow_cps 0
+                outlines [(2, "#000814", 0, 1)]
 
         add Solid(accent):
             xpos (card_width - choice_line_width) // 2
             ypos card_height - 18
-            xysize (choice_line_width, 3)
-
-        text choice:
-            font CB_CONSOLE_FONT
-            size choice_font_size
-            color "#FFFFFF"
-            # Ren'Py treats float positions as proportions. Integer division
-            # keeps these centers in card-local pixels instead of placing the
-            # answer text far outside the small label box.
-            xcenter card_width // 2
-            ycenter card_height - (label_height // 2) - 8
-            xsize card_width - 48
-            text_align 0.5
-            layout "subtitle"
-            line_spacing 2
-            slow_cps 0
-            outlines [(2, "#000814", 0, 1)]
+            xsize choice_line_width
+            ysize 3
 
 
 screen crowd_creators_round(question_number, question_total, expected_round_id=None, question_duration=15):

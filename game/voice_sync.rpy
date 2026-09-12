@@ -91,7 +91,7 @@ init -90 python:
         return renpy.easy_displayable(image_path), 0.25
 
 
-        def cb_voice_line(who, what, voice_id):
+    def cb_voice_line(who, what, voice_id):
         """
         Voice дууссаны дараа 1.5 секундийн турш dialogue-г дэлгэцэнд хадгална.
         """
@@ -182,10 +182,16 @@ init -90 python:
         # Begin an interaction so queued audio starts, then wait until the
         # channel no longer has a playing filename. The battle HUD is modal,
         # so modal=False is required for each timed pause to finish beneath it.
-        renpy.pause(interval, hard=True, modal=False)
-
         while renpy.music.get_playing(channel="voice_wait") is not None:
             renpy.pause(interval, hard=True, modal=False)
+
+        # Voice дууссаны дараа battle question дэлгэцийг
+        # нэмэлт 1.5 секунд хадгална.
+        renpy.pause(
+            _CB_VOICE_POST_DELAY,
+            hard=True,
+            modal=False
+        )
 
         return True
 
