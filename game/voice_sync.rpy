@@ -8,7 +8,7 @@
 # Voice ids are resolved to game/audio/voice/<id>.ogg.
 # A full relative path such as "audio/voice/scene_01.ogg" is also accepted.
 
-define config.afm_voice_delay = 0.05
+define config.afm_voice_delay = 1.5
 define config.afm_bonus = 0
 define config.afm_characters = 10000
 
@@ -91,32 +91,30 @@ init -90 python:
         return renpy.easy_displayable(image_path), 0.25
 
 
-    def cb_voice_line(who, what, voice_id):
+        def cb_voice_line(who, what, voice_id):
         """
-        Shows one dialogue line, then waits briefly after its OGG finishes.
-
-        who:
-            Character object, or None for narration.
-        what:
-            Text shown in the say screen.
-        voice_id:
-            "001", "nova_001.ogg", or a full game-relative audio path.                                                                                                          
-
-        If the audio file is missing, the line falls back to normal
-        click-to-continue dialogue instead of crashing the game. Both paths
-        keep the same post-dialogue pause so scene timing stays consistent.
+        Voice дууссаны дараа 1.5 секундийн турш dialogue-г дэлгэцэнд хадгална.
         """
 
         global _cb_voice_lock_dismiss
-
 
         voice_file = cb_voice_path(voice_id)
 
         if not voice_file or not renpy.loadable(voice_file):
             if voice_file:
-                renpy.notify("Voice файл олдсонгүй: {}".format(voice_file))
+                renpy.notify(
+                    "Voice файл олдсонгүй: {}".format(voice_file)
+                )
+
             renpy.say(who, what)
-            renpy.pause(_CB_VOICE_POST_DELAY, hard=True, modal=False)
+
+            # Voice файл байхгүй үед ч текстийг delay дуусах хүртэл харуулна.
+            renpy.say(who, what, interact=False)
+            renpy.pause(
+                _CB_VOICE_POST_DELAY,
+                hard=True,
+                modal=False
+            )
             return False
 
         old_afm_enable = preferences.afm_enable
@@ -126,8 +124,6 @@ init -90 python:
         old_text_cps = preferences.text_cps
 
         try:
-            # The text delay is almost zero. Ren'Py's voice callback keeps AFM
-            # blocked until the voice channel finishes.
             preferences.afm_enable = True
             preferences.afm_after_click = True
             preferences.afm_time = 1
@@ -135,17 +131,19 @@ init -90 python:
             preferences.text_cps = 0
 
             _cb_voice_lock_dismiss = True
+
             voice(voice_file)
             renpy.say(who, what)
+
         finally:
             _cb_voice_lock_dismiss = False
+
             preferences.afm_enable = old_afm_enable
             preferences.afm_after_click = old_afm_after_click
             preferences.afm_time = old_afm_time
             preferences.wait_voice = old_wait_voice
             preferences.text_cps = old_text_cps
 
-        renpy.pause(_CB_VOICE_POST_DELAY, hard=True, modal=False)
         return True
 
 

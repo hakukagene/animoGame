@@ -64,7 +64,13 @@ label crowd_creators_questions:
         $ latest_round = cb_battle.get("current_round") or {}
         $ result = result or latest_round.get("result") or cb_round_result or {}
 
-        # Зөвхөн одоо үр дүнгийн дэлгэц гарна.
+        # Сонгогдсон location/world-ийг cinematic болон battle background-д хадгална.
+        $ cb_record_creator_result(
+            creator_question_index,
+            question,
+            result
+        )
+
         call screen crowd_creators_result(question, result)
 
         $ creator_question_index += 1
