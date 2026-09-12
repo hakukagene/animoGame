@@ -1070,9 +1070,9 @@ screen crowd_battle_round(
 
     # Ижил interaction дотор result screen рүү шууд солино.
     if cb_round_can_finish(guarded_round_id):
-        timer 0.01 action Return [
+        timer 0.01 action Return(
             current_round.get("result") or cb_round_result
-        ]
+        )
 
     use crowd_battle_stage(
         current_round.get("question", ""),
