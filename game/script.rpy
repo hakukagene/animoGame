@@ -5,7 +5,7 @@ label start:
     $ quick_menu = False
     $ cb_connection_message = ""
     $ cb_start_story_bgm()
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -27,6 +27,7 @@ label crowd_creators_questions:
 
         # Асуултыг OGG дуустал дэлгэцэнд харуулна. Үүний дараа server
         # round эхлэх тул 15 секундийн санал авах хугацаа бүтнээрээ үлдэнэ.
+        show nova at nova_intro_reveal
         $ cb_voice_line(N, question.get("question", ""), question.get("voice"))
         $ renpy.block_rollback()
 
@@ -55,15 +56,13 @@ label crowd_creators_questions:
             question.get("duration", 15)
         )
 
+        # crowd_creators_round screen-ээс final result шууд ирнэ.
+        $ result = _return or {}
+
         $ cb_finish_creator_wait_bgm()
 
-        # Duration дууссаны дараа серверээс эцсийн үр дүнг авна.
-        $ result = cb_fetch_round_result(creator_round_id)
         $ latest_round = cb_battle.get("current_round") or {}
         $ result = result or latest_round.get("result") or cb_round_result or {}
-
-        # Cinematic-д ертөнц, мангасын төрлийг бодит саналын ялагчаар сонгоно.
-        $ cb_record_creator_result(creator_question_index, question, result)
 
         # Зөвхөн одоо үр дүнгийн дэлгэц гарна.
         call screen crowd_creators_result(question, result)

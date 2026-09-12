@@ -187,7 +187,11 @@ screen crowd_creators_round(question_number, question_total, expected_round_id=N
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
     if cb_round_can_finish(guarded_round_id):
-        timer 0.10 action Return(True)
+        timer 0.10 action Return(
+            current_round.get("result")
+            or cb_round_result
+            or {}
+            )
 
     use cb_creators_console_content(
         question_number,
@@ -400,7 +404,7 @@ screen crowd_creators_result(question, result):
             color "#F7FAFF"
             xcenter 836
             ypos 232
-            xmaximum 760
+            xmaximum 760   
             text_align 0.5
             layout "subtitle"
             outlines [(2, "#071126", 0, 2)]
@@ -429,7 +433,7 @@ screen crowd_creators_result(question, result):
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#F7FAFF"
-                    xpos 58
+                    xcenter 0
                     ycenter row_height // 2
                     xsize 700
                     text_align 0.0
@@ -442,8 +446,7 @@ screen crowd_creators_result(question, result):
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#91A8FF"
-                    xpos stats_anchor_x
-                    xanchor 1.0
+                    xcenter 50
                     ycenter row_height // 2
                     text_align 1.0
                     slow_cps 0

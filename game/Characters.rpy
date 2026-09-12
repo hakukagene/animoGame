@@ -1,5 +1,5 @@
 define N = Character(
-    _("Nova"),
+    _("Анимо"),
     color="#a6f9ff",
 
 )
