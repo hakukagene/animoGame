@@ -28,6 +28,45 @@ init -10 python:
         )
 
 
+# Эхний нүүрний QR-ийг бусад бүх interaction дээр тогтмол харуулна.
+init -9 python:
+    if "cb_join_qr_overlay" not in config.overlay_screens:
+        config.overlay_screens.append("cb_join_qr_overlay")
+
+
+screen cb_join_qr_overlay():
+    zorder 1000
+
+    # Main menu дээр том QR аль хэдийн байгаа тул давхардуулахгүй.
+    if not renpy.get_screen("main_menu"):
+        frame:
+            xalign 1.0
+            yalign 1.0
+            xoffset -24
+            yoffset -24
+            padding (2, 2)
+            background Solid("#25D8FF")
+
+            frame:
+                padding (8, 8)
+                background Solid("#061225F2")
+
+                vbox:
+                    spacing 5
+
+                    add CB_START_CONSOLE_ROOT + "join_qr.png":
+                        xysize (148, 148)
+                        nearest True
+
+                    text "SCAN TO JOIN":
+                        font CB_START_CONSOLE_FONT
+                        size 9
+                        color "#25D8FF"
+                        xalign 0.5
+                        text_align 0.5
+                        slow_cps 0
+
+
 screen animo_start_landing():
     key "K_RETURN" action Start()
     key "K_KP_ENTER" action Start()
