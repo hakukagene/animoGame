@@ -330,14 +330,14 @@ init -10 python:
 
 
     def cb_console_result_layout(choice_count):
-        """Keep 3-7 result rows readable inside the console's safe area."""
+        """Center 3-7 text-only result rows inside the console safe area."""
         if choice_count >= 6:
-            return (278, 47, 7, 13, 672, 704, 736)
+            return (292, 42, 7, 13, 668, 706)
         if choice_count == 5:
-            return (300, 58, 10, 15, 652, 688, 720)
+            return (300, 50, 10, 15, 664, 704)
         if choice_count == 4:
-            return (310, 66, 11, 16, 645, 682, 718)
-        return (325, 78, 14, 17, 635, 675, 715)
+            return (315, 58, 12, 17, 654, 698)
+        return (330, 66, 14, 18, 642, 692)
 
 
     def cb_console_result_question_size(question_text):
@@ -358,10 +358,7 @@ screen crowd_creators_result(question, result):
     $ choices = list(question.get("choices", []))
     $ counts = list(latest_result.get("choice_counts", latest_round.get("choice_counts", [])))
     $ total_answers = max(0, int(latest_result.get("total_answers", latest_round.get("total_answers", 0))))
-    $ row_y, row_height, row_gap, row_font_size, total_y, countdown_y, progress_y = cb_console_result_layout(len(choices))
-    $ row_width = 1200
-    $ row_x = (1672 - row_width) // 2
-    $ active_segments = max(0, min(10, int(round(10.0 * auto_seconds / 3.0))))
+    $ row_y, row_height, row_gap, row_font_size, total_y, countdown_y = cb_console_result_layout(len(choices))
 
     timer 1.0 repeat True action If(
         auto_seconds > 1,
@@ -386,25 +383,13 @@ screen crowd_creators_result(question, result):
             text_align 0.5
             outlines [(2, "#071126", 0, 2)]
 
-        add cb_console_result_decoration("left"):
-            xpos 236
-            ypos 211
-            xysize (330, 72)
-            nearest True
-
-        add cb_console_result_decoration("right"):
-            xpos 1106
-            ypos 211
-            xysize (330, 72)
-            nearest True
-
         text question.get("question", ""):
             font CB_CONSOLE_FONT
             size cb_console_result_question_size(question.get("question", ""))
             color "#F7FAFF"
             xcenter 836
-            ypos 232
-            xmaximum 760   
+            ypos 238
+            xmaximum 1300
             text_align 0.5
             layout "subtitle"
             outlines [(2, "#071126", 0, 2)]
@@ -414,29 +399,21 @@ screen crowd_creators_result(question, result):
             $ percentage = int(round(100.0 * count / total_answers)) if total_answers else 0
             $ current_row_y = row_y + index * (row_height + row_gap)
             $ row_accent = cb_console_result_row_accent(index)
-            $ stats_anchor_x = row_width - 100
-            $ underline_y = row_height - 9
             $ stats_text = "{} · {}%".format(count, percentage)
-            $ choice_line_width = cb_console_text_line_width(choice, row_font_size, 700, 90)
-            $ stats_line_width = cb_console_text_line_width(stats_text, row_font_size, 220, 100)
 
-            fixed:
-                xpos row_x
+            hbox:
+                xcenter 836
                 ypos current_row_y
-                xysize (row_width, row_height)
-
-                add cb_console_result_row_frame(index):
-                    xysize (row_width, row_height)
-                    nearest True
+                ysize row_height
+                spacing 34
 
                 text choice:
                     font CB_CONSOLE_FONT
                     size row_font_size
                     color "#F7FAFF"
-                    xcenter 0
-                    ycenter row_height // 2
-                    xsize 700
-                    text_align 0.0
+                    yalign 0.5
+                    xmaximum 920
+                    text_align 0.5
                     layout "subtitle"
                     line_spacing 2
                     slow_cps 0
@@ -445,22 +422,11 @@ screen crowd_creators_result(question, result):
                 text stats_text:
                     font CB_CONSOLE_FONT
                     size row_font_size
-                    color "#91A8FF"
-                    xcenter 50
-                    ycenter row_height // 2
-                    text_align 1.0
+                    color row_accent
+                    yalign 0.5
+                    text_align 0.5
                     slow_cps 0
                     outlines [(2, "#061020", 0, 1)]
-
-                add Solid(row_accent):
-                    xpos 58
-                    ypos underline_y
-                    xysize (choice_line_width, 2)
-
-                add Solid(row_accent):
-                    xpos stats_anchor_x - stats_line_width
-                    ypos underline_y
-                    xysize (stats_line_width, 2)
 
         text "Нийт оролцогч: [total_answers] · Нийт санал: [total_answers]":
             font CB_CONSOLE_FONT
@@ -477,23 +443,3 @@ screen crowd_creators_result(question, result):
             xcenter 836
             ypos countdown_y
             text_align 0.5
-
-        add cb_console_result_progress_frame():
-            xpos 556
-            ypos progress_y
-            xysize (560, 42)
-            nearest True
-
-        add Solid("#101C37"):
-            xpos 582
-            ypos progress_y + 14
-            xysize (508, 14)
-
-        hbox:
-            xpos 582
-            ypos progress_y + 14
-            spacing 4
-
-            for segment in range(10):
-                add Solid("#FF7F98" if segment < active_segments else "#31476F"):
-                    xysize (47, 14)
