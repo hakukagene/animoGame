@@ -34,37 +34,41 @@ init -9 python:
         config.overlay_screens.append("cb_join_qr_overlay")
 
 
+screen cb_join_qr_corner():
+    frame:
+        xalign 1.0
+        yalign 1.0
+        xoffset -24
+        yoffset -24
+        padding (2, 2)
+        background Solid("#25D8FF")
+
+        frame:
+            padding (8, 8)
+            background Solid("#061225F2")
+
+            vbox:
+                spacing 5
+
+                add CB_START_CONSOLE_ROOT + "join_qr.png":
+                    xysize (148, 148)
+                    nearest True
+
+                text "SCAN TO JOIN":
+                    font CB_START_CONSOLE_FONT
+                    size 9
+                    color "#25D8FF"
+                    xalign 0.5
+                    text_align 0.5
+                    slow_cps 0
+
+
 screen cb_join_qr_overlay():
     zorder 1000
 
-    # Main menu дээр том QR аль хэдийн байгаа тул давхардуулахгүй.
+    # Landing дээр component-ийг шууд ашигладаг тул давхардуулахгүй.
     if not renpy.get_screen("main_menu"):
-        frame:
-            xalign 1.0
-            yalign 1.0
-            xoffset -24
-            yoffset -24
-            padding (2, 2)
-            background Solid("#25D8FF")
-
-            frame:
-                padding (8, 8)
-                background Solid("#061225F2")
-
-                vbox:
-                    spacing 5
-
-                    add CB_START_CONSOLE_ROOT + "join_qr.png":
-                        xysize (148, 148)
-                        nearest True
-
-                    text "SCAN TO JOIN":
-                        font CB_START_CONSOLE_FONT
-                        size 9
-                        color "#25D8FF"
-                        xalign 0.5
-                        text_align 0.5
-                        slow_cps 0
+        use cb_join_qr_corner
 
 
 screen animo_start_landing():
@@ -108,38 +112,12 @@ screen animo_start_landing():
             xysize (310, 70)
             nearest True
 
-        # QR panel.
-        add cb_start_console_frame(False):
-            xpos 326
-            ypos 286
-            xysize (372, 372)
-            nearest True
-
-        add Solid("#FFFFFF"):
-            xpos 364
-            ypos 324
-            xysize (296, 296)
-
-        add CB_START_CONSOLE_ROOT + "join_qr.png":
-            xpos 364
-            ypos 324
-            xysize (296, 296)
-            nearest True
-
-        text "SCAN TO JOIN":
-            font CB_START_CONSOLE_FONT
-            size 14
-            color "#25D8FF"
-            xcenter 512
-            ypos 674
-            text_align 0.5
-
         # Join instructions and live server address.
         text "УТАСААРАА QR КОДЫГ\nУНШУУЛНА УУ":
             font CB_START_CONSOLE_FONT
             size 20
             color "#F7FAFF"
-            xcenter 1112
+            xcenter 836
             ypos 326
             line_spacing 10
             text_align 0.5
@@ -148,7 +126,7 @@ screen animo_start_landing():
             font CB_START_CONSOLE_FONT
             size 12
             color "#91A8FF"
-            xcenter 1112
+            xcenter 836
             ypos 423
             xmaximum 520
             text_align 0.5
@@ -157,12 +135,12 @@ screen animo_start_landing():
             font CB_START_CONSOLE_FONT
             size 14
             color "#AAB8D5"
-            xcenter 1112
+            xcenter 836
             ypos 500
             text_align 0.5
 
         button:
-            xpos 882
+            xpos 606
             ypos 542
             xysize (460, 92)
             background cb_start_console_frame(False)
@@ -182,12 +160,12 @@ screen animo_start_landing():
             font CB_START_CONSOLE_FONT
             size 11
             color "#6F91C8"
-            xcenter 1112
+            xcenter 836
             ypos 656
             text_align 0.5
 
         textbutton "ГАРАХ":
-            xpos 1042
+            xpos 766
             ypos 715
             xsize 140
             text_font CB_START_CONSOLE_FONT
@@ -196,3 +174,6 @@ screen animo_start_landing():
             text_hover_color "#FF7FA4"
             text_align 0.5
             action Quit(confirm=True)
+
+    # Main menu дээр мөн бусад screen-тэй ижил байрлалтай QR харуулна.
+    use cb_join_qr_corner
