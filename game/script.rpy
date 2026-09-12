@@ -5,7 +5,7 @@ label start:
     $ quick_menu = False
     $ cb_connection_message = ""
     $ cb_start_story_bgm()
-    jump intro
+    jump crowd_monster_battle
 
 
 label crowd_creators_questions:
@@ -115,13 +115,17 @@ label crowd_monster_battle:
 
         $ battle_round_id = (cb_battle.get("current_round") or {}).get("round_id")
         
-        # implicit with None-ийг унтрааж, хоёр screen-ийн хооронд
-        # хоосон frame render хийхгүйгээр final result-ийг авна.
-        call screen crowd_battle_round(
-            battle_round_id,
-            _with_none=False
+        $ is_final_question = (
+            question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
         )
 
+        # crowd_battle_round нь result screen-ийг ижил interaction дотор
+        # шууд нээдэг тул энд crowd_round_result-ийг дахин дуудахгүй.
+        call screen crowd_battle_round(
+            battle_round_id,
+            is_final_question,
+            _with_none=False
+        )
         $ result = _return or {}
         $ latest_round = cb_battle.get("current_round") or {}
         $ result = (
@@ -130,18 +134,12 @@ label crowd_monster_battle:
             or cb_round_result
             or {}
         )
-        $ renpy.block_rollback()
-
-        $ is_final_question = (
-            question_index + 1 >= len(CROWD_BATTLE_QUESTIONS)
-        )
-
-        # Тусдаа battle result screen-ийг буцаан сэргээв.
         call screen crowd_round_result(
             result,
             is_final_question
         )
-
+        
+        $ renpy.block_rollback()
         $ question_index += 1
 
     # Хожих нөхцөл: мангасын HP 0. Хоёр тал зэрэг 0 болсон бол серверийн

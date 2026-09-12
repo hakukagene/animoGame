@@ -931,17 +931,17 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 text_align 1.0
 
     add team_city_image:
-        xysize (550, 240)
+        xysize (750, 350)
         xcenter 505
         ycenter 445
 
     add cb_enemy_idle_image:
         at cb_monster_idle
-        xysize (550, 240)
+        xysize (750, 350)
         xcenter 1415
         ycenter 445
 
-    add Movie(channel="cb_monster_movie", size=(550, 240), alpha=True):
+    add Movie(channel="cb_monster_movie", size=(750, 350), alpha=True):
         xcenter 1415
         ycenter 445
 
@@ -1055,23 +1055,24 @@ screen crowd_battle_voice_preview(question):
     use crowd_battle_stage(shown_question, shown_choices, False)
 
 
-screen crowd_battle_round(expected_round_id=None):
+screen crowd_battle_round(
+    expected_round_id=None,
+    final_question=False
+):
     modal True
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ final_result = (
-        current_round.get("result")
-        or cb_round_result
-        or {}
-    )
-
+    
     on "show" action Function(cb_start_battle_idle)
+
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
-    # Final result бэлэн болсон үед dictionary-г script рүү шууд буцаана.
-    if cb_round_can_finish(guarded_round_id) and final_result:
-        timer 0.01 action Return(final_result)
+    # Ижил interaction дотор result screen рүү шууд солино.
+    if cb_round_can_finish(guarded_round_id):
+        timer 0.01 action Return(
+            current_round.get("result") or cb_round_result
+        )
 
     use crowd_battle_stage(
         current_round.get("question", ""),
@@ -1117,7 +1118,10 @@ screen crowd_round_result(result, final_question=False):
     on "show" action Function(cb_start_battle_feedback, result)
     on "hide" action Function(cb_stop_battle_feedback)
 
-    timer result_display_seconds action Return(True)
+    timer result_display_seconds action [
+        Hide("crowd_round_result"),
+        Return(True)
+    ]
     if city_attack_triggered:
         timer 0.84 action Play("sound", "audio/cinematic_impact.ogg")
 
@@ -1176,12 +1180,12 @@ screen crowd_round_result(result, final_question=False):
     if player_damage > 0:
         add team_city_image:
             at cb_team_hit_flash
-            xysize (550, 240)
+            xysize (750, 350)
             xcenter 505
             ycenter 445
     else:
         add team_city_image:
-            xysize (550, 240)
+            xysize (750, 350)
             xcenter 505
             ycenter 445
 
@@ -1221,22 +1225,22 @@ screen crowd_round_result(result, final_question=False):
     if monster_damage > 0:
         add cb_enemy_idle_image:
             at cb_monster_idle, cb_monster_hit_flash
-            xysize (550, 240)
+            xysize (750, 350)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(550, 240), alpha=True):
+        add Movie(channel="cb_monster_movie", size=(750, 350), alpha=True):
             at cb_monster_hit_flash
             xcenter 1415
             ycenter 445
     else:
         add cb_enemy_idle_image:
             at cb_monster_idle
-            xysize (550, 240)
+            xysize (750, 350)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(550, 2400), alpha=True):
+        add Movie(channel="cb_monster_movie", size=(750, 350), alpha=True):
             xcenter 1415
             ycenter 445
 
