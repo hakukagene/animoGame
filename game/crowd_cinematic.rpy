@@ -804,17 +804,12 @@ label crowd_defeat_ending:
     $ quick_menu = False
     window hide
 
-    scene expression cb_world_image at cb_cinematic_world
-    show expression cb_citizen_image as crowd_citizens at cb_cinematic_citizens
-    show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
-    play sound "audio/cinematic_impact.ogg"
-    with hpunch
-    with vpunch
-    with fade
-
-    scene expression "images/cinematic/world_post.webp" at cb_destroyed_world
+    # Final strike болон сонгогдсон хотын сүйрлийн WebM battle break
+    # screen дээр аль хэдийн тоглосон. Энд довтолгоог давтахгүй; үлдсэн
+    # мангасыг хар background дээр төвд байрлуулж яриаг үргэлжлүүлнэ.
+    scene expression Solid("#000000")
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
-    with Fade(0.35, 0.15, 0.65, color="#5A0714")
+    with Fade(0.35, 0.15, 0.65, color="#000000")
 
     $ cb_voice_line(N, "...үгүй ээ.", "audio/defeat1.ogg")
     $ cb_voice_line(Monster, "Та нар хангалттай хичээлээ.", "audio/mangas13.ogg")
