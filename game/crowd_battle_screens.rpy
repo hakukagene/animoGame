@@ -940,6 +940,7 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
         xysize (750, 350)
         xcenter 1415
         ycenter 445
+        xzoom -1.0
 
     add Movie(channel="cb_monster_movie", size=(750, 350), alpha=True):
         xcenter 1415

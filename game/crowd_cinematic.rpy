@@ -744,21 +744,30 @@ label crowd_world_cinematic:
     window hide
     scene expression Solid("#000000")
     with fade
+    transform monstert:
+        zoom 2
+
+    transform novat:
+        anchor (0.5, 0.5)
+        xalign 0.5
+        yalign 0.52
+        zoom 0.7
+        yoffset 0
 
     # Сонгогдсон monster-ийг хар background дээр төвд харуулна.
-    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at monstert
 
     $ cb_voice_line(Monster, "Энэ ертөнц...", "audio/mangas1.ogg")
     $ renpy.pause(0.8, hard=True)
     $ cb_voice_line(Monster, "...та нарынх биш.", "audio/mangas2.ogg")
 
     hide monster
-    show nova at nova_intro_reveal
+    show nova at novat
 
     N "Чи хэн бэ?{w=1.5}{nw}"
 
     hide nova
-    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at monstert
 
     $ cb_voice_line(
         Monster,
@@ -779,7 +788,7 @@ label crowd_world_cinematic:
         Monster "Намайг “[cb_enemy_name]” гэдэг.{w=2.8}{nw}"
 
     hide monster
-    show nova at nova_intro_reveal
+    show nova at novat
 
     $ cb_voice_line(
         N,
@@ -788,7 +797,7 @@ label crowd_world_cinematic:
     )
 
     hide nova
-    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at monstert
 
     $ cb_voice_line(Monster, "Дайрах гэж үү?", "audio/mangas9.ogg")
     $ cb_voice_line(Monster, "ХА-ХА-ХА!", "audio/mangas10.ogg")
@@ -799,19 +808,19 @@ label crowd_world_cinematic:
     )
 
     hide monster
-    show nova at nova_intro_reveal
+    show nova at novat
 
     $ cb_voice_line(N, "Юуг?", "audio/hutlugch37.ogg")
 
     hide nova
-    show expression cb_enemy_idle_image as monster at nova_intro_reveal
+    show expression cb_enemy_idle_image as monster at monstert
 
     $ cb_voice_line(Monster, "Ертөнцийг.", "audio/mangas12.ogg")
 
     hide monster
     window hide
 
-    show expression cb_enemy_attack_image as crowd_enemy at cb_cinematic_attack
+    show expression cb_enemy_attack_image as crowd_enemy at monstert
     play sound "audio/cinematic_impact.ogg"
     with hpunch
     with fade
@@ -820,7 +829,7 @@ label crowd_world_cinematic:
 
     hide crowd_enemy
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
-    show nova at nova_intro_reveal
+    show nova at novat
 
     $ cb_voice_line(N, "Бүтээгчдээ!", "audio/hutlugch38.ogg")
     $ cb_voice_line(
