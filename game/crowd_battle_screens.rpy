@@ -1673,33 +1673,114 @@ screen crowd_battle_break(victory):
 
 screen crowd_battle_ending(victory):
     modal True
-    $ ui_theme = cb_battle_location_theme()
-    use crowd_battle_environment(ui_theme, False)
 
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 30
+    # Finish screen-ийн шинэ sci-fi background. Asset-ийн эх хэмжээ
+    # 1672x941 тул бусад console screen-тэй ижил хэмжээгээр бүхэлд нь scale хийнэ.
+    fixed:
+        xysize (1672, 941)
+        at Transform(zoom=config.screen_width / 1672.0)
+
+        add "images/finishBG.png":
+            xysize (1672, 941)
+            nearest True
 
         if victory:
-            text "ЯЛАЛТ!" color "#59E6A8" size 100 bold True xalign 0.5
-            text "Үзэгчдийн баг [cb_enemy_name]-г яллаа." style "cb_body_text" xalign 0.5
+            text "ЯЛАЛТ!":
+                font CB_BATTLE_FONT
+                color "#59E6A8"
+                size 70
+                bold True
+                xcenter 836
+                ypos 235
+                text_align 0.5
+                outlines [(3, "#03101B", 0, 3)]
+
+            text "Үзэгчдийн баг [cb_enemy_name]-г яллаа.":
+                font CB_BATTLE_FONT
+                color "#F4F8FF"
+                size 21
+                xcenter 836
+                ypos 355
+                text_align 0.5
+                outlines [(2, "#020812", 0, 2)]
         else:
-            text "ЯЛАГДАЛ" color "#FF8296" size 100 bold True xalign 0.5
-            text "Ертөнцийг хамгаалж чадсангүй." style "cb_body_text" xalign 0.5
+            text "ЯЛАГДАЛ":
+                font CB_BATTLE_FONT
+                color "#FF8296"
+                size 70
+                bold True
+                xcenter 836
+                ypos 235
+                text_align 0.5
+                outlines [(3, "#19050B", 0, 3)]
+
+            text "Ертөнцийг хамгаалж чадсангүй.":
+                font CB_BATTLE_FONT
+                color "#F4F8FF"
+                size 21
+                xcenter 836
+                ypos 355
+                text_align 0.5
+                outlines [(2, "#020812", 0, 2)]
 
         text "[cb_battle_end_reason]":
-            style "cb_small_text"
-            xalign 0.5
+            font CB_BATTLE_FONT
+            color "#87DFFF"
+            size 15
+            xcenter 836
+            ypos 415
+            text_align 0.5
+            outlines [(2, "#020812", 0, 2)]
 
+        # finishButton.png доторх хоёр хүрээг тус тусад нь crop хийж,
+        # ажилладаг restart/quit action-уудын background болгоно.
         hbox:
-            spacing 20
-            xalign 0.5
+            spacing 28
+            xcenter 836
+            ypos 485
+
             textbutton "ДАХИН ТОГЛОХ":
-                style "cb_button"
+                xysize (410, 273)
+                background Transform(
+                    Crop((0, 0, 1086, 724), "images/finishButton.png"),
+                    xysize=(410, 273),
+                    nearest=True,
+                )
+                hover_background Transform(
+                    Crop((0, 0, 1086, 724), "images/finishButton.png"),
+                    xysize=(410, 273),
+                    nearest=True,
+                    matrixcolor=BrightnessMatrix(0.20),
+                )
+                text_font CB_BATTLE_FONT
+                text_size 17
+                text_color "#F4F8FF"
+                text_hover_color "#69EAFF"
+                text_xalign 0.5
+                text_yalign 0.5
+                text_outlines [(2, "#020812", 0, 2)]
                 action Return("restart")
+
             textbutton "ГАРАХ":
-                style "cb_button"
+                xysize (410, 273)
+                background Transform(
+                    Crop((1086, 0, 1086, 724), "images/finishButton.png"),
+                    xysize=(410, 273),
+                    nearest=True,
+                )
+                hover_background Transform(
+                    Crop((1086, 0, 1086, 724), "images/finishButton.png"),
+                    xysize=(410, 273),
+                    nearest=True,
+                    matrixcolor=BrightnessMatrix(0.20),
+                )
+                text_font CB_BATTLE_FONT
+                text_size 17
+                text_color "#F4F8FF"
+                text_hover_color "#69EAFF"
+                text_xalign 0.5
+                text_yalign 0.5
+                text_outlines [(2, "#020812", 0, 2)]
                 action Return("quit")
 
 
