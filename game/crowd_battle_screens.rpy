@@ -338,8 +338,6 @@ init -35 python:
         "POST-APOCALYPTIC": "video/cinematic/break/Post.webm",
     }
 
-    CB_BREAK_FALLBACK_MOVIE = "video/cinematic/break/Explosion pixel.webm"
-
     CB_BOSS_MECHANIC_LABELS = {
         "void": "VOID · 3 ДАХЬ АСУУЛТ БҮР ХУГАЦАА -5 СЕК",
         "devourer": "DEVOURER · БУРУУ ХУВИАР HP НӨХНӨ",
@@ -533,29 +531,15 @@ init -35 python:
         )
 
 
-    def cb_battle_break_sequence(victory, city_destroyed=False):
-        """Return the ordered final animation clips for the losing side."""
-
-        clips = []
-
-        # Хотын HP 0 болсон ялагдалд pixel explosion заавал түрүүлнэ.
-        if not victory and city_destroyed:
-            if renpy.loadable(CB_BREAK_FALLBACK_MOVIE):
-                clips.append(CB_BREAK_FALLBACK_MOVIE)
+    def cb_battle_break_sequence(victory):
+        """Return the selected losing side's final animation clip."""
 
         break_movie = cb_battle_break_movie(victory)
-        if renpy.loadable(break_movie) and break_movie not in clips:
-            clips.append(break_movie)
-
-        # Сонгосон тусгай clip байхгүй үед дэлгэц хоосон үлдэхгүй.
-        if not clips and renpy.loadable(CB_BREAK_FALLBACK_MOVIE):
-            clips.append(CB_BREAK_FALLBACK_MOVIE)
-
-        return clips
+        return [break_movie] if renpy.loadable(break_movie) else []
 
 
-    def cb_battle_break_duration(victory, city_destroyed=False):
-        clip_count = len(cb_battle_break_sequence(victory, city_destroyed))
+    def cb_battle_break_duration(victory):
+        clip_count = len(cb_battle_break_sequence(victory))
         return (
             CB_BREAK_FOCUS_SECONDS
             + (CB_BREAK_CLIP_SECONDS * clip_count)
@@ -571,10 +555,10 @@ init -35 python:
         return None
 
 
-    def cb_play_battle_break(victory, city_destroyed=False):
-        """Play explosion (when needed), then the selected loser clip."""
+    def cb_play_battle_break(victory):
+        """Play the selected losing side's break clip once."""
 
-        clips = cb_battle_break_sequence(victory, city_destroyed)
+        clips = cb_battle_break_sequence(victory)
         if not clips:
             return None
 
@@ -1631,18 +1615,18 @@ screen crowd_creators_result_legacy_unused(question, result):
 
 
 
-screen crowd_battle_break(victory, city_destroyed=False):
+screen crowd_battle_break(victory):
     modal True
     default break_started = False
 
     $ team_city_image = getattr(store, "cb_team_city_image", "cb_team_city_futuristic")
-    $ break_screen_seconds = cb_battle_break_duration(victory, city_destroyed)
+    $ break_screen_seconds = cb_battle_break_duration(victory)
 
     on "show" action Function(cb_prepare_battle_break, victory)
     on "hide" action Function(cb_stop_battle_break)
     timer CB_BREAK_FOCUS_SECONDS action [
         SetScreenVariable("break_started", True),
-        Function(cb_play_battle_break, victory, city_destroyed),
+        Function(cb_play_battle_break, victory),
     ]
     timer break_screen_seconds action Return(True)
 
@@ -1656,8 +1640,8 @@ screen crowd_battle_break(victory, city_destroyed=False):
             at cb_break_loser_focus
             xysize (1600, 900)
     else:
-        # Ялагдсан хот эхлээд төвд томорно. HP 0 бол explosion clip
-        # түрүүлээд, дараа нь сонгогдсон хотын сүйрлийн WebM тоглоно.
+        # Ялагдсан хот эхлээд төвд томроод, дараа нь сонгогдсон
+        # хотын сүйрлийн WebM шууд тоглоно.
         add team_city_image:
             at cb_break_loser_focus
             xysize (1600, 900)
