@@ -128,12 +128,20 @@ label crowd_monster_battle:
 
     if victory:
         $ cb_battle_end_reason = "Мангасын HP 0 болсон."
-        call crowd_victory_ending
     else:
         if cb_player_hp <= 0:
             $ cb_battle_end_reason = "Үзэгчдийн багийн HP 0 болсон."
         else:
             $ cb_battle_end_reason = "20 асуулт дуусахад мангас амьд үлдсэн."
+
+    # Сүүлийн цохилтын result WebM бүрэн дууссаны дараа ялагдсан талыг
+    # хар тайзан дээр төвд томруулж, тохирох break animation-ийг тоглуулна.
+    $ city_destroyed = (not victory) and cb_player_hp <= 0
+    call screen crowd_battle_break(victory, city_destroyed)
+
+    if victory:
+        call crowd_victory_ending
+    else:
         call crowd_defeat_ending
 
     call screen crowd_battle_ending(victory)
