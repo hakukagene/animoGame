@@ -852,11 +852,12 @@ label crowd_world_cinematic:
     )
 
     hide nova
+    hide monster
+    
     window hide
 
     call screen crowd_cinematic_title(
         "ANIME & ANIMATION QUIZ",
-        "ДУНД / ХҮНД",
         duration=3.2
     )
 

@@ -126,7 +126,7 @@ define CROWD_BATTLE_QUESTIONS = [
         "question": "Jujutsu Kaisen-ны зохиолч хэн бэ",
         "voice": None,
         "choices": ["Eiichiro Oda", "Osamu Tezuka", "Gege Akutami", "Akira Toriyama"],
-        "correct_index": 3, "duration": 25, "attack_power": 100, "enemy_attack_power": 100,
+        "correct_index": 2, "duration": 25, "attack_power": 100, "enemy_attack_power": 100,
     },
     {
         "question": "Fullmetal Alchemist-д ах дүү Elric нарын гол зорилго юу вэ?",
