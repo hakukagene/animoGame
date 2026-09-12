@@ -748,13 +748,18 @@ label crowd_world_cinematic:
         True,
         panel_image="images/stat/redsystem3.png"
     )
-
+    window hide
+    scene expression Solid("#000000")
+    with fade
+    show monster at nova_intro_reveal
     $ cb_voice_line(Monster, "Энэ ертөнц...", "audio/mangas1.ogg")
     $ renpy.pause(0.8, hard=True)
     $ cb_voice_line(Monster, "...та нарынх биш.", "audio/mangas2.ogg")
-
+    hide monster
+    show nova at nova_intro_reveal
     N "Чи хэн бэ?{w=1.5}{nw}"
-
+    hide nova
+    show monster at nova_intro_reveal
     $ cb_voice_line(Monster, "Намайг мэдэх хүн та нарын дунд байхгүй.", "audio/mangas3.ogg")
     $ cb_voice_line(Monster, "Учир нь...", "audio/mangas4.ogg")
     $ cb_voice_line(Monster, "...би та нараас ч өмнө байсан.", "audio/mangas5.ogg")
@@ -764,12 +769,19 @@ label crowd_world_cinematic:
         $ cb_voice_line(Monster, enemy_name_line, cb_enemy_name_voice)
     else:
         Monster "Намайг “THE COLOSSUS” гэдэг.{w=2.8}{nw}"
-
+    hide monster
+    show nova at nova_intro_reveal
     $ cb_voice_line(N, "Яагаад бидэн рүү дайрч байна вэ?", "audio/hutlugch36.ogg")
+    hide nova
+    show monster at nova_intro_reveal
     $ cb_voice_line(Monster, "Дайрах гэж үү?", "audio/mangas9.ogg")
     $ cb_voice_line(Monster, "ХА-ХА-ХА!", "audio/mangas10.ogg")
     $ cb_voice_line(Monster, "Би буцаан авч байна.", "audio/mangas11.ogg")
+    hide monster
+    show nova at nova_intro_reveal
     $ cb_voice_line(N, "Юуг?", "audio/hutlugch37.ogg")
+    hide nova
+    show monster at nova_intro_reveal
     $ cb_voice_line(Monster, "Ертөнцийг.", "audio/mangas12.ogg")
 
     window hide
@@ -781,7 +793,7 @@ label crowd_world_cinematic:
     $ renpy.pause(0.7, hard=True)
     hide crowd_enemy
     show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
-
+    show nova at nova_intro_reveal
     $ cb_voice_line(N, "Бүтээгчдээ!", "audio/hutlugch38.ogg")
     $ cb_voice_line(N, "Та нар энэ ертөнцийг бүтээсэн!", "audio/hutlugch39.ogg")
     $ cb_voice_line(N, "Одоо...", "audio/hutlugch40.ogg")

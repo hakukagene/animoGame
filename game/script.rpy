@@ -5,7 +5,7 @@ label start:
     $ quick_menu = False
     $ cb_connection_message = ""
     $ cb_start_story_bgm()
-    jump crowd_monster_battle
+    jump crowd_creators_questions
 
 
 label crowd_creators_questions:
