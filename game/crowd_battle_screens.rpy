@@ -931,17 +931,17 @@ screen crowd_battle_stage(shown_question, shown_choices=None, voting_active=Fals
                 text_align 1.0
 
     add team_city_image:
-        xysize (650, 370)
+        xysize (550, 240)
         xcenter 505
         ycenter 445
 
     add cb_enemy_idle_image:
         at cb_monster_idle
-        xysize (650, 370)
+        xysize (550, 240)
         xcenter 1415
         ycenter 445
 
-    add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
+    add Movie(channel="cb_monster_movie", size=(550, 240), alpha=True):
         xcenter 1415
         ycenter 445
 
@@ -1063,25 +1063,15 @@ screen crowd_battle_round(
 
     $ current_round = cb_battle.get("current_round") or {}
     $ guarded_round_id = expected_round_id or cb_round_guard_id
-    $ final_result = (
-        current_round.get("result")
-        or cb_round_result
-        or {}
-    )
-
+    
     on "show" action Function(cb_start_battle_idle)
 
     timer 0.25 repeat True action Function(cb_poll_round_action)
 
     # Ижил interaction дотор result screen рүү шууд солино.
-    if cb_round_can_finish(guarded_round_id) and final_result:
-        timer 0.01 action [
-            Show(
-                "crowd_round_result",
-                result=final_result,
-                final_question=final_question
-            ),
-            Hide("crowd_battle_round")
+    if cb_round_can_finish(guarded_round_id):
+        timer 0.01 action Return [
+            current_round.get("result") or cb_round_result
         ]
 
     use crowd_battle_stage(
@@ -1190,12 +1180,12 @@ screen crowd_round_result(result, final_question=False):
     if player_damage > 0:
         add team_city_image:
             at cb_team_hit_flash
-            xysize (650, 370)
+            xysize (550, 240)
             xcenter 505
             ycenter 445
     else:
         add team_city_image:
-            xysize (650, 370)
+            xysize (550, 240)
             xcenter 505
             ycenter 445
 
@@ -1235,22 +1225,22 @@ screen crowd_round_result(result, final_question=False):
     if monster_damage > 0:
         add cb_enemy_idle_image:
             at cb_monster_idle, cb_monster_hit_flash
-            xysize (650, 370)
+            xysize (550, 240)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
+        add Movie(channel="cb_monster_movie", size=(550, 240), alpha=True):
             at cb_monster_hit_flash
             xcenter 1415
             ycenter 445
     else:
         add cb_enemy_idle_image:
             at cb_monster_idle
-            xysize (650, 370)
+            xysize (550, 240)
             xcenter 1415
             ycenter 445
 
-        add Movie(channel="cb_monster_movie", size=(650, 370), alpha=True):
+        add Movie(channel="cb_monster_movie", size=(550, 2400), alpha=True):
             xcenter 1415
             ycenter 445
 
