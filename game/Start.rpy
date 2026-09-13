@@ -83,7 +83,7 @@ init -50 python:
         return _cb_play_looped_bgm(
             CB_BATTLE_BGM_PATH,
             "cb_battle_bgm",
-            fadein=0.7,
+            fadein=0.3,
             volume=0.15,
         )
 
