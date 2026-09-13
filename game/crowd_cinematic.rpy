@@ -828,7 +828,7 @@ label crowd_world_cinematic:
     $ renpy.pause(0.7, hard=True)
 
     hide crowd_enemy
-    show expression cb_enemy_idle_image as crowd_enemy at cb_cinematic_boss
+
     show nova at novat
 
     $ cb_voice_line(N, "Бүтээгчдээ!", "audio/hutlugch38.ogg")
