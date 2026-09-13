@@ -91,7 +91,7 @@ label crowd_monster_battle:
 
     $ question_index = 0
 
-    # Нэг battle-д 20 асуултыг нэг удаа л ашиглана.
+    # Нэг battle-д бүх quiz асуултыг нэг удаа л ашиглана.
     while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
         $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
@@ -160,7 +160,7 @@ label crowd_monster_battle:
         if cb_player_hp <= 0:
             $ cb_battle_end_reason = "Үзэгчдийн багийн HP 0 болсон."
         else:
-            $ cb_battle_end_reason = "20 асуулт дуусахад мангас амьд үлдсэн."
+            $ cb_battle_end_reason = "{} асуулт дуусахад мангас амьд үлдсэн.".format(len(CROWD_BATTLE_QUESTIONS))
 
     # Сүүлийн цохилтын result WebM бүрэн дууссаны дараа ялагдсан талыг
     # хар тайзан дээр төвд томруулж, тохирох break animation-ийг тоглуулна.
