@@ -95,14 +95,6 @@ label crowd_monster_battle:
     while cb_battle_status == "active" and question_index < len(CROWD_BATTLE_QUESTIONS):
         $ question = CROWD_BATTLE_QUESTIONS[question_index]
 
-        # Anime quiz эхэлснээс хойш say/dialogue screen рүү шилжихгүй.
-        # Ижил battle HUD дээр асуулт + хариултыг харуулж OGG-г дуусгана.
-        show screen crowd_battle_voice_preview(question)
-        $ voice_played = cb_play_ogg_and_wait(question.get("voice"))
-        if not voice_played:
-            $ renpy.pause(1.5, hard=True, modal=False)
-        hide screen crowd_battle_voice_preview
-        $ renpy.block_rollback()
         
         
         $ response = cb_start_round(question)
